@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЕХАТРОНІКА.exe — Еволюція та практика промислової робототехніки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f6;
+  --bg-panel:#ffffff;
+  --bg-soft:#f4f7fb;
+  --grid:#dde5ee;
+  --ink:#101826;
+  --ink-soft:#4a5568;
+  --cyan:#00b8c4;
+  --cyan-deep:#007a84;
+  --magenta:#d6006e;
+  --amber:#c97a00;
+  --line:#c7d2e0;
+  --ok:#0a9b5c;
+  --shadow: 0 6px 20px rgba(16,24,38,.08);
+  --radius: 14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/38px 38px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/38px 38px,
+    var(--bg);
+  color:var(--ink);
+  font-family:'Rajdhani', sans-serif;
+  font-size:16px;
+  line-height:1.5;
+  min-height:100vh;
+}
+::selection{background:var(--cyan); color:#fff;}
+h1,h2,h3,h4{font-family:'Orbitron', sans-serif; margin:0 0 .5em; letter-spacing:.02em;}
+code, .mono, .krl{font-family:'Share Tech Mono', monospace;}
+a{color:var(--cyan-deep);}
+
+/* ===== Layout shell ===== */
+.frame{
+  max-width:1180px;
+  margin:0 auto;
+  padding:18px 18px 80px;
+}
+.hud-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 18px; background:var(--bg-panel);
+  border:1px solid var(--line); border-radius:10px;
+  margin-bottom:16px; box-shadow:var(--shadow);
+  font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--ink-soft);
+}
+.hud-bar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 6px var(--ok);}
+
+/* ===== Header ===== */
+header.hero{
+  position:relative;
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:38px 34px;
+  margin-bottom:22px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+header.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background:
+    repeating-linear-gradient(115deg, rgba(0,184,196,.05) 0 2px, transparent 2px 26px),
+    repeating-linear-gradient(25deg, rgba(214,0,110,.04) 0 2px, transparent 2px 30px);
+  pointer-events:none;
+}
+.hero-tag{
+  display:inline-block; font-family:'Share Tech Mono',monospace; font-size:12px;
+  letter-spacing:.15em; color:var(--cyan-deep); background:rgba(0,184,196,.1);
+  border:1px solid rgba(0,184,196,.4); padding:4px 10px; border-radius:20px; margin-bottom:14px;
+}
+header.hero h1{
+  font-size:clamp(26px,4vw,42px);
+  background:linear-gradient(90deg,var(--ink) 30%, var(--cyan-deep));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  max-width:820px;
+}
+header.hero p.sub{color:var(--ink-soft); max-width:720px; font-size:18px; margin:6px 0 18px;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px;}
+.chip{
+  background:var(--bg-soft); border:1px solid var(--line); border-radius:8px;
+  padding:6px 12px; font-size:13px; font-family:'Share Tech Mono',monospace; color:var(--ink);
+}
+.chip b{color:var(--magenta);}
+
+/* ===== Nav ===== */
+nav.tabs{
+  position:sticky; top:8px; z-index:50;
+  display:flex; flex-wrap:wrap; gap:8px;
+  background:rgba(255,255,255,.9); backdrop-filter:blur(6px);
+  border:1px solid var(--line); border-radius:12px; padding:8px;
+  margin-bottom:22px; box-shadow:var(--shadow);
+}
+nav.tabs button{
+  font-family:'Share Tech Mono', monospace; font-size:12.5px;
+  background:var(--bg-soft); color:var(--ink-soft); border:1px solid var(--line);
+  padding:8px 12px; border-radius:8px; cursor:pointer; transition:.15s;
+}
+nav.tabs button:hover{border-color:var(--cyan); color:var(--cyan-deep);}
+nav.tabs button.active{
+  background:var(--ink); color:#fff; border-color:var(--ink);
+  box-shadow:0 0 0 2px rgba(0,184,196,.35);
+}
+
+/* ===== Sections ===== */
+section.panel{
+  display:none;
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 28px; margin-bottom:22px; box-shadow:var(--shadow);
+}
+section.panel.active{display:block; animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+section.panel h2{font-size:24px; color:var(--ink); border-bottom:2px solid var(--cyan); padding-bottom:10px; margin-bottom:18px; display:flex; align-items:center; gap:10px;}
+section.panel h2 .idx{font-family:'Share Tech Mono',monospace; font-size:14px; color:#fff; background:var(--magenta); padding:2px 9px; border-radius:6px;}
+section.panel h3{font-size:18px; color:var(--cyan-deep); margin-top:24px;}
+
+.lede{color:var(--ink-soft); font-size:16px; margin-bottom:14px;}
+
+/* ===== Accordion ===== */
+.acc-item{border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden;}
+.acc-head{
+  cursor:pointer; padding:12px 16px; background:var(--bg-soft);
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'Orbitron',sans-serif; font-size:14px; font-weight:600;
+}
+.acc-head:hover{color:var(--cyan-deep);}
+.acc-head .arrow{transition:transform .25s; color:var(--magenta);}
+.acc-item.open .arrow{transform:rotate(90deg);}
+.acc-body{max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 16px;}
+.acc-item.open .acc-body{padding:14px 16px 18px;}
+
+/* ===== Grid / cards ===== */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr;}}
+.card{background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:16px;}
+.card h4{color:var(--magenta); font-size:14px; margin-bottom:6px;}
+
+/* ===== Buttons ===== */
+.btn{
+  font-family:'Share Tech Mono',monospace; font-size:13px; cursor:pointer;
+  border:1px solid var(--ink); background:var(--ink); color:#fff;
+  padding:9px 16px; border-radius:8px; transition:.15s;
+}
+.btn:hover{background:var(--cyan-deep); border-color:var(--cyan-deep);}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn.ghost:hover{border-color:var(--cyan-deep); color:var(--cyan-deep);}
+.btn.small{padding:5px 10px; font-size:11px;}
+.btnrow{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0;}
+
+/* ===== Mind map svg ===== */
+.mindmap-wrap{background:var(--bg-soft); border:1px dashed var(--line); border-radius:12px; padding:10px; margin:14px 0;}
+.mindmap-wrap svg{width:100%; height:auto; display:block;}
+.mm-node text{font-family:'Rajdhani',sans-serif; font-weight:600;}
+.mm-root text{font-family:'Orbitron',sans-serif;}
+
+/* ===== Steps ===== */
+.steps{counter-reset:step;}
+.step{position:relative; padding:10px 10px 10px 44px; border-left:2px solid var(--line); margin-left:14px;}
+.step::before{
+  counter-increment:step; content:counter(step);
+  position:absolute; left:-15px; top:8px; width:28px; height:28px; border-radius:50%;
+  background:var(--cyan); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-family:'Share Tech Mono',monospace; font-weight:700; box-shadow:0 0 0 4px var(--bg-panel);
+}
+
+/* ===== Code block ===== */
+.codeblock{
+  background:#0d1420; color:#c9f7ff; border-radius:10px; padding:16px;
+  font-family:'Share Tech Mono',monospace; font-size:13px; overflow-x:auto;
+  border:1px solid #1c2b3f;
+}
+.codeblock .ln{display:block; padding:2px 6px; border-radius:4px;}
+.codeblock .ln.active{background:rgba(0,184,196,.25); box-shadow:inset 3px 0 0 var(--cyan);}
+.codeblock .cm{color:#7fa; opacity:.75;}
+.codeblock .kw{color:#ff8fd1;}
+.codeblock .fn{color:#ffd479;}
+
+/* ===== Simulator ===== */
+.sim-wrap{display:grid; grid-template-columns:1.3fr 1fr; gap:18px;}
+@media(max-width:850px){.sim-wrap{grid-template-columns:1fr;}}
+.sim-stage{background:#f7fafc; border:1px solid var(--line); border-radius:12px; padding:8px;}
+.sim-controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px;}
+.sim-controls label{font-size:12px; font-family:'Share Tech Mono',monospace; color:var(--ink-soft); display:flex; gap:6px; align-items:center;}
+.sim-log{background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:12.5px; height:100px; overflow-y:auto;}
+.legend-dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px;}
+
+/* ===== SWOT ===== */
+.swot-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+@media(max-width:700px){.swot-grid{grid-template-columns:1fr;}}
+.flip{perspective:1000px; height:170px; cursor:pointer;}
+.flip-inner{position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;}
+.flip.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:12px; padding:16px; overflow-y:auto;}
+.flip-front{background:var(--bg-soft); border:1px solid var(--line);}
+.flip-back{background:var(--ink); color:#eaf6f8; transform:rotateY(180deg); font-size:13.5px;}
+.flip-front h4{font-family:'Orbitron',sans-serif; font-size:15px;}
+.S{border-left:5px solid var(--ok)!important;} .W{border-left:5px solid var(--amber)!important;}
+.O{border-left:5px solid var(--cyan)!important;} .T{border-left:5px solid var(--magenta)!important;}
+
+/* ===== Calculator ===== */
+.calc-inputs{display:flex; flex-wrap:wrap; gap:14px; margin:14px 0;}
+.calc-inputs label{display:flex; flex-direction:column; font-size:12px; color:var(--ink-soft); font-family:'Share Tech Mono',monospace; gap:4px;}
+.calc-inputs input{
+  font-family:'Share Tech Mono',monospace; font-size:14px; padding:8px 10px;
+  border:1px solid var(--line); border-radius:8px; width:130px; background:#fff;
+}
+.result-box{background:var(--bg-soft); border:1px solid var(--cyan); border-radius:10px; padding:14px 18px; margin-top:10px; font-family:'Share Tech Mono',monospace;}
+.result-box .big{font-size:26px; color:var(--magenta); font-family:'Orbitron',sans-serif;}
+
+table{border-collapse:collapse; width:100%; margin:10px 0; font-size:14px;}
+th,td{border:1px solid var(--line); padding:8px 10px; text-align:left;}
+th{background:var(--bg-soft); font-family:'Orbitron',sans-serif; font-size:12px;}
+
+/* ===== Quiz ===== */
+.quiz-q{border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-soft);}
+.quiz-q h4{font-size:15px; margin-bottom:10px;}
+.quiz-opt{display:block; width:100%; text-align:left; margin-bottom:7px; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:14.5px;}
+.quiz-opt:hover{border-color:var(--cyan);}
+.quiz-opt.correct{background:rgba(10,155,92,.14); border-color:var(--ok); font-weight:700;}
+.quiz-opt.wrong{background:rgba(214,0,110,.12); border-color:var(--magenta);}
+.quiz-fb{font-size:13.5px; margin-top:8px; color:var(--ink-soft); display:none;}
+.quiz-fb.show{display:block;}
+#quizScoreBar{position:sticky; bottom:10px; background:var(--ink); color:#fff; padding:10px 16px; border-radius:10px; font-family:'Share Tech Mono',monospace; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow);}
+
+/* ===== Glossary ===== */
+.gloss dt{font-family:'Orbitron',sans-serif; color:var(--magenta); font-size:14px; margin-top:12px;}
+.gloss dd{margin:4px 0 0; color:var(--ink-soft);}
+
+/* ===== Checklist / protocol form ===== */
+.field{margin-bottom:10px;}
+.field label{display:block; font-size:13px; color:var(--ink-soft); margin-bottom:4px;}
+.field input[type=text]{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:8px; font-family:'Rajdhani',sans-serif; font-size:14px;}
+.radiorow{display:flex; gap:14px; flex-wrap:wrap; font-size:14px;}
+textarea{width:100%; min-height:70px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Rajdhani',sans-serif; font-size:14px;}
+
+footer{text-align:center; color:var(--ink-soft); font-family:'Share Tech Mono',monospace; font-size:12px; padding:20px 0 0;}
+.badge-ok{background:var(--ok); color:#fff; font-size:11px; padding:2px 8px; border-radius:20px; font-family:'Share Tech Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="hud-bar">
+    <span><span class="dot"></span>SYSTEM: STEAM‑HUB / MECHATRONICS.LAB — ОНЛАЙН</span>
+    <span id="clockOut">SESSION: PR‑01</span>
+  </div>
+
+  <header class="hero">
+    <span class="hero-tag">// PRACTICAL_WORK_01 · MECHATRONICS_CORE</span>
+    <h1>Еволюція мехатроніки: аналіз ключових етапів розвитку та сучасних тенденцій</h1>
+    <p class="sub">Інтерактивний технопанк-посібник до практичної роботи. Хронологія, польове дослідження, покоління модулів, програмування траєкторії робота-баристи та аналіз ринку — з симуляціями, ментальними картами та контролем знань.</p>
+    <div class="hero-meta">
+      <span class="chip">⏱ <b>170 хв</b> аудиторних завдань</span>
+      <span class="chip">🎯 5 практичних завдань + самостійна робота</span>
+      <span class="chip">🤖 Кейс: <b>робот-бариста</b></span>
+      <span class="chip">📡 KRL / RAPID</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabsNav">
+    <button data-t="t-map" class="active">🗺 Карта заняття</button>
+    <button data-t="t-theory">📘 Теорія</button>
+    <button data-t="t-task1">01 · Хронологія</button>
+    <button data-t="t-task2">02 · Робот-бариста</button>
+    <button data-t="t-task3">03 · Покоління модулів</button>
+    <button data-t="t-task4">04 · Траєкторія</button>
+    <button data-t="t-task5">05 · Ринок і SWOT</button>
+    <button data-t="t-self">📝 Самостійна</button>
+    <button data-t="t-quiz">❓ Контроль знань</button>
+    <button data-t="t-ref">📚 Довідник</button>
+  </nav>
+
+  <!-- ============ 0. MAP ============ -->
+  <section class="panel active" id="t-map">
+    <h2><span class="idx">MAP</span> Загальна карта практичної роботи</h2>
+    <p class="lede">Мета: систематизувати знання про еволюцію мехатроніки, навчитись ідентифікувати підсистеми на реальному об'єкті, порівнювати покоління модулів, програмувати найпростішу траєкторію та оцінювати ринкову доцільність.</p>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1100 460" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fb0c4"/></marker>
+        </defs>
+        <g stroke="#c7d2e0" stroke-width="2" fill="none">
+          <line x1="550" y1="230" x2="230" y2="80" marker-end="url(#arrow)"/>
+          <line x1="550" y1="230" x2="870" y2="80" marker-end="url(#arrow)"/>
+          <line x1="550" y1="230" x2="200" y2="230" marker-end="url(#arrow)"/>
+          <line x1="550" y1="230" x2="900" y2="230" marker-end="url(#arrow)"/>
+          <line x1="550" y1="230" x2="230" y2="390" marker-end="url(#arrow)"/>
+          <line x1="550" y1="230" x2="870" y2="390" marker-end="url(#arrow)"/>
+        </g>
+        <g class="mm-root">
+          <rect x="450" y="195" width="200" height="70" rx="16" fill="#101826"/>
+          <text x="550" y="225" text-anchor="middle" fill="#fff" font-size="14">ПРАКТИЧНА №1</text>
+          <text x="550" y="245" text-anchor="middle" fill="#00e5ef" font-size="12">ЕВОЛЮЦІЯ МЕХАТРОНІКИ</text>
+        </g>
+        <g class="mm-node">
+          <rect x="120" y="45" width="220" height="60" rx="14" fill="#fff" stroke="#00b8c4" stroke-width="2"/>
+          <text x="230" y="70" text-anchor="middle" font-size="12.5" fill="#101826">Завд.1 · Хронологічний аналіз</text>
+          <text x="230" y="88" text-anchor="middle" font-size="10.5" fill="#4a5568">5 підгруп, шкала часу, 35 хв</text>
+        </g>
+        <g class="mm-node">
+          <rect x="760" y="45" width="220" height="60" rx="14" fill="#fff" stroke="#d6006e" stroke-width="2"/>
+          <text x="870" y="70" text-anchor="middle" font-size="12.5" fill="#101826">Завд.2 · Польове дослідження</text>
+          <text x="870" y="88" text-anchor="middle" font-size="10.5" fill="#4a5568">Робот-бариста, протокол, 40 хв</text>
+        </g>
+        <g class="mm-node">
+          <rect x="90" y="200" width="220" height="60" rx="14" fill="#fff" stroke="#c97a00" stroke-width="2"/>
+          <text x="200" y="225" text-anchor="middle" font-size="12.5" fill="#101826">Завд.3 · Покоління модулів</text>
+          <text x="200" y="243" text-anchor="middle" font-size="10.5" fill="#4a5568">Рівні І–ІІІ, 30 хв</text>
+        </g>
+        <g class="mm-node">
+          <rect x="790" y="200" width="220" height="60" rx="14" fill="#fff" stroke="#00b8c4" stroke-width="2"/>
+          <text x="900" y="225" text-anchor="middle" font-size="12.5" fill="#101826">Завд.4 · Траєкторія «Barista Move»</text>
+          <text x="900" y="243" text-anchor="middle" font-size="10.5" fill="#4a5568">KRL / RAPID, 35 хв</text>
+        </g>
+        <g class="mm-node">
+          <rect x="120" y="355" width="220" height="60" rx="14" fill="#fff" stroke="#d6006e" stroke-width="2"/>
+          <text x="230" y="380" text-anchor="middle" font-size="12.5" fill="#101826">Завд.5 · Ринок і SWOT</text>
+          <text x="230" y="398" text-anchor="middle" font-size="10.5" fill="#4a5568">CAGR, ROI, 30 хв</text>
+        </g>
+        <g class="mm-node">
+          <rect x="760" y="355" width="220" height="60" rx="14" fill="#fff" stroke="#0a9b5c" stroke-width="2"/>
+          <text x="870" y="380" text-anchor="middle" font-size="12.5" fill="#101826">Самостійна робота</text>
+          <text x="870" y="398" text-anchor="middle" font-size="10.5" fill="#4a5568">4 завдання поглиблення</text>
+        </g>
+      </svg>
+    </div>
+    <div class="grid3">
+      <div class="card"><h4>Обладнання</h4>Конспекти лекцій №1–3, ноутбук/планшет, роздатковий матеріал, доступ до кав'ярні з роботом-маніпулятором (або відео), калькулятор.</div>
+      <div class="card"><h4>Наскрізний кейс</h4>Усі завдання об'єднані навколо одного об'єкта — <b>робота-баристи</b>, що дозволяє простежити мехатроніку від історії до економіки в одній системі.</div>
+      <div class="card"><h4>Як користуватись посібником</h4>Проходьте вкладки зліва направо. У кожному завданні є ментальна карта алгоритму дій, інтерактивний блок і підказки. Наприкінці — контроль знань та довідник.</div>
+    </div>
+  </section>
+
+  <!-- ============ THEORY ============ -->
+  <section class="panel" id="t-theory">
+    <h2><span class="idx">§0</span> Короткі теоретичні відомості</h2>
+    <p class="lede">Матеріал для повторення перед виконанням завдань (лекції №1–3). Розгорніть потрібний блок.</p>
+
+    <div class="acc-item">
+      <div class="acc-head"><span>Етапи еволюції мехатроніки</span><span class="arrow">▶</span></div>
+      <div class="acc-body">
+        <ul>
+          <li><b>Античність та Середньовіччя</b> — Ктесібій, Архімед, Херон, аль-Джазарі, да Вінчі.</li>
+          <li><b>Новий час та Просвітництво</b> — Вокансон, Жаке-Дро, Жаккард, Беббідж.</li>
+          <li><b>Кібернетична революція (1920–1950-ті)</b> — Чапек, Азімов, Вінер, Мінорський, «кібернетичний зоопарк».</li>
+          <li><b>Перші промислові роботи (1950–1970-ті)</b> — Девол, Енгельбергер, Unimate, KUKA FAMULUS, ABB IRB 6.</li>
+          <li><b>Сучасність</b> — колаборативні роботи, гуманоїди, Industry 4.0, AI-оптимізація.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="acc-item">
+      <div class="acc-head"><span>Архітектура мехатронної системи</span><span class="arrow">▶</span></div>
+      <div class="acc-body">
+        <p>Чотири базові підсистеми: <b>механічна</b>, <b>електрична/електронна</b>, <b>сенсорна</b>, <b>інформаційна</b>. Ієрархія керування: стратегічний → тактичний → виконавчий рівні.</p>
+      </div>
+    </div>
+
+    <div class="acc-item">
+      <div class="acc-head"><span>Покоління мехатронних модулів</span><span class="arrow">▶</span></div>
+      <div class="acc-body">
+        <p><b>I рівень</b> — мотор-редуктор. <b>II рівень</b> — інтеграція датчиків (сервопривод з енкодером). <b>III рівень</b> — інтелектуальні модулі руху (ІММР) з власним контролером і цифровою шиною.</p>
+      </div>
+    </div>
+
+    <div class="acc-item">
+      <div class="acc-head"><span>Програмування рухів: KRL і RAPID</span><span class="arrow">▶</span></div>
+      <div class="acc-body">
+        <p>Типи рухів: <b>PTP</b> (Point-to-Point, KRL) / <b>MoveJ</b> (RAPID) — швидкий рух у просторі суглобів; <b>LIN</b> / <b>MoveL</b> — лінійний рух TCP; <b>CIRC</b> / <b>MoveC</b> — рух по дузі; <b>SPLINE</b> — гладка траєкторія через кілька точок.</p>
+        <p>Координатні системи: <b>WORLD</b> (цех), <b>BASE</b> (робоча зона), <b>ROBROOT</b> (основа робота), <b>TOOL</b>/<b>FLANGE</b> (інструмент, TCP).</p>
+      </div>
+    </div>
+
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#c7d2e0" stroke-width="2" fill="none">
+          <line x1="500" y1="150" x2="180" y2="60"/><line x1="500" y1="150" x2="180" y2="150"/><line x1="500" y1="150" x2="180" y2="240"/>
+          <line x1="500" y1="150" x2="820" y2="60"/><line x1="500" y1="150" x2="820" y2="150"/><line x1="500" y1="150" x2="820" y2="240"/>
+        </g>
+        <rect x="410" y="120" width="180" height="60" rx="14" fill="#101826"/>
+        <text x="500" y="155" text-anchor="middle" fill="#fff" font-size="13">МЕХАТРОННА СИСТЕМА</text>
+        <g font-size="12" fill="#101826">
+          <rect x="60" y="35" width="240" height="50" rx="10" fill="#fff" stroke="#00b8c4"/><text x="180" y="65" text-anchor="middle">Механічна підсистема</text>
+          <rect x="60" y="125" width="240" height="50" rx="10" fill="#fff" stroke="#d6006e"/><text x="180" y="155" text-anchor="middle">Електрична/електронна</text>
+          <rect x="60" y="215" width="240" height="50" rx="10" fill="#fff" stroke="#c97a00"/><text x="180" y="245" text-anchor="middle">Сенсорна</text>
+          <rect x="700" y="35" width="240" height="50" rx="10" fill="#fff" stroke="#0a9b5c"/><text x="820" y="65" text-anchor="middle">Інформаційна (керування)</text>
+          <rect x="700" y="125" width="240" height="50" rx="10" fill="#fff" stroke="#00b8c4"/><text x="820" y="155" text-anchor="middle">Стратегічний / тактичний рівень</text>
+          <rect x="700" y="215" width="240" height="50" rx="10" fill="#fff" stroke="#d6006e"/><text x="820" y="245" text-anchor="middle">Виконавчий рівень</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ TASK 1 ============ -->
+  <section class="panel" id="t-task1">
+    <h2><span class="idx">01</span> Хронологічний аналіз еволюції мехатроніки</h2>
+    <p class="lede"><b>Форма:</b> групова робота (5 підгруп) + семінар · <b>Час:</b> 35 хв · <b>Мета:</b> створити хронологічну шкалу розвитку мехатроніки й обґрунтувати внесок кожного етапу.</p>
+
+    <h3>Алгоритм дій (ментальна карта)</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 340" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2" fill="none" marker-end="url(#a1)">
+          <path d="M120,170 H240"/><path d="M360,170 H480"/><path d="M600,170 H720"/><path d="M840,170 H900"/>
+        </g>
+        <g font-size="12.5" fill="#101826">
+          <rect x="10" y="140" width="110" height="60" rx="12" fill="#101826"/><text x="65" y="165" text-anchor="middle" fill="#fff" font-size="11">1. Поділ на</text><text x="65" y="180" text-anchor="middle" fill="#00e5ef" font-size="11">5 підгруп</text>
+          <rect x="240" y="130" width="120" height="80" rx="12" fill="#fff" stroke="#d6006e"/><text x="300" y="160" text-anchor="middle" font-size="11">2. Опрацювати</text><text x="300" y="176" text-anchor="middle" font-size="11">лекцію, обрати</text><text x="300" y="192" text-anchor="middle" font-size="11">3–4 події</text>
+          <rect x="480" y="120" width="120" height="100" rx="12" fill="#fff" stroke="#c97a00"/><text x="540" y="150" text-anchor="middle" font-size="11">3. Оформити</text><text x="540" y="166" text-anchor="middle" font-size="11">фрагмент шкали</text><text x="540" y="182" text-anchor="middle" font-size="11">(А3 / Padlet):</text><text x="540" y="198" text-anchor="middle" font-size="10.5">дати · іконки · тези</text>
+          <rect x="720" y="130" width="120" height="80" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="780" y="160" text-anchor="middle" font-size="11">4. Презентація</text><text x="780" y="176" text-anchor="middle" font-size="11">2 хв/підгрупа +</text><text x="780" y="192" text-anchor="middle" font-size="11">синергія етапу</text>
+          <rect x="900" y="140" width="90" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="945" y="165" text-anchor="middle" font-size="10.5">5. Дискусія</text><text x="945" y="180" text-anchor="middle" font-size="10">«без цього етапу?»</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Розподіл етапів по підгрупах</h3>
+    <div class="grid3">
+      <div class="card"><h4>Етап 1</h4>Античність — Середньовіччя: міфологія, Ктесібій, Архімед, Херон, аль-Джазарі, да Вінчі.</div>
+      <div class="card"><h4>Етап 2</h4>Новий час — Просвітництво: Вокансон, Жаке-Дро, Жаккард, обчислювальна техніка.</div>
+      <div class="card"><h4>Етап 3</h4>Кібернетична революція (1920–1950-ті): Чапек, Азімов, Вінер, Шеннон, Уолтер.</div>
+      <div class="card"><h4>Етап 4</h4>Народження промислової робототехніки (1950–1980-ті): Unimate, KUKA FAMULUS, ABB IRB 6, SCARA.</div>
+      <div class="card"><h4>Етап 5</h4>Сучасність (1990-ті — 2035): коботи, гуманоїди, AI, VLA-моделі.</div>
+      <div class="card"><h4>Питання для дискусії</h4>«Чи можливо було б створити сучасного робота-баристу без досягнень вашого етапу?»</div>
+    </div>
+
+    <h3>🧪 Симуляція: інтерактивна шкала часу</h3>
+    <p class="lede">Клікніть на подію, щоб побачити її значення для мехатроніки. Це — цифровий аналог шкали, яку підгрупа будує на А3.</p>
+    <div id="timelineWrap" class="mindmap-wrap" style="cursor:default;"></div>
+    <div id="timelineInfo" class="result-box" style="display:none;"></div>
+  </section>
+
+  <!-- ============ TASK 2 ============ -->
+  <section class="panel" id="t-task2">
+    <h2><span class="idx">02</span> Польове дослідження: мехатронна система робота-баристи</h2>
+    <p class="lede"><b>Форма:</b> групи по 2–3 · <b>Час:</b> 40 хв (з відвідуванням кав'ярні) · <b>Мета:</b> ідентифікувати підсистеми, рівень інтеграції модулів і синергетичний ефект на реальному об'єкті.</p>
+
+    <h3>Алгоритм спостереження</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d6006e"/></marker></defs>
+        <g stroke="#d6006e" stroke-width="2" fill="none" marker-end="url(#a2)">
+          <path d="M150,130 H270"/><path d="M410,130 H530"/><path d="M670,130 H780" />
+        </g>
+        <g stroke="#d6006e" stroke-width="2" fill="none" marker-end="url(#a2)"><path d="M700,150 C700,220 400,220 220,175"/></g>
+        <g font-size="12" fill="#101826">
+          <rect x="10" y="100" width="140" height="65" rx="12" fill="#101826"/><text x="80" y="128" text-anchor="middle" fill="#fff" font-size="11">Бланк «Протокол</text><text x="80" y="144" text-anchor="middle" fill="#00e5ef" font-size="11">спостереження»</text>
+          <rect x="270" y="90" width="140" height="85" rx="12" fill="#fff" stroke="#00b8c4"/><text x="340" y="115" text-anchor="middle" font-size="10.5">Спостерігати за</text><text x="340" y="130" text-anchor="middle" font-size="10.5">приготуванням</text><text x="340" y="145" text-anchor="middle" font-size="10.5">замовлення:</text><text x="340" y="160" text-anchor="middle" font-size="9.5">маніпулятор·осі·датчики</text>
+          <rect x="530" y="95" width="140" height="75" rx="12" fill="#fff" stroke="#c97a00"/><text x="600" y="120" text-anchor="middle" font-size="10.5">Заповнити таблицю</text><text x="600" y="136" text-anchor="middle" font-size="10.5">ідентифікації</text><text x="600" y="152" text-anchor="middle" font-size="10.5">підсистем</text>
+          <rect x="700" y="95" width="150" height="110" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="775" y="118" text-anchor="middle" font-size="10.5">Визначити рівень</text><text x="775" y="133" text-anchor="middle" font-size="10.5">інтеграції (І/ІІ/ІІІ)</text><text x="775" y="153" text-anchor="middle" font-size="10.5">→ сформулювати</text><text x="775" y="168" text-anchor="middle" font-size="10.5">синергетичний</text><text x="775" y="183" text-anchor="middle" font-size="10.5">ефект → презентація</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Таблиця ідентифікації підсистем (заповніть під час спостереження)</h3>
+    <table id="subsysTable">
+      <tr><th>Підсистема</th><th>Конкретні елементи, що спостерігалися</th><th>Функція в системі</th></tr>
+      <tr><td>Механічна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Електрична/електронна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Сенсорна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Інформаційна (керування)</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+    </table>
+
+    <h3>📋 Інтерактивний протокол спостереження (Додаток А)</h3>
+    <div class="card">
+      <div class="field"><label>Назва об'єкта</label><input type="text"></div>
+      <div class="grid2">
+        <div class="field"><label>Дата</label><input type="text" placeholder="дд.мм.рррр"></div>
+        <div class="field"><label>Час</label><input type="text" placeholder="гг:хх"></div>
+      </div>
+      <div class="field"><label>Склад бригади</label><input type="text"></div>
+      <div class="field"><label>Тип конструкції маніпулятора</label>
+        <div class="radiorow">
+          <label><input type="radio" name="ctype">декартовий</label>
+          <label><input type="radio" name="ctype">SCARA</label>
+          <label><input type="radio" name="ctype">артикульований</label>
+          <label><input type="radio" name="ctype">інший</label>
+        </div>
+      </div>
+      <div class="field"><label>Кількість осей (ступенів свободи)</label><input type="text" style="max-width:120px;"></div>
+      <div class="field"><label>Рівень інтеграції</label>
+        <div class="radiorow">
+          <label><input type="radio" name="lvl">І рівень (мотор-редуктори)</label>
+          <label><input type="radio" name="lvl">ІІ рівень (сервоприводи з датчиками)</label>
+          <label><input type="radio" name="lvl">ІІІ рівень (ІММР із цифровою шиною)</label>
+        </div>
+      </div>
+      <div class="field"><label>Синергетичний ефект (які властивості неможливі без інтеграції?)</label><textarea></textarea></div>
+      <div class="field"><label>Пропозиції щодо вдосконалення</label><textarea></textarea></div>
+      <div class="btnrow"><button class="btn" onclick="alert('Протокол зафіксовано локально у формі. Роздрукуйте або перенесіть у звіт.')">Зберегти протокол</button></div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 3 ============ -->
+  <section class="panel" id="t-task3">
+    <h2><span class="idx">03</span> Порівняльний аналіз поколінь мехатронних модулів</h2>
+    <p class="lede"><b>Форма:</b> індивідуально + захист · <b>Час:</b> 30 хв · <b>Мета:</b> навчитись оцінювати рівень інтеграції на прикладі конкретних пристроїв.</p>
+
+    <h3>Три рівні інтеграції (ментальна карта)</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#c7d2e0" stroke-width="2"><line x1="450" y1="130" x2="180" y2="60"/><line x1="450" y1="130" x2="450" y2="60"/><line x1="450" y1="130" x2="720" y2="60"/></g>
+        <rect x="360" y="130" width="180" height="55" rx="14" fill="#101826"/><text x="450" y="163" text-anchor="middle" fill="#fff" font-size="12">РІВНІ ІНТЕГРАЦІЇ ММ</text>
+        <g font-size="11.5" fill="#101826">
+          <rect x="70" y="15" width="220" height="60" rx="12" fill="#fff" stroke="#c97a00"/><text x="180" y="38" text-anchor="middle" font-weight="700">I рівень</text><text x="180" y="55" text-anchor="middle" font-size="10.5">Мотор-редуктор, аналоговий канал</text>
+          <rect x="340" y="15" width="220" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="450" y="38" text-anchor="middle" font-weight="700">II рівень</text><text x="450" y="55" text-anchor="middle" font-size="10.5">Сервопривод + енкодер/тахогенератор</text>
+          <rect x="610" y="15" width="220" height="60" rx="12" fill="#fff" stroke="#d6006e"/><text x="720" y="38" text-anchor="middle" font-weight="700">III рівень (ІММР)</text><text x="720" y="55" text-anchor="middle" font-size="10.5">Датчик+інвертер+мікроконтролер, CAN/EtherCAT</text>
+        </g>
+        <g font-size="10" fill="#4a5568">
+          <text x="180" y="230" text-anchor="middle">Точність: низька (люфти)</text>
+          <text x="450" y="230" text-anchor="middle">Точність: висока</text>
+          <text x="720" y="230" text-anchor="middle">Точність: надвисока (до 0,001°)</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Порівняльна таблиця (зразок із лекції)</h3>
+    <table>
+      <tr><th>Критерій</th><th>Модуль I рівня (1960–1970-ті)</th><th>Модуль II рівня (1980-ті)</th><th>Модуль III рівня (1990-ті — сьогодення)</th></tr>
+      <tr><td>Назва прикладу</td><td>Мотор-редуктор</td><td>Сервопривод з енкодером</td><td>Інтелектуальний мехатронний модуль руху (ІММР)</td></tr>
+      <tr><td>Базовий елемент</td><td>Електродвигун + редуктор</td><td>Виконавчий двигун</td><td>Приводний модуль</td></tr>
+      <tr><td>Додатковий елемент</td><td>—</td><td>Оптичний енкодер, тахогенератор</td><td>Вбудований датчик + силовий інвертер + мікроконтролер</td></tr>
+      <tr><td>Виключений інтерфейс</td><td>І3 (муфти, вали)</td><td>І3, І5</td><td>І2, І3, І4, І5</td></tr>
+      <tr><td>Точність позиціонування</td><td>Низька (люфти редуктора)</td><td>Висока</td><td>Надвисока (до 0,001°)</td></tr>
+      <tr><td>Канал зв'язку</td><td>Аналоговий</td><td>Аналоговий/цифровий</td><td>Цифрова шина (CAN, EtherCAT)</td></tr>
+      <tr><td>Застосування</td><td>Конвеєри</td><td>Верстати з ЧПУ</td><td>Промислові роботи, мотор-колеса</td></tr>
+    </table>
+    <p class="lede">Додайте у зошит/звіт ще <b>2 власних приклади</b> модулів на вибір, а також аналіз: які модулі якого рівня використано в роботі-баристі, і що буде, якщо ІІІ рівень замінити комбінацією І+ІІ.</p>
+
+    <h3>🧪 Симуляція: рівень інтеграції vs точність і швидкість зв'язку</h3>
+    <div class="sim-stage" style="padding:16px;">
+      <input type="range" id="levelSlider" min="1" max="3" value="1" step="1" style="width:100%;">
+      <div id="levelOut" style="margin-top:10px; font-family:'Share Tech Mono',monospace;"></div>
+      <div style="background:var(--bg-soft); border-radius:10px; height:26px; margin-top:10px; position:relative; overflow:hidden;">
+        <div id="levelBar" style="height:100%; background:linear-gradient(90deg,var(--amber),var(--cyan)); width:20%; transition:.3s;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 4 ============ -->
+  <section class="panel" id="t-task4">
+    <h2><span class="idx">04</span> Програмування траєкторії «Barista Move»</h2>
+    <p class="lede"><b>Форма:</b> індивідуально · <b>Час:</b> 35 хв · <b>Мета:</b> закріпити типи рухів промислових роботів і координатні системи.</p>
+
+    <h3>Алгоритм побудови програми (ментальна карта)</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 220" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2" fill="none" marker-end="url(#a4)">
+          <path d="M150,110 H260"/><path d="M380,110 H490"/><path d="M610,110 H720"/><path d="M840,110 H900"/>
+        </g>
+        <g font-size="11" fill="#101826">
+          <rect x="10" y="80" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="105" text-anchor="middle" fill="#fff">1. Технологічне</text><text x="80" y="122" text-anchor="middle" fill="#00e5ef">завдання (точки)</text>
+          <rect x="260" y="75" width="120" height="70" rx="12" fill="#fff" stroke="#d6006e"/><text x="320" y="100" text-anchor="middle">2. Координатні</text><text x="320" y="116" text-anchor="middle">системи</text><text x="320" y="132" text-anchor="middle" font-size="9.5">BASE·TOOL·WORLD</text>
+          <rect x="490" y="70" width="120" height="80" rx="12" fill="#fff" stroke="#c97a00"/><text x="550" y="95" text-anchor="middle">3. Тип руху</text><text x="550" y="111" text-anchor="middle">для кожного</text><text x="550" y="127" text-anchor="middle">переходу</text><text x="550" y="143" text-anchor="middle" font-size="9.5">PTP / LIN</text>
+          <rect x="720" y="75" width="120" height="70" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="780" y="100" text-anchor="middle">4. Код KRL/</text><text x="780" y="116" text-anchor="middle">RAPID +</text><text x="780" y="132" text-anchor="middle">коментарі</text>
+          <rect x="900" y="80" width="90" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="945" y="105" text-anchor="middle" font-size="10">5. Блок</text><text x="945" y="120" text-anchor="middle" font-size="10">безпеки</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Технологічна задача — операція «Капучино»</h3>
+    <div class="grid3">
+      <div class="card"><h4>HOME</h4>Початкове положення робота.</div>
+      <div class="card"><h4>A · COFFEE_MACHINE</h4>Підхід до кавомашини (горизонтальна площина, без перешкод) — <b>PTP</b>.</div>
+      <div class="card"><h4>B · CUP_PICK</h4>Захват чашки, потрібна точність — <b>LIN</b>.</div>
+      <div class="card"><h4>C · POUR</h4>Наливання кави, лінійна траєкторія без розбризкування — <b>LIN</b>.</div>
+      <div class="card"><h4>D · CLIENT</h4>Видача чашки клієнту — <b>LIN</b>, потім повернення в HOME — <b>PTP</b>.</div>
+      <div class="card"><h4>Блок безпеки</h4>Силомоментний/лазерний датчик зупиняє робота при появі перешкоди: <span class="mono">IF $TORQUE_AXIS[3] &gt; MAX_TORQUE THEN STOP</span>.</div>
+    </div>
+
+    <h3>🧪 Симуляція траєкторії робота-баристи</h3>
+    <p class="lede">Натисніть «Старт», щоб прогнати програму. TCP рухається по прямій під час <span style="color:var(--cyan-deep);font-weight:700;">LIN</span> і по вигнутій траєкторії суглобів під час <span style="color:var(--magenta);font-weight:700;">PTP</span>. Відповідний рядок коду підсвічується синхронно.</p>
+    <div class="sim-wrap">
+      <div>
+        <div class="sim-stage">
+          <svg id="armStage" viewBox="0 0 480 320" width="100%" style="display:block;">
+            <rect x="0" y="0" width="480" height="320" fill="#f7fafc"/>
+            <g stroke="#dde5ee" stroke-width="1">
+              <line x1="0" y1="80" x2="480" y2="80"/><line x1="0" y1="160" x2="480" y2="160"/><line x1="0" y1="240" x2="480" y2="240"/>
+              <line x1="120" y1="0" x2="120" y2="320"/><line x1="240" y1="0" x2="240" y2="320"/><line x1="360" y1="0" x2="360" y2="320"/>
+            </g>
+            <!-- static point markers, coordinates set by JS via data -->
+            <g id="ptMarkers" font-family="Share Tech Mono, monospace" font-size="10" fill="#4a5568"></g>
+            <path id="pathTrace" d="" stroke="#00b8c4" stroke-width="2" fill="none" stroke-dasharray="5 4" opacity="0.6"/>
+            <circle id="tcp" r="9" fill="#d6006e" stroke="#101826" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="sim-controls">
+          <button class="btn" id="simPlay">▶ Старт</button>
+          <button class="btn ghost" id="simReset">⟲ Скинути</button>
+          <label>Швидкість <input type="range" id="simSpeed" min="0.4" max="2.5" step="0.1" value="1"></label>
+        </div>
+        <div class="sim-log" id="simLog">Готово до запуску…</div>
+      </div>
+      <div>
+        <div class="codeblock" id="krlBlock">
+<span class="ln"><span class="cm">DEF</span> <span class="fn">BaristaMove</span>()</span>
+<span class="ln"><span class="cm">; Оголошення точок (координати умовні)</span></span>
+<span class="ln"><span class="kw">DECL</span> E6POS HOME, A, B, C, D</span>
+<span class="ln">HOME = {X 0, Y 0, Z 400, A 0, B 0, C 0}</span>
+<span class="ln">A = {X 300, Y 200, Z 300, A 0, B 90, C 0}</span>
+<span class="ln">B = {X 300, Y 200, Z 150, A 0, B 90, C 0}</span>
+<span class="ln">C = {X 300, Y 200, Z 180, A 0, B 90, C 0} <span class="cm">; точка наливання</span></span>
+<span class="ln">D = {X 500, Y 400, Z 200, A 0, B 90, C 0} <span class="cm">; видача клієнту</span></span>
+<span class="ln" data-seg="0"><span class="kw">PTP</span> HOME Vel=100% PDAT1 <span class="cm">; початкове положення</span></span>
+<span class="ln" data-seg="1"><span class="kw">PTP</span> A Vel=100% PDAT2 <span class="cm">; швидкий підхід</span></span>
+<span class="ln" data-seg="2"><span class="kw">LIN</span> B Vel=0.5 m/s CPDAT1 <span class="cm">; точне позиціонування</span></span>
+<span class="ln" data-seg="3"><span class="kw">LIN</span> C Vel=0.2 m/s CPDAT2 <span class="cm">; наливання, повільно</span></span>
+<span class="ln"><span class="kw">WAIT</span> SEC 3 <span class="cm">; час наливання</span></span>
+<span class="ln" data-seg="4"><span class="kw">LIN</span> D Vel=0.3 m/s CPDAT3 <span class="cm">; перенесення клієнту</span></span>
+<span class="ln" data-seg="5"><span class="kw">PTP</span> HOME Vel=100% PDAT1 <span class="cm">; повернення</span></span>
+<span class="ln"><span class="kw">END</span></span>
+        </div>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:12px;">Завдання: письмово поясніть у зошиті, чому обрано саме такий тип руху та швидкість на кожному переході, спираючись на симуляцію вище.</p>
+  </section>
+
+  <!-- ============ TASK 5 ============ -->
+  <section class="panel" id="t-task5">
+    <h2><span class="idx">05</span> Аналіз ринку робототехніки та SWOT робота-баристи</h2>
+    <p class="lede"><b>Форма:</b> групи по 2–3 · <b>Час:</b> 30 хв · <b>Мета:</b> оцінити економічну доцільність впровадження мехатронних систем у сферу послуг.</p>
+
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 950 200" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a5" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d6006e"/></marker></defs>
+        <g stroke="#d6006e" stroke-width="2" fill="none" marker-end="url(#a5)"><path d="M150,100 H270"/><path d="M400,100 H520"/><path d="M650,100 H770"/></g>
+        <g font-size="11" fill="#101826">
+          <rect x="10" y="70" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="95" text-anchor="middle" fill="#fff">Дані ринку</text><text x="80" y="112" text-anchor="middle" fill="#00e5ef">2025→2035</text>
+          <rect x="270" y="65" width="130" height="70" rx="12" fill="#fff" stroke="#00b8c4"/><text x="335" y="90" text-anchor="middle">Графік росту</text><text x="335" y="106" text-anchor="middle">(складні %)</text>
+          <rect x="520" y="65" width="130" height="70" rx="12" fill="#fff" stroke="#c97a00"/><text x="585" y="90" text-anchor="middle">SWOT-аналіз</text><text x="585" y="106" text-anchor="middle">впровадження</text>
+          <rect x="770" y="60" width="160" height="80" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="850" y="88" text-anchor="middle">Окупність (ROI)</text><text x="850" y="104" text-anchor="middle">+ 3 прогнози</text><text x="850" y="120" text-anchor="middle" font-size="9.5">HoReCa 2030</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>📈 Калькулятор зростання ринку (складні відсотки)</h3>
+    <p class="lede">Формула: V<sub>n</sub> = V<sub>2025</sub> × (1 + CAGR)<sup>n</sup>, де n — кількість років від 2025.</p>
+    <div class="calc-inputs">
+      <label>V2025, млрд $ <input type="number" id="mV0" value="53.1" step="0.1"></label>
+      <label>CAGR, % <input type="number" id="mCagr" value="17.6" step="0.1"></label>
+      <label>Рік прогнозу <input type="number" id="mYear" value="2035" step="1" min="2026" max="2040"></label>
+      <button class="btn" onclick="calcMarket()">Розрахувати</button>
+    </div>
+    <div id="marketOut"></div>
+    <div class="mindmap-wrap"><svg id="marketChart" viewBox="0 0 700 220" width="100%"></svg></div>
+
+    <h3>🧩 SWOT-аналіз: робот-бариста в університетській кав'ярні</h3>
+    <p class="lede">Клікніть на картку, щоб перегорнути й побачити приклади з лекції.</p>
+    <div class="swot-grid">
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front S"><h4>S — Strengths</h4>Сильні сторони впровадження</div>
+          <div class="flip-face flip-back">• цілодобова робота без перерв<br>• точність дозування<br>• гігієнічність</div>
+        </div>
+      </div>
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front W"><h4>W — Weaknesses</h4>Слабкі сторони</div>
+          <div class="flip-face flip-back">• висока початкова вартість<br>• неможливість творчого підходу<br>• залежність від електроживлення</div>
+        </div>
+      </div>
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front O"><h4>O — Opportunities</h4>Можливості</div>
+          <div class="flip-face flip-back">• модель RaaS (оренда від $3500/міс)<br>• зниження вартості збору даних<br>• маркетинговий хайп</div>
+        </div>
+      </div>
+      <div class="flip" onclick="this.classList.toggle('flipped')">
+        <div class="flip-inner">
+          <div class="flip-face flip-front T"><h4>T — Threats</h4>Загрози</div>
+          <div class="flip-face flip-back">• конкуренція з кавовими автоматами<br>• регулювання безпеки коботів<br>• негативне сприйняття покупцями</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>💰 Калькулятор окупності (спрощений)</h3>
+    <div class="calc-inputs">
+      <label>Вартість робота, € <input type="number" id="rCost" value="80000" step="1000"></label>
+      <label>Зарплата бариста, €/міс <input type="number" id="rSalary" value="800" step="50"></label>
+      <label>Кількість замінених барист <input type="number" id="rStaff" value="2" step="1" min="1"></label>
+      <label>Економія на каві, €/міс <input type="number" id="rSaving" value="300" step="10"></label>
+      <button class="btn" onclick="calcROI()">Порахувати</button>
+    </div>
+    <div class="result-box" id="roiOut">Заповніть параметри та натисніть «Порахувати».</div>
+
+    <h3>Прогнози HoReCa на 2030 рік</h3>
+    <p class="lede">Сформулюйте 3 власні прогнози, спираючись на тренди: AI, універсальність, RaaS, синтетичні дані. Приклад формулювання: «До 2030 року частка коботів у мережевих кав'ярнях зросте завдяки моделі RaaS, що знизить поріг входу для малого бізнесу».</p>
+  </section>
+
+  <!-- ============ SELF STUDY ============ -->
+  <section class="panel" id="t-self">
+    <h2><span class="idx">§5</span> Завдання для самостійного виконання</h2>
+    <div class="steps">
+      <div class="step"><b>Концептуальне проєктування.</b> Опишіть гіпотетичний мехатронний модуль <b>IV рівня інтеграції</b> для робота-баристи: які компоненти (механіка, електроніка, ПЗ, AI) інтегровані в єдиний корпус, які інтерфейси виключені, який синергетичний ефект очікується. Обсяг 1–1,5 стор.</div>
+      <div class="step"><b>Порівняльний аналіз контролерів.</b> Складіть таблицю (не менше 8 критеріїв) для <b>KUKA KR C5</b> та <b>ABB IRC5/OmniCore</b>. Зробіть висновок щодо доцільності для колаборативного робота-баристи.</div>
+      <div class="step"><b>Кінематична задача.</b> Для шестивісного артикульованого робота з кутами θ₁=30°, θ₂=−45°, θ₃=60°, θ₄=0°, θ₅=90°, θ₆=0° поясніть різницю між прямою та оберненою кінематикою; обґрунтуйте, чому обернена кінематика має до 8 розв'язків.</div>
+      <div class="step"><b>Аналітичний огляд.</b> Опрацюйте статтю (2023–2026) на тему «Collaborative robots in food service» або «AI-driven trajectory planning for robotic arms». Реферат 1,5–2 стор.: мета, методологія, ключові результати, зв'язок з лекційним матеріалом.</div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="panel" id="t-quiz">
+    <h2><span class="idx">§6</span> Контрольні питання</h2>
+    <p class="lede">12 питань з практичної роботи у форматі самоперевірки. Оберіть відповідь — правильна підсвітиться одразу.</p>
+    <div id="quizContainer"></div>
+    <div id="quizScoreBar">Результат: <span id="quizScore">0 / 12</span></div>
+  </section>
+
+  <!-- ============ REFERENCE ============ -->
+  <section class="panel" id="t-ref">
+    <h2><span class="idx">REF</span> Довідкові матеріали</h2>
+    <h3>Глосарій</h3>
+    <dl class="gloss">
+      <dt>Мехатроніка</dt><dd>Міждисциплінарна галузь, що інтегрує механіку, електроніку та інформатику для створення систем із синергетичним ефектом.</dd>
+      <dt>Синергетичний ефект</dt><dd>Якісно нова властивість системи, недосяжна для її окремих підсистем поза інтеграцією.</dd>
+      <dt>ІММР</dt><dd>Інтелектуальний мехатронний модуль руху — модуль III рівня з вбудованим контролером і цифровою шиною зв'язку.</dd>
+      <dt>PTP / MoveJ</dt><dd>Point-to-Point — рух у просторі суглобів, найшвидший, траєкторія TCP не контролюється.</dd>
+      <dt>LIN / MoveL</dt><dd>Лінійний рух TCP по прямій між двома точками з контрольованою швидкістю.</dd>
+      <dt>CIRC / MoveC</dt><dd>Рух TCP по дузі кола через проміжну точку.</dd>
+      <dt>WORLD / BASE / TOOL / FLANGE</dt><dd>Ієрархія координатних систем: глобальна цехова, робоча зона, інструмент (TCP), фланець кріплення інструмента.</dd>
+      <dt>Повторюваність vs точність</dt><dd>Повторюваність — розкид позицій при поверненні в ту саму точку; точність — відхилення від заданої координати. Для зварювання кузова критична повторюваність.</dd>
+      <dt>Обернена кінематика</dt><dd>Обчислення кутів суглобів за заданою позицією TCP; задача нелінійна і може мати до 8 розв'язків для 6-вісного робота.</dd>
+      <dt>RaaS</dt><dd>Robot-as-a-Service — оренда робота з оплатою за використання замість купівлі, знижує поріг входу для малого бізнесу.</dd>
+      <dt>Електронний кулачок (Electronic Cam)</dt><dd>Програмна імітація механічного кулачкового механізму синхронізації рухів, що замінює фізичні кулачки та важелі.</dd>
+      <dt>Кобот</dt><dd>Колаборативний робот, розрахований на безпечну спільну роботу з людиною без огорож, зазвичай із силомоментними датчиками.</dd>
+    </dl>
+
+    <h3>Довідкові дані до розрахунків</h3>
+    <div class="grid3">
+      <div class="card"><h4>Ринок 2025</h4>53,1 млрд $ США</div>
+      <div class="card"><h4>Прогноз 2035</h4>257,5 млрд $ США</div>
+      <div class="card"><h4>CAGR 2026–2035</h4>17,6%</div>
+    </div>
+
+    <h3>Використані джерела заняття</h3>
+    <p class="lede">Конспекти лекцій №1–3 курсу «Основи мехатроніки та робототехніки, промислові роботи»; матеріали практичної роботи «Еволюція мехатроніки: аналіз ключових етапів розвитку та сучасних тенденцій» (STEAM-HUB, ПУЕТ).</p>
+  </section>
+
+  <footer>STEAM-HUB · ПУЕТ — інтерактивний навчальний посібник · генеровано для практичної роботи №1</footer>
+</div>
+
+<script>
+/* ---------- NAV ---------- */
+const tabs = document.querySelectorAll('#tabsNav button');
+const panels = document.querySelectorAll('section.panel');
+tabs.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    tabs.forEach(b=>b.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.t).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ---------- ACCORDION ---------- */
+document.querySelectorAll('.acc-head').forEach(h=>{
+  h.addEventListener('click',()=>{
+    const item = h.parentElement;
+    item.classList.toggle('open');
+    const body = item.querySelector('.acc-body');
+    body.style.maxHeight = item.classList.contains('open') ? body.scrollHeight+'px' : 0;
+  });
+});
+
+/* ---------- TIMELINE (Task 1) ---------- */
+const events = [
+  {y:'Античність', t:'Ктесібій, Архімед, Херон', d:'Перші автомати на воді, важелях і пневматиці — механічні прообрази виконавчих механізмів.'},
+  {y:'Середньовіччя', t:'Аль-Джазарі, да Вінчі', d:'Складні автоматони й механічні креслення — синтез механіки та «програмування» рухів кулачками.'},
+  {y:'XVIII ст.', t:'Вокансон, Жаке-Дро', d:'Механічні андроїди з програмованими послідовностями рухів — прообраз керуючої підсистеми.'},
+  {y:'XIX ст.', t:'Жаккард, Беббідж', d:'Перфокарти та обчислювальні машини — перші носії «інформаційної» підсистеми.'},
+  {y:'1920–1950-ті', t:'Чапек, Азімов, Вінер', d:"Кібернетика формує теорію зворотного зв'язку та керування — фундамент сучасної мехатроніки."},
+  {y:'1950–1970-ті', t:'Девол, Енгельбергер, Unimate', d:'Перший промисловий робот на заводі GM — початок серійної промислової робототехніки.'},
+  {y:'1970–1980-ті', t:'KUKA FAMULUS, ABB IRB 6', d:'Перші електрично керовані 6-вісні роботи — перехід від гідравліки до електроприводів.'},
+  {y:'1990-ті — нині', t:'Коботи, гуманоїди, Industry 4.0', d:'Інтеграція AI, мереж і сенсорики — модулі ІІІ рівня, синергія механіки й інтелекту.'}
+];
+const tlWrap = document.getElementById('timelineWrap');
+let tlSvg = '<svg viewBox="0 0 1000 140" xmlns="http://www.w3.org/2000/svg">';
+tlSvg += '<line x1="30" y1="70" x2="970" y2="70" stroke="#c7d2e0" stroke-width="3"/>';
+events.forEach((e,i)=>{
+  const x = 60 + i*((970-90)/(events.length-1));
+  tlSvg += `<g class="tl-node" data-i="${i}" style="cursor:pointer;">
+    <circle cx="${x}" cy="70" r="10" fill="${i%2==0?'#00b8c4':'#d6006e'}"/>
+    <text x="${x}" y="${i%2==0?45:105}" text-anchor="middle" font-size="11" font-family="Share Tech Mono, monospace" fill="#101826">${e.y}</text>
+  </g>`;
+});
+tlSvg += '</svg>';
+tlWrap.innerHTML = tlSvg;
+tlWrap.querySelectorAll('.tl-node').forEach(n=>{
+  n.addEventListener('click',()=>{
+    const e = events[n.dataset.i];
+    const info = document.getElementById('timelineInfo');
+    info.style.display='block';
+    info.innerHTML = `<b>${e.y} — ${e.t}</b><br><span style="font-family:'Rajdhani',sans-serif;">${e.d}</span>`;
+  });
+});
+
+/* ---------- TASK 3 slider ---------- */
+const levelData = [
+  {name:'I рівень', desc:'Мотор-редуктор, аналоговий канал, низька точність (люфти редуктора).', pct:22},
+  {name:'II рівень', desc:'Сервопривод з енкодером, аналогово-цифровий канал, висока точність.', pct:58},
+  {name:'III рівень (ІММР)', desc:'Вбудований контролер, цифрова шина CAN/EtherCAT, надвисока точність (до 0,001°).', pct:96}
+];
+const levelSlider = document.getElementById('levelSlider');
+function updateLevel(){
+  const d = levelData[levelSlider.value-1];
+  document.getElementById('levelOut').innerHTML = `<b>${d.name}:</b> ${d.desc}`;
+  document.getElementById('levelBar').style.width = d.pct+'%';
+}
+levelSlider.addEventListener('input', updateLevel);
+updateLevel();
+
+/* ---------- TASK 4 SIMULATOR ---------- */
+// coordinates mapped to SVG stage (top-down schematic, X: 0-500 -> px 40-440, Y:0-400 -> px 280-40)
+const pts = {
+  HOME:{x:0,y:400}, A:{x:300,y:300}, B:{x:300,y:150}, C:{x:300,y:180}, D:{x:500,y:200}
+};
+function mapPt(p){
+  return { px: 40 + (p.x/500)*400, py: 280 - (p.y/400)*240 };
+}
+const seq = [
+  {from:'HOME', to:'A', type:'PTP', label:'PTP HOME→A: швидкий підхід до кавомашини'},
+  {from:'A', to:'B', type:'LIN', label:'LIN A→B: точне позиціонування над чашкою'},
+  {from:'B', to:'C', type:'LIN', label:'LIN B→C: наливання, повільно і прямолінійно'},
+  {from:'C', to:'D', type:'LIN', label:'LIN C→D: перенесення повної чашки клієнту'},
+  {from:'D', to:'HOME', type:'PTP', label:'PTP D→HOME: швидке повернення'}
+];
+const markersG = document.getElementById('ptMarkers');
+let mk = '';
+Object.entries(pts).forEach(([name,p])=>{
+  const m = mapPt(p);
+  mk += `<circle cx="${m.px}" cy="${m.py}" r="4" fill="#4a5568"/><text x="${m.px+8}" y="${m.py-8}">${name}</text>`;
+});
+markersG.innerHTML = mk;
+
+const tcpEl = document.getElementById('tcp');
+const traceEl = document.getElementById('pathTrace');
+const simLog = document.getElementById('simLog');
+const codeLines = document.querySelectorAll('#krlBlock .ln');
+let simIndex = -1, simRunning=false, simRAF;
+
+function setTcp(x,y){ tcpEl.setAttribute('cx',x); tcpEl.setAttribute('cy',y); }
+function resetSim(){
+  simIndex=-1; simRunning=false; cancelAnimationFrame(simRAF);
+  const h = mapPt(pts.HOME);
+  setTcp(h.px,h.py);
+  traceEl.setAttribute('d','');
+  simLog.innerHTML='Готово до запуску…';
+  codeLines.forEach(l=>l.classList.remove('active'));
+}
+resetSim();
+
+function highlightSeg(i){
+  codeLines.forEach(l=>l.classList.remove('active'));
+  const el = document.querySelector(`.ln[data-seg="${i}"]`);
+  if(el) el.classList.add('active');
+}
+
+function animateSegment(fromP, toP, type, cb){
+  const f = mapPt(fromP), t = mapPt(toP);
+  const dur = 1200 / parseFloat(document.getElementById('simSpeed').value);
+  const start = performance.now();
+  let path = `M${f.px},${f.py}`;
+  function frame(now){
+    let k = Math.min(1,(now-start)/dur);
+    let x,y;
+    if(type==='LIN'){
+      x = f.px + (t.px-f.px)*k; y = f.py + (t.py-f.py)*k;
+    } else {
+      // PTP: arced joint-space path (visual approximation)
+      const mx = (f.px+t.px)/2, my = Math.min(f.py,t.py) - 60;
+      x = (1-k)*(1-k)*f.px + 2*(1-k)*k*mx + k*k*t.px;
+      y = (1-k)*(1-k)*f.py + 2*(1-k)*k*my + k*k*t.py;
+    }
+    setTcp(x,y);
+    if(k<1){ simRAF = requestAnimationFrame(frame); }
+    else { cb(); }
+  }
+  simRAF = requestAnimationFrame(frame);
+}
+
+function stepSim(){
+  simIndex++;
+  if(simIndex>=seq.length){ simLog.innerHTML+='<br>✅ Програму BaristaMove завершено.'; simRunning=false; return; }
+  const s = seq[simIndex];
+  highlightSeg(simIndex);
+  simLog.innerHTML = `▶ ${s.label}`;
+  animateSegment(pts[s.from], pts[s.to], s.type, ()=>{ if(simRunning) stepSim(); });
+}
+document.getElementById('simPlay').addEventListener('click',()=>{
+  if(simRunning) return;
+  resetSim(); simRunning=true; stepSim();
+});
+document.getElementById('simReset').addEventListener('click', resetSim);
+
+/* ---------- TASK 5: market calc ---------- */
+function calcMarket(){
+  const v0 = parseFloat(document.getElementById('mV0').value);
+  const cagr = parseFloat(document.getElementById('mCagr').value)/100;
+  const yearEnd = parseInt(document.getElementById('mYear').value);
+  const years = [2025,2026,2028,2030,2032,yearEnd].filter((v,i,a)=>a.indexOf(v)===i && v<=yearEnd).sort((a,b)=>a-b);
+  let rows='<table><tr><th>Рік</th><th>n</th><th>Vn, млрд $</th></tr>';
+  let vals=[];
+  years.forEach(y=>{
+    const n = y-2025;
+    const v = v0*Math.pow(1+cagr,n);
+    vals.push({y,v});
+    rows+=`<tr><td>${y}</td><td>${n}</td><td>${v.toFixed(1)}</td></tr>`;
+  });
+  rows+='</table>';
+  document.getElementById('marketOut').innerHTML = rows;
+  // chart
+  const maxV = Math.max(...vals.map(v=>v.v));
+  const w=700,h=220,pad=40;
+  let svg = `<rect x="0" y="0" width="${w}" height="${h}" fill="#f7fafc"/>`;
+  const bw = (w-2*pad)/vals.length;
+  vals.forEach((v,i)=>{
+    const bh = (v.v/maxV)*(h-2*pad);
+    const x = pad + i*bw + bw*0.15;
+    const y = h-pad-bh;
+    svg += `<rect x="${x}" y="${y}" width="${bw*0.7}" height="${bh}" fill="${i%2==0?'#00b8c4':'#d6006e'}" rx="4"/>`;
+    svg += `<text x="${x+bw*0.35}" y="${h-pad+16}" text-anchor="middle" font-size="11" font-family="Share Tech Mono, monospace">${v.y}</text>`;
+    svg += `<text x="${x+bw*0.35}" y="${y-6}" text-anchor="middle" font-size="10.5" font-family="Share Tech Mono, monospace">${v.v.toFixed(0)}</text>`;
+  });
+  document.getElementById('marketChart').innerHTML = svg;
+}
+calcMarket();
+
+/* ---------- TASK 5: ROI calc ---------- */
+function calcROI(){
+  const cost = parseFloat(document.getElementById('rCost').value);
+  const salary = parseFloat(document.getElementById('rSalary').value);
+  const staff = parseFloat(document.getElementById('rStaff').value);
+  const saving = parseFloat(document.getElementById('rSaving').value);
+  const monthly = salary*staff + saving;
+  const months = cost/monthly;
+  document.getElementById('roiOut').innerHTML =
+    `Місячна економія: <b>${monthly.toFixed(0)} €</b><br>Термін окупності: <span class="big">${months.toFixed(1)} міс.</span> (~${(months/12).toFixed(1)} р.)`;
+}
+calcROI();
+
+/* ---------- QUIZ ---------- */
+const quiz = [
+ {q:"У чому суть синергетичного ефекту в мехатроніці?", opts:["Проста сума властивостей окремих підсистем","Якісно нова властивість, недосяжна без інтеграції підсистем","Зменшення вартості виробництва компонентів","Прискорення механічної обробки деталей"], c:1},
+ {q:"Скільки базових підсистем виділяють у мехатронній системі?", opts:["Дві","Три","Чотири","П'ять"], c:2},
+ {q:"У чому фундаментальна різниця каскадного і паралельного (Concurrent Engineering) проєктування?", opts:["Каскадне — послідовне за етапами, паралельне — одночасна робота фахівців різних напрямів","Каскадне дешевше в будь-якому випадку","Паралельне застосовується лише для механіки","Різниці немає, це синоніми"], c:0},
+ {q:"Який модуль відповідає III рівню інтеграції?", opts:["Мотор-редуктор","Сервопривод з енкодером","Інтелектуальний мехатронний модуль руху (ІММР)","Пневмоциліндр"], c:2},
+ {q:"Що важливіше для зварювання кузова автомобіля — повторюваність чи точність?", opts:["Точність","Повторюваність","Обидва параметри не мають значення","Швидкість руху"], c:1},
+ {q:"Який тип руху KRL відповідає лінійному переміщенню TCP?", opts:["PTP","LIN","CIRC","SPLINE"], c:1},
+ {q:"Яка ключова перевага коботів порівняно з традиційними промисловими роботами?", opts:["Вища максимальна швидкість","Робота без огорож поруч із людиною завдяки сенсорам безпеки","Нижча точність позиціонування","Відсутність потреби в програмуванні"], c:1},
+ {q:"Що означає абревіатура RaaS?", opts:["Robot as a Service — оренда робота замість купівлі","Robotics and Automation Standard","Real-time Actuator Sensor","Rapid Assembly System"], c:0},
+ {q:"Який механічний вузол замінює «електронний кулачок» (Electronic Cam)?", opts:["Підшипник","Фізичний кулачковий механізм синхронізації","Редуктор","Сервопривод"], c:1},
+ {q:"Приклад датчика зовнішнього стану мехатронної системи?", opts:["Енкодер положення вала","Тахогенератор швидкості","Камера технічного зору","Датчик струму двигуна"], c:2},
+ {q:"Чому розв'язок оберненої кінематики неоднозначний?", opts:["Через похибки датчиків","Бо задача зводиться до системи нелінійних рівнянь з кількома розв'язками (до 8)","Через низьку точність приводів","Обернена кінематика завжди має єдиний розв'язок"], c:1},
+ {q:"Який тренд НЕ належить до ключових трендів ринку робототехніки 2025–2035?", opts:["AI-оптимізація траєкторій","Модель RaaS","Повна відмова від сенсорів","Використання синтетичних даних для навчання"], c:2}
+];
+const qc = document.getElementById('quizContainer');
+let score = 0, answered = new Set();
+quiz.forEach((item,qi)=>{
+  const div = document.createElement('div');
+  div.className='quiz-q';
+  div.innerHTML = `<h4>${qi+1}. ${item.q}</h4>` +
+    item.opts.map((o,oi)=>`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join('') +
+    `<div class="quiz-fb" id="fb-${qi}"></div>`;
+  qc.appendChild(div);
+});
+qc.addEventListener('click', e=>{
+  if(!e.target.classList.contains('quiz-opt')) return;
+  const qi = +e.target.dataset.q, oi = +e.target.dataset.o;
+  if(answered.has(qi)) return;
+  answered.add(qi);
+  const opts = document.querySelectorAll(`.quiz-opt[data-q="${qi}"]`);
+  opts.forEach(o=>{
+    o.disabled=true;
+    if(+o.dataset.o === quiz[qi].c) o.classList.add('correct');
+    else if(+o.dataset.o===oi) o.classList.add('wrong');
+  });
+  if(oi===quiz[qi].c) score++;
+  document.getElementById(`fb-${qi}`).classList.add('show');
+  document.getElementById(`fb-${qi}`).textContent = oi===quiz[qi].c ? '✅ Правильно.' : '❌ Неправильно. Правильна відповідь підсвічена вище.';
+  document.getElementById('quizScore').textContent = `${score} / ${quiz.length}`;
+});
+</script>
+</body>
+</html>

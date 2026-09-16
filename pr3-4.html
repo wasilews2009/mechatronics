@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>МЕХАТРОНІКА.LAB — Фізичний аналіз систем і симулятор KUKA.Sim</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f6; --bg-panel:#ffffff; --bg-soft:#f4f7fb; --grid:#dde5ee;
+  --ink:#101826; --ink-soft:#4a5568;
+  --cyan:#00b8c4; --cyan-deep:#007a84; --magenta:#d6006e; --amber:#c97a00; --ok:#0a9b5c;
+  --line:#c7d2e0; --shadow:0 6px 20px rgba(16,24,38,.08); --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:linear-gradient(var(--grid) 1px, transparent 1px) 0 0/38px 38px,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/38px 38px, var(--bg);
+  color:var(--ink); font-family:'Rajdhani', sans-serif; font-size:16px; line-height:1.5; min-height:100vh;}
+::selection{background:var(--cyan); color:#fff;}
+h1,h2,h3,h4{font-family:'Orbitron', sans-serif; margin:0 0 .5em; letter-spacing:.02em;}
+code,.mono{font-family:'Share Tech Mono', monospace;}
+a{color:var(--cyan-deep);}
+.frame{max-width:1180px; margin:0 auto; padding:18px 18px 80px;}
+.hud-bar{display:flex; align-items:center; justify-content:space-between; padding:10px 18px; background:var(--bg-panel);
+  border:1px solid var(--line); border-radius:10px; margin-bottom:16px; box-shadow:var(--shadow);
+  font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--ink-soft);}
+.hud-bar .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;box-shadow:0 0 6px var(--ok);}
+header.hero{position:relative; background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:38px 34px; margin-bottom:22px; overflow:hidden; box-shadow:var(--shadow);}
+header.hero::before{content:""; position:absolute; inset:0;
+  background: repeating-linear-gradient(115deg, rgba(0,184,196,.05) 0 2px, transparent 2px 26px),
+              repeating-linear-gradient(25deg, rgba(214,0,110,.04) 0 2px, transparent 2px 30px);
+  pointer-events:none;}
+.hero-tag{display:inline-block; font-family:'Share Tech Mono',monospace; font-size:12px; letter-spacing:.15em;
+  color:var(--cyan-deep); background:rgba(0,184,196,.1); border:1px solid rgba(0,184,196,.4); padding:4px 10px; border-radius:20px; margin-bottom:14px;}
+header.hero h1{font-size:clamp(24px,4vw,40px); background:linear-gradient(90deg,var(--ink) 30%, var(--cyan-deep));
+  -webkit-background-clip:text; background-clip:text; color:transparent; max-width:880px;}
+header.hero p.sub{color:var(--ink-soft); max-width:760px; font-size:18px; margin:6px 0 18px;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px;}
+.chip{background:var(--bg-soft); border:1px solid var(--line); border-radius:8px; padding:6px 12px; font-size:13px; font-family:'Share Tech Mono',monospace; color:var(--ink);}
+.chip b{color:var(--magenta);}
+nav.tabs{position:sticky; top:8px; z-index:50; display:flex; flex-wrap:wrap; gap:8px; background:rgba(255,255,255,.9);
+  backdrop-filter:blur(6px); border:1px solid var(--line); border-radius:12px; padding:8px; margin-bottom:22px; box-shadow:var(--shadow);}
+nav.tabs button{font-family:'Share Tech Mono', monospace; font-size:12px; background:var(--bg-soft); color:var(--ink-soft);
+  border:1px solid var(--line); padding:8px 11px; border-radius:8px; cursor:pointer; transition:.15s;}
+nav.tabs button:hover{border-color:var(--cyan); color:var(--cyan-deep);}
+nav.tabs button.active{background:var(--ink); color:#fff; border-color:var(--ink); box-shadow:0 0 0 2px rgba(0,184,196,.35);}
+section.panel{display:none; background:var(--bg-panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:26px 28px; margin-bottom:22px; box-shadow:var(--shadow);}
+section.panel.active{display:block; animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+section.panel h2{font-size:23px; border-bottom:2px solid var(--cyan); padding-bottom:10px; margin-bottom:18px; display:flex; align-items:center; gap:10px;}
+section.panel h2 .idx{font-family:'Share Tech Mono',monospace; font-size:13px; color:#fff; background:var(--magenta); padding:2px 9px; border-radius:6px;}
+section.panel h3{font-size:17px; color:var(--cyan-deep); margin-top:22px;}
+.lede{color:var(--ink-soft); font-size:16px; margin-bottom:14px;}
+.acc-item{border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden;}
+.acc-head{cursor:pointer; padding:12px 16px; background:var(--bg-soft); display:flex; justify-content:space-between; align-items:center;
+  font-family:'Orbitron',sans-serif; font-size:13.5px; font-weight:600;}
+.acc-head:hover{color:var(--cyan-deep);}
+.acc-head .arrow{transition:transform .25s; color:var(--magenta);}
+.acc-item.open .arrow{transform:rotate(90deg);}
+.acc-body{max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 16px;}
+.acc-item.open .acc-body{padding:14px 16px 18px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+.grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+@media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr;}}
+.card{background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:16px;}
+.card h4{color:var(--magenta); font-size:14px; margin-bottom:6px;}
+.btn{font-family:'Share Tech Mono',monospace; font-size:13px; cursor:pointer; border:1px solid var(--ink); background:var(--ink); color:#fff;
+  padding:9px 16px; border-radius:8px; transition:.15s;}
+.btn:hover{background:var(--cyan-deep); border-color:var(--cyan-deep);}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--line);}
+.btn.ghost:hover{border-color:var(--cyan-deep); color:var(--cyan-deep);}
+.btn.small{padding:5px 10px; font-size:11px;}
+.btnrow{display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; align-items:center;}
+.mindmap-wrap{background:var(--bg-soft); border:1px dashed var(--line); border-radius:12px; padding:10px; margin:14px 0;}
+.mindmap-wrap svg{width:100%; height:auto; display:block;}
+.steps{counter-reset:step;}
+.step{position:relative; padding:10px 10px 10px 44px; border-left:2px solid var(--line); margin-left:14px;}
+.step::before{counter-increment:step; content:counter(step); position:absolute; left:-15px; top:8px; width:28px; height:28px; border-radius:50%;
+  background:var(--cyan); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Share Tech Mono',monospace; font-weight:700;
+  box-shadow:0 0 0 4px var(--bg-panel);}
+table{border-collapse:collapse; width:100%; margin:10px 0; font-size:14px;}
+th,td{border:1px solid var(--line); padding:8px 10px; text-align:left;}
+th{background:var(--bg-soft); font-family:'Orbitron',sans-serif; font-size:11.5px;}
+.result-box{background:var(--bg-soft); border:1px solid var(--cyan); border-radius:10px; padding:14px 18px; margin-top:10px; font-family:'Share Tech Mono',monospace;}
+.result-box .big{font-size:22px; color:var(--magenta); font-family:'Orbitron',sans-serif;}
+.hotspot{cursor:pointer;}
+.hotspot circle{transition:.2s;}
+.hotspot:hover circle{stroke-width:4;}
+.sim-stage{background:#f7fafc; border:1px solid var(--line); border-radius:12px; padding:10px;}
+.sim-log{background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-family:'Share Tech Mono',monospace; font-size:12.5px; min-height:60px;}
+.render-btns{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+.render-btns button{font-family:'Share Tech Mono',monospace; font-size:11.5px; padding:7px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer;}
+.render-btns button.active{background:var(--ink); color:#fff;}
+.gloss dt{font-family:'Orbitron',sans-serif; color:var(--magenta); font-size:14px; margin-top:12px;}
+.gloss dd{margin:4px 0 0; color:var(--ink-soft);}
+.quiz-q{border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--bg-soft);}
+.quiz-q h4{font-size:14.5px; margin-bottom:10px;}
+.quiz-opt{display:block; width:100%; text-align:left; margin-bottom:7px; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:14.5px;}
+.quiz-opt:hover{border-color:var(--cyan);}
+.quiz-opt.correct{background:rgba(10,155,92,.14); border-color:var(--ok); font-weight:700;}
+.quiz-opt.wrong{background:rgba(214,0,110,.12); border-color:var(--magenta);}
+.quiz-fb{font-size:13.5px; margin-top:8px; color:var(--ink-soft); display:none;}
+.quiz-fb.show{display:block;}
+#quizScoreBar{position:sticky; bottom:10px; background:var(--ink); color:#fff; padding:10px 16px; border-radius:10px; font-family:'Share Tech Mono',monospace; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow);}
+.debate-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media(max-width:800px){.debate-grid{grid-template-columns:1fr;}}
+.debate-card{border-radius:12px; padding:16px;}
+.debate-card.central{background:rgba(0,184,196,.08); border:1px solid var(--cyan);}
+.debate-card.distrib{background:rgba(214,0,110,.06); border:1px solid var(--magenta);}
+textarea{width:100%; min-height:70px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-family:'Rajdhani',sans-serif; font-size:14px;}
+footer{text-align:center; color:var(--ink-soft); font-family:'Share Tech Mono',monospace; font-size:12px; padding:20px 0 0;}
+input[type=range]{width:100%;}
+.jog-readout{font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="hud-bar"><span><span class="dot"></span>SYSTEM: STEAM‑HUB / PHYSICAL‑MECHATRONICS.LAB — ОНЛАЙН</span><span>SESSION: PR‑03/04</span></div>
+
+  <header class="hero">
+    <span class="hero-tag">// PRACTICAL_WORK_03‑04 · PHYSICAL_ANALYSIS + KUKA.SIM_CORE</span>
+    <h1>Мехатронна анатомія реальних пристроїв та симулятор KUKA.Sim</h1>
+    <p class="sub">Інтерактивний технопанк-посібник: фізичний аналіз підсистем, реконструкція контуру керування, еволюційне дерево модулів, дебати архітектур, а також покроковий тренажер навігації, eCatalog, Plug&amp;Play та Robot Jog у KUKA.Sim.</p>
+    <div class="hero-meta">
+      <span class="chip">🔧 4 фізичні завдання</span>
+      <span class="chip">🖥 6 завдань у KUKA.Sim</span>
+      <span class="chip">📝 2 самостійні роботи</span>
+      <span class="chip">❓ 17 контрольних питань</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabsNav">
+    <button data-t="t-map" class="active">🗺 Карта</button>
+    <button data-t="t-theory">📘 Теорія</button>
+    <button data-t="t-task1">01 · Анатомія</button>
+    <button data-t="t-task2">02 · Детектив</button>
+    <button data-t="t-task3">03 · Еволюція</button>
+    <button data-t="t-task4">04 · Дебати</button>
+    <button data-t="t-task5">05–07 · Навігація Sim</button>
+    <button data-t="t-task8">08 · Осередок</button>
+    <button data-t="t-task9">09–10 · Jog / Snap</button>
+    <button data-t="t-self">📝 Самостійна</button>
+    <button data-t="t-quiz">❓ Контроль знань</button>
+    <button data-t="t-ref">📚 Довідник</button>
+  </nav>
+
+  <!-- MAP -->
+  <section class="panel active" id="t-map">
+    <h2><span class="idx">MAP</span> Загальна карта практичної роботи</h2>
+    <p class="lede">Мета: розпізнавати механічну, електронну, інформаційну підсистеми та підсистему керування в реальних об'єктах; аналізувати інтерфейси між ними; закріпити рівні інтеграції модулів (I–III) та ієрархію керування; опанувати базові інструменти KUKA.Sim.</p>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1100 480" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fb0c4"/></marker></defs>
+        <g stroke="#c7d2e0" stroke-width="2" fill="none">
+          <line x1="550" y1="240" x2="200" y2="70" marker-end="url(#arrow)"/><line x1="550" y1="240" x2="900" y2="70" marker-end="url(#arrow)"/>
+          <line x1="550" y1="240" x2="180" y2="240" marker-end="url(#arrow)"/><line x1="550" y1="240" x2="920" y2="240" marker-end="url(#arrow)"/>
+          <line x1="550" y1="240" x2="200" y2="410" marker-end="url(#arrow)"/><line x1="550" y1="240" x2="900" y2="410" marker-end="url(#arrow)"/>
+        </g>
+        <rect x="450" y="205" width="200" height="70" rx="16" fill="#101826"/>
+        <text x="550" y="234" text-anchor="middle" fill="#fff" font-size="12.5">ПРАКТИЧНА №3–4</text>
+        <text x="550" y="254" text-anchor="middle" fill="#00e5ef" font-size="11">ФІЗИКА + KUKA.SIM</text>
+        <g font-size="11.5" fill="#101826">
+          <rect x="80" y="35" width="240" height="60" rx="14" fill="#fff" stroke="#00b8c4" stroke-width="2"/><text x="200" y="60" text-anchor="middle">Завд.1 · Мехатронна анатомія</text><text x="200" y="78" text-anchor="middle" font-size="9.5" fill="#4a5568">реальний пристрій</text>
+          <rect x="780" y="35" width="240" height="60" rx="14" fill="#fff" stroke="#d6006e" stroke-width="2"/><text x="900" y="60" text-anchor="middle">Завд.2 · Архітектурний детектив</text><text x="900" y="78" text-anchor="middle" font-size="9.5" fill="#4a5568">контур керування</text>
+          <rect x="60" y="210" width="240" height="60" rx="14" fill="#fff" stroke="#c97a00" stroke-width="2"/><text x="180" y="235" text-anchor="middle">Завд.3 · Еволюційна лінія</text><text x="180" y="253" text-anchor="middle" font-size="9.5" fill="#4a5568">3 рівні модуля</text>
+          <rect x="800" y="210" width="240" height="60" rx="14" fill="#fff" stroke="#00b8c4" stroke-width="2"/><text x="920" y="235" text-anchor="middle">Завд.4 · Дебати архітектур</text><text x="920" y="253" text-anchor="middle" font-size="9.5" fill="#4a5568">централізоване vs розподілене</text>
+          <rect x="80" y="380" width="240" height="60" rx="14" fill="#fff" stroke="#d6006e" stroke-width="2"/><text x="200" y="405" text-anchor="middle">Завд.5–8 · KUKA.Sim</text><text x="200" y="423" text-anchor="middle" font-size="9.5" fill="#4a5568">навігація, eCatalog, PnP</text>
+          <rect x="780" y="380" width="240" height="60" rx="14" fill="#fff" stroke="#0a9b5c" stroke-width="2"/><text x="900" y="405" text-anchor="middle">Завд.9–10 · Jog / Snap</text><text x="900" y="423" text-anchor="middle" font-size="9.5" fill="#4a5568">ручне керування роботом</text>
+        </g>
+      </svg>
+    </div>
+    <div class="grid3">
+      <div class="card"><h4>Обладнання (частина 1)</h4>Реальні пристрої/вузли (привід 3D-принтера, дисковод, викрутка, сервопривод, кроковий двигун), інструменти для розбирання під наглядом викладача.</div>
+      <div class="card"><h4>Обладнання (частина 2)</h4>ПК зі встановленим KUKA.Sim (англомовний інтерфейс).</div>
+      <div class="card"><h4>Як користуватись</h4>Кожне завдання має ментальну карту алгоритму та інтерактивну симуляцію. У KUKA.Sim-блоках — навчальні тренажери, що імітують реальні елементи керування програми.</div>
+    </div>
+  </section>
+
+  <!-- THEORY -->
+  <section class="panel" id="t-theory">
+    <h2><span class="idx">§0</span> Короткі теоретичні відомості</h2>
+    <div class="acc-item"><div class="acc-head"><span>Чотири підсистеми (за Є. П. Поповим)</span><span class="arrow">▶</span></div>
+      <div class="acc-body"><p><b>Механічна</b> (корпус, передачі, виконавчі вузли), <b>електрична/електронна</b> (привод, силова електроніка), <b>сенсорна</b> (датчики стану), <b>інформаційна</b> (контролер, алгоритми керування).</p></div>
+    </div>
+    <div class="acc-item"><div class="acc-head"><span>Інтерфейси І1–І7 та сепаратні з'єднання</span><span class="arrow">▶</span></div>
+      <div class="acc-body"><p>Теоретична схема виділяє до 7 типів інтерфейсів між підсистемами. <b>Сепаратний інтерфейс</b> — окреме фізичне з'єднання (провід, роз'єм, муфта), яке в інтегрованому модулі зникає, бо функції об'єднані в одному корпусі. Що менше сепаратних інтерфейсів — то вищий рівень інтеграції і то вища надійність (менше точок відмови).</p></div>
+    </div>
+    <div class="acc-item"><div class="acc-head"><span>Ієрархія керування: стратегічний / тактичний / виконавчий</span><span class="arrow">▶</span></div>
+      <div class="acc-body"><p><b>Стратегічний</b> рівень — секунди/хвилини (планування завдання), <b>тактичний</b> — десятки–сотні мілісекунд (координація рухів), <b>виконавчий</b> — одиниці мілісекунд і швидше (безпосереднє керування приводом і зворотний зв'язок від датчика).</p></div>
+    </div>
+    <div class="acc-item"><div class="acc-head"><span>Безсенсорне (непряме) керування</span><span class="arrow">▶</span></div>
+      <div class="acc-body"><p>Приклад — пральна машина з інверторним двигуном: замість окремого датчика дисбалансу система оцінює навантаження за зміною струму статора, виключаючи фізичний датчик і замінюючи його математичною моделлю (спостерігачем стану).</p></div>
+    </div>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 240" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#c7d2e0" stroke-width="2"><line x1="500" y1="130" x2="180" y2="50"/><line x1="500" y1="130" x2="180" y2="130"/><line x1="500" y1="130" x2="180" y2="210"/>
+          <line x1="500" y1="130" x2="820" y2="50"/><line x1="500" y1="130" x2="820" y2="130"/><line x1="500" y1="130" x2="820" y2="210"/></g>
+        <rect x="410" y="100" width="180" height="60" rx="14" fill="#101826"/><text x="500" y="135" text-anchor="middle" fill="#fff" font-size="12">4 ПІДСИСТЕМИ</text>
+        <g font-size="11.5" fill="#101826">
+          <rect x="60" y="20" width="240" height="60" rx="10" fill="#fff" stroke="#00b8c4"/><text x="180" y="55" text-anchor="middle">Механічна</text>
+          <rect x="60" y="100" width="240" height="60" rx="10" fill="#fff" stroke="#d6006e"/><text x="180" y="135" text-anchor="middle">Електрична/електронна</text>
+          <rect x="60" y="180" width="240" height="60" rx="10" fill="#fff" stroke="#c97a00"/><text x="180" y="215" text-anchor="middle">Сенсорна</text>
+          <rect x="700" y="20" width="240" height="60" rx="10" fill="#fff" stroke="#0a9b5c"/><text x="820" y="55" text-anchor="middle">Інформаційна (контролер)</text>
+          <rect x="700" y="100" width="240" height="60" rx="10" fill="#fff" stroke="#00b8c4"/><text x="820" y="135" text-anchor="middle">Тактичний рівень</text>
+          <rect x="700" y="180" width="240" height="60" rx="10" fill="#fff" stroke="#d6006e"/><text x="820" y="215" text-anchor="middle">Виконавчий рівень</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- TASK 1 -->
+  <section class="panel" id="t-task1">
+    <h2><span class="idx">01</span> «Мехатронна анатомія»: фізичний аналіз реального пристрою</h2>
+    <p class="lede"><b>Мета:</b> виявити чотири базові підсистеми в конкретному фізичному об'єкті — не абстрактно, а на реальних деталях.</p>
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2" fill="none" marker-end="url(#a1)">
+          <path d="M120,100 H230"/><path d="M350,100 H460"/><path d="M580,100 H690"/><path d="M810,100 H870"/>
+        </g>
+        <g font-size="10.5" fill="#101826">
+          <rect x="10" y="70" width="110" height="60" rx="12" fill="#101826"/><text x="65" y="95" text-anchor="middle" fill="#fff">1. Отримати</text><text x="65" y="112" text-anchor="middle" fill="#00e5ef">пристрій</text>
+          <rect x="230" y="65" width="120" height="70" rx="12" fill="#fff" stroke="#d6006e"/><text x="290" y="90" text-anchor="middle">2. Огляд +</text><text x="290" y="106" text-anchor="middle">фото 3–5</text><text x="290" y="122" text-anchor="middle">вузлів</text>
+          <rect x="460" y="60" width="120" height="80" rx="12" fill="#fff" stroke="#c97a00"/><text x="520" y="85" text-anchor="middle">3. Контур на</text><text x="520" y="101" text-anchor="middle">папері з</text><text x="520" y="117" text-anchor="middle">реальними деталями</text>
+          <rect x="690" y="65" width="120" height="70" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="750" y="90" text-anchor="middle">4. Розподіл</text><text x="750" y="106" text-anchor="middle">по 4</text><text x="750" y="122" text-anchor="middle">підсистемах</text>
+          <rect x="870" y="70" width="120" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="930" y="95" text-anchor="middle" font-size="10">5–6. Підрахунок</text><text x="930" y="110" text-anchor="middle" font-size="10">з'єднань + висновок</text>
+        </g>
+      </svg>
+    </div>
+    <h3>🧪 Симуляція: інтерактивна анатомія типового мехатронного вузла</h3>
+    <p class="lede">Клікніть на елемент схематичного сервопривода з контролером, щоб побачити, до якої підсистеми він належить і яку конкретну функцію виконує.</p>
+    <div class="sim-stage">
+      <svg viewBox="0 0 600 260" width="100%">
+        <rect x="0" y="0" width="600" height="260" fill="#f7fafc"/>
+        <g class="hotspot" data-k="mech" onclick="showAnatomy('mech')">
+          <rect x="40" y="90" width="120" height="80" rx="10" fill="#eaf6ff" stroke="#00b8c4" stroke-width="3"/>
+          <text x="100" y="135" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">Корпус +</text>
+          <text x="100" y="150" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">редуктор</text>
+        </g>
+        <g class="hotspot" data-k="elec" onclick="showAnatomy('elec')">
+          <rect x="200" y="60" width="120" height="80" rx="10" fill="#ffeaf4" stroke="#d6006e" stroke-width="3"/>
+          <text x="260" y="95" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">Двигун +</text>
+          <text x="260" y="110" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">драйвер</text>
+        </g>
+        <g class="hotspot" data-k="sens" onclick="showAnatomy('sens')">
+          <rect x="200" y="160" width="120" height="70" rx="10" fill="#fff3e0" stroke="#c97a00" stroke-width="3"/>
+          <text x="260" y="192" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">Енкодер</text>
+          <text x="260" y="207" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">(датчик кута)</text>
+        </g>
+        <g class="hotspot" data-k="info" onclick="showAnatomy('info')">
+          <rect x="380" y="90" width="150" height="90" rx="10" fill="#eafff2" stroke="#0a9b5c" stroke-width="3"/>
+          <text x="455" y="130" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">Плата</text>
+          <text x="455" y="146" text-anchor="middle" font-size="12" font-family="Share Tech Mono, monospace">керування</text>
+          <text x="455" y="162" text-anchor="middle" font-size="10" font-family="Share Tech Mono, monospace">(мікроконтролер)</text>
+        </g>
+        <g stroke="#4a5568" stroke-width="2" fill="none">
+          <path d="M160,130 H200"/><path d="M320,100 H380 V130"/><path d="M320,195 H380 V160"/>
+        </g>
+      </svg>
+    </div>
+    <div id="anatomyOut" class="result-box">Оберіть елемент на схемі вище.</div>
+
+    <h3>Робочий бланк аналізу</h3>
+    <table>
+      <tr><th>Підсистема</th><th>Конкретна деталь у вашому пристрої</th><th>Конкретна функція</th></tr>
+      <tr><td>Механічна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Електрична/електронна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Сенсорна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+      <tr><td>Інформаційна</td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td><td><input type="text" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:6px;"></td></tr>
+    </table>
+    <div class="field"><label style="font-size:13px;color:var(--ink-soft);">Письмовий висновок (5–7 речень): рівень інтеграції та чому</label><textarea></textarea></div>
+  </section>
+
+  <!-- TASK 2 -->
+  <section class="panel" id="t-task2">
+    <h2><span class="idx">02*</span> «Архітектурний детектив»: реконструкція контуру керування</h2>
+    <p class="lede"><b>Мета:</b> побудувати замкнений контур керування (контролер → привод → механіка → датчик → контролер) на основі власного спостереження, а не готової схеми.</p>
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 200" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d6006e"/></marker></defs>
+        <g stroke="#d6006e" stroke-width="2" fill="none" marker-end="url(#a2)"><path d="M150,100 H260"/><path d="M390,100 H500"/><path d="M630,100 H740"/></g>
+        <g font-size="11" fill="#101826">
+          <rect x="10" y="70" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="95" text-anchor="middle" fill="#fff">1–2. Обрати</text><text x="80" y="112" text-anchor="middle" fill="#00e5ef">пристрій + спостерігати</text>
+          <rect x="260" y="60" width="130" height="80" rx="12" fill="#fff" stroke="#00b8c4"/><text x="325" y="85" text-anchor="middle">3. Намалювати</text><text x="325" y="101" text-anchor="middle">контур за</text><text x="325" y="117" text-anchor="middle">спостереженням</text>
+          <rect x="500" y="65" width="130" height="70" rx="12" fill="#fff" stroke="#c97a00"/><text x="565" y="90" text-anchor="middle">4. Експеримент</text><text x="565" y="106" text-anchor="middle">«втручання»</text>
+          <rect x="740" y="65" width="150" height="70" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="815" y="90" text-anchor="middle">5. Визначити</text><text x="815" y="106" text-anchor="middle">рівень ієрархії</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Схема замкненого контуру</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="loopArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2.5" fill="none" marker-end="url(#loopArrow)">
+          <path d="M170,60 H330"/><path d="M480,90 V150"/><path d="M330,190 H190"/><path d="M100,150 V90"/>
+        </g>
+        <rect x="30" y="30" width="140" height="60" rx="12" fill="#101826"/><text x="100" y="65" text-anchor="middle" fill="#fff" font-size="12">Контролер</text>
+        <rect x="330" y="30" width="140" height="60" rx="12" fill="#fff" stroke="#d6006e" stroke-width="2"/><text x="400" y="65" text-anchor="middle" font-size="12">Привод</text>
+        <rect x="330" y="160" width="140" height="60" rx="12" fill="#fff" stroke="#c97a00" stroke-width="2"/><text x="400" y="195" text-anchor="middle" font-size="12">Механіка</text>
+        <rect x="30" y="160" width="140" height="60" rx="12" fill="#fff" stroke="#0a9b5c" stroke-width="2"/><text x="100" y="195" text-anchor="middle" font-size="12">Датчик</text>
+        <text x="480" y="125" font-size="10" fill="#4a5568">сигнал</text>
+      </svg>
+    </div>
+
+    <h3>🧪 Симуляція замкненого контуру з «втручанням»</h3>
+    <p class="lede">Задайте цільовий кут, запустіть систему і натисніть «Втручання» під час руху — так само, як тимчасове перекриття оптопари енкодера в реальному експерименті. Графік показує реальну реакцію контуру.</p>
+    <div class="calc-inputs" style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:10px 0;">
+      <label class="jog-readout">Цільовий кут (°): <input type="number" id="loopTarget" value="60" style="width:70px;"></label>
+      <button class="btn" onclick="startLoopSim()">▶ Старт</button>
+      <button class="btn ghost" onclick="disturbLoop()">⚡ Втручання</button>
+      <button class="btn ghost" onclick="resetLoopSim()">⟲ Скинути</button>
+    </div>
+    <div class="sim-stage">
+      <svg id="loopChart" viewBox="0 0 640 220" width="100%"></svg>
+    </div>
+    <div class="sim-log" id="loopLog">Готово. Задайте цільовий кут і натисніть «Старт».</div>
+
+    <h3>Визначення рівня ієрархії</h3>
+    <p class="lede">Обґрунтуйте часовим масштабом реакції, яку ви реально виміряли: одиниці мс — виконавчий рівень; десятки–сотні мс — тактичний; секунди і більше — стратегічний.</p>
+  </section>
+
+  <!-- TASK 3 -->
+  <section class="panel" id="t-task3">
+    <h2><span class="idx">03</span> «Еволюційна лінія мехатронного модуля»</h2>
+    <p class="lede"><b>Мета:</b> творчо простежити еволюцію конкретного класу пристроїв через три рівні інтеграції.</p>
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c97a00"/></marker></defs>
+        <g stroke="#c97a00" stroke-width="2" fill="none" marker-end="url(#a3)"><path d="M150,90 H260"/><path d="M390,90 H500"/><path d="M630,90 H740"/></g>
+        <g font-size="11" fill="#101826">
+          <rect x="10" y="60" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="85" text-anchor="middle" fill="#fff">1–2. Обрати</text><text x="80" y="102" text-anchor="middle" fill="#00e5ef">клас + зразок</text>
+          <rect x="260" y="50" width="130" height="80" rx="12" fill="#fff" stroke="#00b8c4"/><text x="325" y="75" text-anchor="middle">3. Дерево</text><text x="325" y="91" text-anchor="middle">3 гілки</text><text x="325" y="107" text-anchor="middle">(I/II/III)</text>
+          <rect x="500" y="55" width="130" height="70" rx="12" fill="#fff" stroke="#d6006e"/><text x="565" y="80" text-anchor="middle">4. Аргументи</text><text x="565" y="96" text-anchor="middle">по зразку</text>
+          <rect x="740" y="55" width="150" height="70" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="815" y="80" text-anchor="middle">5. Гіпотеза</text><text x="815" y="96" text-anchor="middle">рівня IV</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Оберіть клас пристроїв — приклад еволюційного дерева</h3>
+    <div class="btnrow" id="classBtns">
+      <button class="btn ghost small" data-c="camera">Привід камери смартфона</button>
+      <button class="btn ghost small" data-c="window">Керування вікнами авто</button>
+      <button class="btn ghost small" data-c="sewing">Швейна машина</button>
+      <button class="btn ghost small" data-c="drone">Дрон</button>
+      <button class="btn ghost small" data-c="washer">Пральна машина</button>
+    </div>
+    <div id="evoOut" class="grid3"></div>
+    <p class="lede">Визначте рівень вашого фізичного зразка не менш ніж трьома конкретними ознаками (тип двигуна, наявність вбудованого енкодера, окремий блок керування тощо) і запропонуйте гіпотезу модуля IV рівня.</p>
+  </section>
+
+  <!-- TASK 4 -->
+  <section class="panel" id="t-task4">
+    <h2><span class="idx">04</span> «Дебати архітектур»: централізоване vs розподілене керування</h2>
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2" fill="none" marker-end="url(#a4)"><path d="M150,90 H260"/><path d="M390,90 H500"/><path d="M630,90 H740"/></g>
+        <g font-size="11" fill="#101826">
+          <rect x="10" y="60" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="85" text-anchor="middle" fill="#fff">1. Розподіл</text><text x="80" y="102" text-anchor="middle" fill="#00e5ef">на 2 підгрупи</text>
+          <rect x="260" y="55" width="130" height="70" rx="12" fill="#fff" stroke="#d6006e"/><text x="325" y="80" text-anchor="middle">2. Аргументація</text><text x="325" y="96" text-anchor="middle">10–12 хв</text>
+          <rect x="500" y="50" width="130" height="80" rx="12" fill="#fff" stroke="#c97a00"/><text x="565" y="75" text-anchor="middle">3. Дебати:</text><text x="565" y="91" text-anchor="middle">тези → допит</text><text x="565" y="107" text-anchor="middle">→ фінал</text>
+          <rect x="740" y="55" width="150" height="70" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="815" y="80" text-anchor="middle">4–5. Вердикт</text><text x="815" y="96" text-anchor="middle">журі + компроміс</text>
+        </g>
+      </svg>
+    </div>
+    <div class="debate-grid">
+      <div class="debate-card central">
+        <h4 style="color:var(--cyan-deep);">Централізована / ієрархічна архітектура</h4>
+        <p class="lede">Приклад: промисловий робот класу Fanuc R-2000iC — центральний контролер і цифрова шина.</p>
+        <ul><li>Простіша синхронізація всіх осей з єдиного джерела</li><li>Нижча вартість на вісь при великій кількості осей</li><li>Спрощена діагностика — усі дані в одному місці</li></ul>
+        <div class="field"><label style="font-size:12px;">Ваші додаткові аргументи «за»</label><textarea></textarea></div>
+      </div>
+      <div class="debate-card distrib">
+        <h4 style="color:var(--magenta);">Розподілена / модульна архітектура</h4>
+        <p class="lede">Приклад: кобот KUKA LBR iiwa — кожен ступінь свободи має власний інтелектуальний сервопривод.</p>
+        <ul><li>Стійкість до відмови одного вузла — інші продовжують працювати</li><li>Простіша модернізація — заміна окремого модуля</li><li>Вбудовані силомоментні датчики на кожному суглобі підвищують безпеку</li></ul>
+        <div class="field"><label style="font-size:12px;">Ваші додаткові аргументи «за»</label><textarea></textarea></div>
+      </div>
+    </div>
+    <h3>Вердикт журі та компромісний висновок</h3>
+    <div class="field"><label style="font-size:13px;color:var(--ink-soft);">У яких умовах доцільніша кожна архітектура? Чи можливий гібридний варіант — наведіть власний приклад</label><textarea></textarea></div>
+  </section>
+
+  <!-- TASK 5-7 -->
+  <section class="panel" id="t-task5">
+    <h2><span class="idx">05–07</span> Навігація, візуалізація та eCatalog у KUKA.Sim</h2>
+    <p class="lede">Друга частина практичної роботи — тренажер базових інструментів KUKA.Sim (англомовний інтерфейс).</p>
+    <h3>Алгоритм навігації камерою (Завд.5)</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a5" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d6006e"/></marker></defs>
+        <g stroke="#d6006e" stroke-width="2" fill="none" marker-end="url(#a5)"><path d="M150,90 H260"/><path d="M390,90 H500"/><path d="M630,90 H740"/></g>
+        <g font-size="10.5" fill="#101826">
+          <rect x="10" y="60" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="85" text-anchor="middle" fill="#fff">Layout +</text><text x="80" y="100" text-anchor="middle" fill="#00e5ef">панель швидкого доступу</text>
+          <rect x="260" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="325" y="85" text-anchor="middle">Orbit (RMB) /</text><text x="325" y="100" text-anchor="middle">Zoom / Pan (MMB)</text>
+          <rect x="500" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#c97a00"/><text x="565" y="85" text-anchor="middle">Fill Selected</text><text x="565" y="100" text-anchor="middle">(Ctrl+RMB)</text>
+          <rect x="740" y="60" width="150" height="60" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="815" y="85" text-anchor="middle">Куб ракурсів</text><text x="815" y="100" text-anchor="middle">Top/Side/Front</text>
+        </g>
+      </svg>
+    </div>
+    <table>
+      <tr><th>Дія</th><th>Керування мишею/клавіатурою</th></tr>
+      <tr><td>Вибір об'єкта</td><td>LMB (ліва кнопка миші)</td></tr>
+      <tr><td>Обертання (Orbit)</td><td>Затиснути RMB (права кнопка) і перетягувати</td></tr>
+      <tr><td>Масштабування (Zoom)</td><td>Колесо миші; плавно — Shift + RMB</td></tr>
+      <tr><td>Панорамування (Pan)</td><td>MMB (колесо), або LMB+RMB разом</td></tr>
+      <tr><td>Швидке фокусування (Fill Selected)</td><td>Виділити об'єкт → Ctrl + RMB</td></tr>
+    </table>
+
+    <h3>🧪 Симуляція: режими рендерингу Viewport (Завд.6)</h3>
+    <p class="lede">Натисніть кнопку режиму — схематичний робот на сцені змінить вигляд так само, як у KUKA.Sim.</p>
+    <div class="render-btns" id="renderBtns">
+      <button class="active" data-r="face">Face edges shaded</button>
+      <button data-r="wire">Wireframe</button>
+      <button data-r="xray">X-ray shaded</button>
+      <button data-r="real">Realistic shading</button>
+    </div>
+    <div class="sim-stage">
+      <svg id="renderStage" viewBox="0 0 400 260" width="100%"></svg>
+    </div>
+    <p class="lede" id="renderDesc"></p>
+
+    <h3>🧪 Симуляція: зона досяжності (Workspace) та властивості (Завд.7)</h3>
+    <div class="calc-inputs">
+      <label>Reach, мм <input type="number" id="reachInput" value="2700" step="50"></label>
+      <button class="btn" onclick="drawWorkspace()">Показати зону</button>
+    </div>
+    <div class="sim-stage"><svg id="workspaceStage" viewBox="0 0 400 260" width="100%"></svg></div>
+    <p class="lede">Так само в KUKA.Sim: виділіть робота Quantec → перевірте <span class="mono">Reach</span> у Component Properties → увімкніть <span class="mono">Workspace 2D/3D</span>. У вкладці <span class="mono">RCS</span> перевіряються версія KRL, напруга живлення та технологічні пакети (ArcTechBasic, SafeOperation).</p>
+  </section>
+
+  <!-- TASK 8 -->
+  <section class="panel" id="t-task8">
+    <h2><span class="idx">08</span> Побудова роботизованого осередку: трек, конвеєр, огородження</h2>
+    <h3>Алгоритм Plug and Play (PnP)</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a8" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0a9b5c"/></marker></defs>
+        <g stroke="#0a9b5c" stroke-width="2" fill="none" marker-end="url(#a8)"><path d="M150,90 H260"/><path d="M390,90 H500"/><path d="M630,90 H740"/></g>
+        <g font-size="10.5" fill="#101826">
+          <rect x="10" y="60" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="85" text-anchor="middle" fill="#fff">KL4000 →</text><text x="80" y="100" text-anchor="middle" fill="#00e5ef">сцена</text>
+          <rect x="260" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#00b8c4"/><text x="325" y="85" text-anchor="middle">PnP: робот →</text><text x="325" y="100" text-anchor="middle">зелена стрілка</text>
+          <rect x="500" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#c97a00"/><text x="565" y="85" text-anchor="middle">Конвеєр +</text><text x="565" y="100" text-anchor="middle">Conveyor Creator</text>
+          <rect x="740" y="60" width="150" height="60" rx="12" fill="#fff" stroke="#d6006e"/><text x="815" y="85" text-anchor="middle">Огородження +</text><text x="815" y="100" text-anchor="middle">Slider door</text>
+        </g>
+      </svg>
+    </div>
+    <div class="grid2">
+      <div class="card"><h4>Крок 4.1–4.2 · Лінійний трек</h4>Модуль <span class="mono">KL4000</span>, довжина ходу (Travel rate) 8400 мм. Монтаж робота KR 120 на плиту треку через PnP до появи зеленої стрілки; орієнтація <span class="mono">Angle of alignment = 135°</span>, тумба <span class="mono">Pedestal = 400 мм</span>.</div>
+      <div class="card"><h4>Крок 4.3 · Конвеєрна лінія</h4><span class="mono">Batch conveyor</span> + <span class="mono">Curved conveyor</span> (зняти <span class="mono">TurnRight</span> для повороту наліво), генератор заготовок <span class="mono">Conveyor Creator</span>, запуск через Play.</div>
+      <div class="card"><h4>Крок 4.4 · Захисне огородження</h4><span class="mono">Generic fence</span> (довжина 2000 мм) + секція з <span class="mono">Slider door</span>; перевірка відкривання дверей у режимі Interact.</div>
+    </div>
+    <h3>🧪 Симулятор компонування осередку</h3>
+    <p class="lede">Позначте, які елементи вже додано на віртуальну сцену — порядок відповідає покроковій інструкції.</p>
+    <div id="cellChecklist" class="grid4"></div>
+    <div class="sim-stage" style="margin-top:10px;"><svg id="cellStage" viewBox="0 0 700 200" width="100%"></svg></div>
+  </section>
+
+  <!-- TASK 9-10 -->
+  <section class="panel" id="t-task9">
+    <h2><span class="idx">09–10</span> Ручне керування (Jog) та точне позиціонування (Snap)</h2>
+    <h3>Алгоритм дій</h3>
+    <div class="mindmap-wrap">
+      <svg viewBox="0 0 1000 180" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="a9" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00b8c4"/></marker></defs>
+        <g stroke="#00b8c4" stroke-width="2" fill="none" marker-end="url(#a9)"><path d="M150,90 H260"/><path d="M390,90 H500"/><path d="M630,90 H740"/></g>
+        <g font-size="10.5" fill="#101826">
+          <rect x="10" y="60" width="140" height="60" rx="12" fill="#101826"/><text x="80" y="85" text-anchor="middle" fill="#fff">Вкладка</text><text x="80" y="100" text-anchor="middle" fill="#00e5ef">Program → Jog</text>
+          <rect x="260" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#d6006e"/><text x="325" y="85" text-anchor="middle">Axis Jog</text><text x="325" y="100" text-anchor="middle">(A1…A6)</text>
+          <rect x="500" y="60" width="130" height="60" rx="12" fill="#fff" stroke="#c97a00"/><text x="565" y="85" text-anchor="middle">Cartesian Jog</text><text x="565" y="100" text-anchor="middle">(World/Parent/Object)</text>
+          <rect x="740" y="60" width="150" height="60" rx="12" fill="#fff" stroke="#0a9b5c"/><text x="815" y="85" text-anchor="middle">Snap +</text><text x="815" y="100" text-anchor="middle">Save State</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>🧪 Симулятор Axis Jog (суглобове керування)</h3>
+    <p class="lede">Рухайте слайдери A1–A2, щоб побачити, як змінюється орієнтація спрощеної схеми маніпулятора — як у панелі Robot Jog.</p>
+    <div class="sim-wrap" style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;">
+      <div class="sim-stage"><svg id="jogStage" viewBox="0 0 400 300" width="100%"></svg></div>
+      <div>
+        <label class="jog-readout">A1 (база): <span id="a1out">0°</span></label>
+        <input type="range" id="a1slider" min="-180" max="180" value="0">
+        <label class="jog-readout">A2 (плече): <span id="a2out">0°</span></label>
+        <input type="range" id="a2slider" min="-180" max="180" value="0">
+        <div class="btnrow"><button class="btn ghost small" onclick="resetJog()">Reset</button></div>
+        <p class="lede" style="font-size:13px;">Координатні системи Cartesian Jog: <b>World</b> — фіксовано відносно цеху; <b>Parent</b> — відносно бази робота; <b>Object</b> — відносно фланця/інструмента (TCP).</p>
+      </div>
+    </div>
+
+    <h3>🧪 Симулятор Snap Jogging</h3>
+    <p class="lede">Перетягніть фіолетовий маркер (TCP) на позначену точку деталі — фланець миттєво «прикріпиться», як у KUKA.Sim.</p>
+    <div class="sim-stage"><svg id="snapStage" viewBox="0 0 500 200" width="100%"></svg></div>
+    <div class="sim-log" id="snapLog">Перетягніть фіолетовий маркер на деталь.</div>
+    <div class="btnrow"><button class="btn ghost small" onclick="saveSnapState()">Settings → Save State</button><button class="btn ghost small" onclick="resetSnap()">Reset</button></div>
+  </section>
+
+  <!-- SELF STUDY -->
+  <section class="panel" id="t-self">
+    <h2><span class="idx">§S</span> Завдання для самостійного виконання</h2>
+    <h3>Самостійна робота 1 · Осередок палетування з піднятою базою</h3>
+    <div class="steps">
+      <div class="step">Оберіть побутовий пристрій удома (пральна машина, мікрохвильова піч, зубна щітка, робот-пилосос) і складіть структурну схему за 4 підсистемами з реальними компонентами.</div>
+      <div class="step">Знайдіть приклад «безсенсорного» керування, відмінний від прикладу з лекції; поясніть, який датчик виключено і яким методом це компенсується.</div>
+      <div class="step">Порівняльна таблиця (≥5 критеріїв) для двох гуманоїдних/колаборативних роботів (напр. Tesla Optimus і KUKA LBR iiwa) з висновком про рівень інтеграції.</div>
+      <div class="step">Есе/схема (0,5–1 стор.): яка механічна функція побутової техніки найімовірніше «переїде» у ПЗ протягом 5–10 років і чому.</div>
+      <div class="step">У KUKA.Sim: імпортувати робота <b>KR 210</b> (Quantec), Pedestal = 600 мм, додати LiftTools, два паралельних роликових конвеєри, режим рендерингу Realistic shaded with edges, вимкнути Axes; зберегти 3 ракурси у View Editor.</div>
+    </div>
+    <h3>Самостійна робота 2 · Захищена лінія з точним позиціонуванням</h3>
+    <div class="steps">
+      <div class="step">Створити конвеєрну лінію з Conveyor Creator і захисне огородження зі Slider door.</div>
+      <div class="step">Запустити Play, дочекатись заготовки на конвеєрі, зупинити Stop.</div>
+      <div class="step">Через Snap Jogging приєднати фланець робота до верхньої грані заготовки.</div>
+      <div class="step">На Robot Jog підняти вісь Z на +150 мм у системі координат Object.</div>
+      <div class="step">Settings → Save State для фіксації позиції як стартової.</div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="panel" id="t-quiz">
+    <h2><span class="idx">§Q</span> Питання для самоперевірки</h2>
+    <p class="lede">17 питань (12 теоретичних + 5 практичних з KUKA.Sim). Оберіть відповідь — правильна підсвітиться одразу.</p>
+    <div id="quizContainer"></div>
+    <div id="quizScoreBar">Результат: <span id="quizScore">0 / 17</span></div>
+  </section>
+
+  <!-- REF -->
+  <section class="panel" id="t-ref">
+    <h2><span class="idx">REF</span> Довідкові матеріали</h2>
+    <h3>Глосарій — теорія</h3>
+    <dl class="gloss">
+      <dt>Синергетичний ефект</dt><dd>Якісно нова властивість системи, недосяжна для окремих підсистем поза інтеграцією.</dd>
+      <dt>Чотири підсистеми (Є. П. Попов)</dt><dd>Механічна, електрична/електронна, сенсорна, інформаційна.</dd>
+      <dt>Сепаратний інтерфейс</dt><dd>Окреме фізичне з'єднання між підсистемами (провід, роз'єм, муфта); чим більше таких з'єднань — тим нижча надійність.</dd>
+      <dt>Три рівні інтеграції</dt><dd>I — мотор-редуктор; II — сервопривод з енкодером; III — ІММР з вбудованим контролером і цифровою шиною.</dd>
+      <dt>Ієрархія керування</dt><dd>Стратегічний (секунди–хвилини) → тактичний (десятки–сотні мс) → виконавчий (одиниці мс).</dd>
+      <dt>Електронний редуктор / кулачок</dt><dd>Програмна заміна механічного редуктора чи кулачкового механізму синхронізації рухів.</dd>
+      <dt>Безсенсорне керування</dt><dd>Оцінка стану системи математичною моделлю замість фізичного датчика (напр. оцінка дисбалансу за струмом двигуна).</dd>
+      <dt>Модульність і реконфігурованість</dt><dd>Здатність системи (напр. кобота) швидко змінювати конфігурацію чи склад модулів під нове завдання.</dd>
+    </dl>
+    <h3>Глосарій — KUKA.Sim</h3>
+    <dl class="gloss">
+      <dt>Viewport</dt><dd>Робоче 3D-вікно перегляду сцени з режимами рендерингу (Wireframe, Face edges shaded, X-ray, Realistic).</dd>
+      <dt>eCatalog</dt><dd>Вбудований електронний каталог моделей роботів, конвеєрів, огороджень тощо.</dd>
+      <dt>Plug and Play (PnP)</dt><dd>Режим механічного «примагнічування» компонентів одне до одного при монтажі (трек, конвеєр, огородження).</dd>
+      <dt>Robot Jog</dt><dd>Ручне керування роботом у суглобових (Axis) або декартових (Cartesian) координатах.</dd>
+      <dt>Snap Jogging</dt><dd>Точна прив'язка фланця/інструмента до обраної точки об'єкта одним перетягуванням маркера.</dd>
+      <dt>Frames</dt><dd>Відображення систем координат (Robot Frames, Tools, Bases, Axes, Labels) у сцені.</dd>
+      <dt>Save State / Reset</dt><dd>Фіксація довільної позиції як «нульової» для повернення роботом кнопкою Reset.</dd>
+    </dl>
+    <h3>Використані джерела заняття</h3>
+    <p class="lede">Конспекти лекцій №1–3 курсу «Основи мехатроніки та робототехніки, промислові роботи»; матеріали практичної роботи «Мехатронна анатомія» та методичні вказівки до роботи в KUKA.Sim (STEAM-HUB, ПУЕТ).</p>
+  </section>
+
+  <footer>STEAM-HUB · ПУЕТ — інтерактивний навчальний посібник · генеровано для практичної роботи №3–4</footer>
+</div>
+
+<script>
+const tabs = document.querySelectorAll('#tabsNav button');
+const panels = document.querySelectorAll('section.panel');
+tabs.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    tabs.forEach(b=>b.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.t).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+document.querySelectorAll('.acc-head').forEach(h=>{
+  h.addEventListener('click',()=>{
+    const item = h.parentElement;
+    item.classList.toggle('open');
+    const body = item.querySelector('.acc-body');
+    body.style.maxHeight = item.classList.contains('open') ? body.scrollHeight+'px' : 0;
+  });
+});
+
+/* ---- Task1: anatomy hotspots ---- */
+const anatomy = {
+  mech: {name:"Механічна підсистема", desc:"Корпус і редуктор — передають та перетворюють механічний рух від двигуна до вихідного вала."},
+  elec: {name:"Електрична/електронна підсистема", desc:"Двигун і драйвер — перетворюють електричну енергію в обертання та керують силовим струмом."},
+  sens: {name:"Сенсорна підсистема", desc:"Енкодер — вимірює реальний кут повороту вала і передає значення контролеру для зворотного зв'язку."},
+  info: {name:"Інформаційна підсистема", desc:"Плата керування (мікроконтролер) — обчислює керуючий сигнал на основі завдання та показань енкодера."}
+};
+function showAnatomy(k){
+  const a = anatomy[k];
+  document.getElementById('anatomyOut').innerHTML = `<b>${a.name}:</b> ${a.desc}`;
+}
+
+/* ---- Task2: closed loop simulation ---- */
+let loopTimer=null, loopT=0, loopActual=0, loopTargetVal=60, loopPoints=[];
+function resetLoopSim(){
+  clearInterval(loopTimer); loopTimer=null; loopT=0; loopActual=0; loopPoints=[];
+  document.getElementById('loopLog').textContent = "Готово. Задайте цільовий кут і натисніть «Старт».";
+  drawLoopChart();
+}
+function startLoopSim(){
+  resetLoopSim();
+  loopTargetVal = parseFloat(document.getElementById('loopTarget').value)||60;
+  document.getElementById('loopLog').textContent = "▶ Система рухається до заданого кута...";
+  loopTimer = setInterval(()=>{
+    loopT++;
+    const err = loopTargetVal - loopActual;
+    loopActual += err*0.12;
+    loopPoints.push(loopActual);
+    if(loopPoints.length>120) loopPoints.shift();
+    drawLoopChart();
+    if(loopT>300){ clearInterval(loopTimer); document.getElementById('loopLog').textContent="✅ Система стабілізувалась."; }
+  },40);
+}
+function disturbLoop(){
+  if(!loopTimer){ document.getElementById('loopLog').textContent="Спершу натисніть «Старт»."; return; }
+  loopActual -= loopTargetVal*0.5;
+  document.getElementById('loopLog').textContent = "⚡ Втручання: перекрито датчик / змінено навантаження. Спостерігайте відновлення контуру.";
+}
+function drawLoopChart(){
+  const w=640,h=220,pad=30;
+  let svg = `<rect x="0" y="0" width="${w}" height="${h}" fill="#f7fafc"/>`;
+  svg += `<line x1="${pad}" y1="${h-pad}" x2="${w-10}" y2="${h-pad}" stroke="#c7d2e0"/>`;
+  svg += `<line x1="${pad}" y1="10" x2="${pad}" y2="${h-pad}" stroke="#c7d2e0"/>`;
+  const maxV = Math.max(loopTargetVal*1.4, 90);
+  const yTarget = h-pad-(loopTargetVal/maxV)*(h-pad-10);
+  svg += `<line x1="${pad}" y1="${yTarget}" x2="${w-10}" y2="${yTarget}" stroke="#c97a00" stroke-dasharray="4 4"/>`;
+  svg += `<text x="${w-100}" y="${yTarget-6}" font-size="10" fill="#c97a00" font-family="Share Tech Mono, monospace">завдання</text>`;
+  if(loopPoints.length>1){
+    let d = "";
+    loopPoints.forEach((v,i)=>{
+      const x = pad + i*((w-10-pad)/120);
+      const y = h-pad-(v/maxV)*(h-pad-10);
+      d += (i===0?"M":"L")+x+","+y+" ";
+    });
+    svg += `<path d="${d}" stroke="#00b8c4" stroke-width="2.5" fill="none"/>`;
+  }
+  document.getElementById('loopChart').innerHTML = svg;
+}
+resetLoopSim();
+
+/* ---- Task3: evolution tree ---- */
+const evoData = {
+  camera:[
+    {t:"I рівень", d:"Окремий крокодвигун + окрема мікросхема драйвера + окремий датчик крайнього положення.", ex:"Ранні механічні фокусувальні модулі 2000-х"},
+    {t:"II рівень", d:"Мініатюрний voice-coil привід з інтегрованим датчиком положення лінзи.", ex:"Автофокус смартфонів середини 2010-х"},
+    {t:"III рівень", d:"OIS-модуль з вбудованим гіроскопом, драйвером і мікроконтролером в одному корпусі.", ex:"Сучасні флагманські камеромодулі"}
+  ],
+  window:[
+    {t:"I рівень", d:"Окремий двигун, окреме реле, окремий концевий вимикач.", ex:"Автомобілі 1980-х"},
+    {t:"II рівень", d:"Двигун з інтегрованим датчиком струму для визначення затиснення.", ex:"Автомобілі 1990–2000-х (антизатискач)"},
+    {t:"III рівень", d:"Інтелектуальний модуль дверей з CAN-шиною, що об'єднує двигун, датчики й логіку в одному блоці.", ex:"Сучасні автомобілі з CAN/LIN"}
+  ],
+  sewing:[
+    {t:"I рівень", d:"Механічний привід від педалі через пасок, окремий регулятор натягу нитки.", ex:"Механічні швейні машини XX ст."},
+    {t:"II рівень", d:"Електродвигун зі вбудованим тахогенератором для стабілізації швидкості.", ex:"Побутові електричні машини 1980–1990-х"},
+    {t:"III рівень", d:"Комп'ютеризована машина з сервоприводом, вбудованим контролером і дисплеєм програм.", ex:"Сучасні комп'ютеризовані швейні машини"}
+  ],
+  drone:[
+    {t:"I рівень", d:"Окремий колекторний двигун, окремий регулятор обертів (ESC), окремий приймач сигналу.", ex:"Ранні аматорські мультикоптери"},
+    {t:"II рівень", d:"Безколекторний двигун + ESC з вбудованим зворотним зв'язком по обертах (RPM telemetry).", ex:"Комерційні квадрокоптери 2015–2018"},
+    {t:"III рівень", d:"Інтегрований силовий модуль з польотним контролером, IMU і GPS в одному блоці керування.", ex:"Сучасні флагманські дрони"}
+  ],
+  washer:[
+    {t:"I рівень", d:"Асинхронний двигун через пасок, окреме реле рівня води, окремий таймер-програматор.", ex:"Пральні машини 1970–1980-х"},
+    {t:"II рівень", d:"Прямий привід з датчиком обертів для контролю балансу.", ex:"Машини 1990–2000-х"},
+    {t:"III рівень", d:"Інверторний двигун з вбудованим контролером, безсенсорною оцінкою дисбалансу за струмом.", ex:"Сучасні інверторні пральні машини"}
+  ]
+};
+document.querySelectorAll('#classBtns button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#classBtns button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const data = evoData[b.dataset.c];
+    document.getElementById('evoOut').innerHTML = data.map(d=>
+      `<div class="card"><h4>${d.t}</h4><p style="font-size:13.5px;">${d.d}</p><p style="font-size:12px;color:var(--ink-soft);">Приклад: ${d.ex}</p></div>`
+    ).join('');
+  });
+});
+document.querySelector('#classBtns button').click();
+
+/* ---- Task5-7: render modes ---- */
+const renderInfo = {
+  face:{d:"Оптимальний робочий режим: зафарбовані грані з основними контурними ребрами без зайвих деталей."},
+  wire:{d:"Каркасна сітка триангуляції — видно всю геометричну структуру об'єкта."},
+  xray:{d:"Напівпрозорі деталі — зручно шукати приховані або втрачені елементи всередині обладнання."},
+  real:{d:"Реалістичні тіні й затінення з чіткими ребрами — для презентаційного вигляду сцени."}
+};
+function drawRenderStage(mode){
+  let style;
+  if(mode==='wire') style = {fill:'none', stroke:'#101826', op:1, dash:'0'};
+  else if(mode==='xray') style = {fill:'#00b8c4', stroke:'#101826', op:0.25, dash:'0'};
+  else if(mode==='real') style = {fill:'url(#realGrad)', stroke:'#101826', op:1, dash:'0'};
+  else style = {fill:'#eaf6f8', stroke:'#101826', op:1, dash:'0'};
+  const svg = `
+  <defs><linearGradient id="realGrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#00e5ef"/><stop offset="100%" stop-color="#007a84"/>
+  </linearGradient></defs>
+  <rect x="0" y="0" width="400" height="260" fill="#f7fafc"/>
+  <g fill="${style.fill}" stroke="${style.stroke}" stroke-width="2" opacity="${style.op}">
+    <rect x="150" y="190" width="100" height="40" rx="6"/>
+    <rect x="180" y="120" width="40" height="80" rx="6"/>
+    <rect x="185" y="60" width="90" height="30" rx="6" transform="rotate(-20 185 60)"/>
+    <circle cx="270" cy="55" r="18"/>
+  </g>`;
+  document.getElementById('renderStage').innerHTML = svg;
+  document.getElementById('renderDesc').textContent = renderInfo[mode].d;
+}
+document.querySelectorAll('#renderBtns button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#renderBtns button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    drawRenderStage(b.dataset.r);
+  });
+});
+drawRenderStage('face');
+
+function drawWorkspace(){
+  const reach = Math.min(3000, Math.max(200, parseFloat(document.getElementById('reachInput').value)||2700));
+  const r = (reach/3000)*160;
+  const svg = `
+  <rect x="0" y="0" width="400" height="260" fill="#f7fafc"/>
+  <circle cx="200" cy="230" r="${r}" fill="rgba(0,184,196,.12)" stroke="#00b8c4" stroke-width="2" stroke-dasharray="5 4"/>
+  <rect x="185" y="215" width="30" height="30" rx="4" fill="#101826"/>
+  <text x="200" y="255" text-anchor="middle" font-size="11" font-family="Share Tech Mono, monospace" fill="#4a5568">Reach = ${reach} мм</text>`;
+  document.getElementById('workspaceStage').innerHTML = svg;
+}
+drawWorkspace();
+
+/* ---- Task8: cell checklist ---- */
+const cellItems = ["Лінійний трек KL4000","Робот на треку (PnP)","Прямий конвеєр","Поворотний конвеєр","Conveyor Creator","Захисне огородження","Розсувні двері"];
+const cellBox = document.getElementById('cellChecklist');
+cellItems.forEach((t,i)=>{
+  const d = document.createElement('label');
+  d.className='card'; d.style.cursor='pointer'; d.style.fontSize='13px';
+  d.innerHTML = `<input type="checkbox" data-i="${i}" style="margin-right:6px;">${t}`;
+  cellBox.appendChild(d);
+});
+function drawCellStage(){
+  const checked = [...document.querySelectorAll('#cellChecklist input')].map(c=>c.checked);
+  let svg = `<rect x="0" y="0" width="700" height="200" fill="#f7fafc"/>`;
+  if(checked[0]) svg += `<rect x="40" y="150" width="500" height="14" fill="#c7d2e0"/>`;
+  if(checked[1]) svg += `<circle cx="150" cy="140" r="16" fill="#101826"/><rect x="140" y="100" width="20" height="40" fill="#101826"/>`;
+  if(checked[2]) svg += `<rect x="220" y="90" width="300" height="16" fill="#e0e7ee" stroke="#00b8c4"/>`;
+  if(checked[3]) svg += `<path d="M520,98 A40,40 0 0 1 560,140" stroke="#00b8c4" stroke-width="16" fill="none"/>`;
+  if(checked[4]) svg += `<circle cx="230" cy="98" r="8" fill="#c97a00"/>`;
+  if(checked[5]) svg += `<rect x="20" y="30" width="660" height="8" fill="#d6006e"/><rect x="20" y="180" width="660" height="8" fill="#d6006e"/>`;
+  if(checked[6]) svg += `<rect x="340" y="26" width="40" height="16" fill="#0a9b5c"/>`;
+  document.getElementById('cellStage').innerHTML = svg;
+}
+document.getElementById('cellChecklist').addEventListener('change', drawCellStage);
+drawCellStage();
+
+/* ---- Task9: axis jog ---- */
+function drawJog(){
+  const a1 = parseFloat(document.getElementById('a1slider').value);
+  const a2 = parseFloat(document.getElementById('a2slider').value);
+  document.getElementById('a1out').textContent = a1+"°";
+  document.getElementById('a2out').textContent = a2+"°";
+  const baseX=200, baseY=260;
+  const l1=100, l2=90;
+  const rad1 = (a1-90)*Math.PI/180;
+  const j1x = baseX + l1*Math.cos(rad1), j1y = baseY + l1*Math.sin(rad1);
+  const rad2 = rad1 + a2*Math.PI/180;
+  const j2x = j1x + l2*Math.cos(rad2), j2y = j1y + l2*Math.sin(rad2);
+  const svg = `
+  <rect x="0" y="0" width="400" height="300" fill="#f7fafc"/>
+  <circle cx="${baseX}" cy="${baseY}" r="18" fill="#101826"/>
+  <line x1="${baseX}" y1="${baseY}" x2="${j1x}" y2="${j1y}" stroke="#00b8c4" stroke-width="10" stroke-linecap="round"/>
+  <line x1="${j1x}" y1="${j1y}" x2="${j2x}" y2="${j2y}" stroke="#d6006e" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="${j1x}" cy="${j1y}" r="8" fill="#c97a00"/>
+  <circle cx="${j2x}" cy="${j2y}" r="7" fill="#0a9b5c"/>`;
+  document.getElementById('jogStage').innerHTML = svg;
+}
+document.getElementById('a1slider').addEventListener('input', drawJog);
+document.getElementById('a2slider').addEventListener('input', drawJog);
+function resetJog(){ document.getElementById('a1slider').value=0; document.getElementById('a2slider').value=0; drawJog(); }
+drawJog();
+
+/* ---- Task10: snap jogging ---- */
+let snapDragging=false, snapPos={x:120,y:60}, snapAttached=false;
+const targetPos = {x:340,y:150};
+function drawSnap(){
+  const svg = `
+  <rect x="0" y="0" width="500" height="200" fill="#f7fafc"/>
+  <rect x="280" y="130" width="120" height="40" rx="4" fill="#e0e7ee" stroke="#00b8c4"/>
+  <circle cx="${targetPos.x}" cy="${targetPos.y}" r="6" fill="#c97a00"/>
+  <circle id="snapMarker" cx="${snapPos.x}" cy="${snapPos.y}" r="16" fill="none" stroke="#d6006e" stroke-width="5" style="cursor:grab;"/>
+  <circle cx="${snapPos.x}" cy="${snapPos.y}" r="5" fill="#d6006e"/>`;
+  document.getElementById('snapStage').innerHTML = svg;
+  const marker = document.getElementById('snapMarker');
+  marker.addEventListener('mousedown', ()=>{ snapDragging=true; });
+}
+document.addEventListener('mouseup', ()=>{
+  if(snapDragging){
+    snapDragging=false;
+    const dx = snapPos.x-targetPos.x, dy = snapPos.y-targetPos.y;
+    if(Math.sqrt(dx*dx+dy*dy) < 30){
+      snapPos = {...targetPos}; snapAttached=true;
+      document.getElementById('snapLog').textContent = "✅ Фланець прикріплено точно до грані деталі (Snap).";
+    } else {
+      document.getElementById('snapLog').textContent = "Промах — підведіть маркер ближче до деталі.";
+    }
+    drawSnap();
+  }
+});
+document.addEventListener('mousemove', (e)=>{
+  if(!snapDragging) return;
+  const stage = document.getElementById('snapStage');
+  const rect = stage.getBoundingClientRect();
+  const scaleX = 500/rect.width, scaleY = 200/rect.height;
+  snapPos.x = (e.clientX-rect.left)*scaleX;
+  snapPos.y = (e.clientY-rect.top)*scaleY;
+  drawSnap();
+});
+function saveSnapState(){
+  document.getElementById('snapLog').textContent = snapAttached ? "💾 Позицію збережено (Settings → Save State)." : "Спершу приєднайте фланець до деталі.";
+}
+function resetSnap(){ snapPos={x:120,y:60}; snapAttached=false; document.getElementById('snapLog').textContent="Перетягніть фіолетовий маркер на деталь."; drawSnap(); }
+drawSnap();
+
+/* ---- QUIZ ---- */
+const quiz = [
+ {q:"Що таке синергетичний ефект у мехатроніці?", opts:["Проста сума властивостей окремих підсистем","Якісно нова властивість системи, недосяжна без інтеграції підсистем","Втрата продуктивності через інтеграцію","Механічний резонанс приводу"], c:1},
+ {q:"Скільки базових підсистем виділяє узагальнена структура Є. П. Попова?", opts:["Дві","Три","Чотири","Шість"], c:2},
+ {q:"Чому велика кількість сепаратних інтерфейсів знижує надійність системи?", opts:["Кожне окреме з'єднання — додаткова потенційна точка відмови","Інтерфейси завжди підвищують швидкодію","Вони не впливають на надійність","Сепаратні інтерфейси існують лише в теорії"], c:0},
+ {q:"Модуль якого рівня інтеграції відповідає прикладу «сервопривод з енкодером»?", opts:["I рівень","II рівень","III рівень","Це не мехатронний модуль"], c:1},
+ {q:"У чому суть паралельного (Concurrent Engineering) проєктування на відміну від послідовного?", opts:["Фахівці різних напрямів працюють одночасно над проєктом, а не по черзі","Це синонім послідовного проєктування","Застосовується лише для електроніки","Виключає участь механіків"], c:0},
+ {q:"Яким часовим масштабом характеризується виконавчий рівень ієрархії керування?", opts:["Секунди–хвилини","Десятки–сотні мілісекунд","Одиниці мілісекунд і швидше","Години"], c:2},
+ {q:"Яку механічну передачу замінює електронний кулачок (Electronic Cam)?", opts:["Фізичний кулачковий механізм синхронізації рухів","Зубчасту передачу редуктора","Ремінну передачу конвеєра","Підшипник кочення"], c:0},
+ {q:"У чому суть безсенсорного (непрямого) керування?", opts:["Повна відмова від будь-якого керування","Оцінка стану системи математичною моделлю замість фізичного датчика (напр. за струмом двигуна)","Використання виключно оптичних датчиків","Керування без контролера"], c:1},
+ {q:"Які компоненти об'єднує інтелектуальний мехатронний модуль руху (ІММР)?", opts:["Лише двигун","Двигун, датчик, силовий інвертер і мікроконтролер в одному корпусі","Тільки редуктор і вал","Лише кабельні з'єднання"], c:1},
+ {q:"У чому суть модульності й реконфігурованості кобота?", opts:["Неможливість зміни конфігурації після виробництва","Здатність швидко змінювати склад/конфігурацію модулів під нове завдання","Обмеження робота єдиною фіксованою програмою","Відсутність будь-яких змінних параметрів"], c:1},
+ {q:"Який головний недолік глибокої системної інтеграції мехатронних компонентів?", opts:["Ускладнення ремонту через неможливість заміни окремого дешевого вузла без модуля цілком","Зниження точності","Збільшення кількості сепаратних інтерфейсів","Відсутність недоліків"], c:0},
+ {q:"Як змінювався розподіл функціонального навантаження між механікою і ПЗ протягом останніх десятиліть?", opts:["Функції повністю залишились механічними","Дедалі більше функцій, що раніше виконувались механічними вузлами, реалізуються програмно","ПЗ повністю витіснило електроніку","Розподіл не змінювався"], c:1},
+ {q:"Яка комбінація клавіш/миші відповідає функції Fill Selected у KUKA.Sim?", opts:["Виділити об'єкт і натиснути Ctrl + RMB","Подвійний клік LMB без виділення","Shift + колесо миші","Alt + Tab"], c:0},
+ {q:"У чому різниця між Wireframe, Face edges shaded та X-ray shaded?", opts:["Це синоніми одного режиму","Wireframe — каркасна сітка, Face edges shaded — зафарбовані грані з контурами, X-ray — напівпрозорі деталі для пошуку прихованих елементів","X-ray показує лише кольори без форми","Face edges shaded доступний тільки для конвеєрів"], c:1},
+ {q:"Як правильно закріпити робота KUKA на лінійному треку KL4000 через PnP?", opts:["Прописати координати вручну в текстовому файлі","Піднести робота до монтажної плити треку до появи зеленої стрілки й відпустити мишу","Перезапустити програму","Це неможливо зробити без окремого плагіна"], c:1},
+ {q:"У чому різниця між World, Parent та Object при декартовому Jogging?", opts:["World — відносно цеху, Parent — відносно бази робота, Object — відносно фланця/інструмента (TCP)","Усі три системи ідентичні","Object застосовується лише для конвеєрів","Parent доступний тільки у 2D-режимі"], c:0},
+ {q:"Що потрібно зробити, щоб кнопка Reset повертала робота у власну задану позицію, а не в заводські нулі?", opts:["Нічого додатково робити не потрібно","Встановити робота в потрібну позицію і натиснути Settings → Save State","Видалити робота і додати заново","Змінити мову інтерфейсу програми"], c:1}
+];
+const qc = document.getElementById('quizContainer');
+let score = 0, answered = new Set();
+quiz.forEach((item,qi)=>{
+  const div = document.createElement('div');
+  div.className='quiz-q';
+  div.innerHTML = `<h4>${qi+1}. ${item.q}</h4>` +
+    item.opts.map((o,oi)=>`<button class="quiz-opt" data-q="${qi}" data-o="${oi}">${o}</button>`).join('') +
+    `<div class="quiz-fb" id="fb-${qi}"></div>`;
+  qc.appendChild(div);
+});
+qc.addEventListener('click', e=>{
+  if(!e.target.classList.contains('quiz-opt')) return;
+  const qi = +e.target.dataset.q, oi = +e.target.dataset.o;
+  if(answered.has(qi)) return;
+  answered.add(qi);
+  const opts = document.querySelectorAll(`.quiz-opt[data-q="${qi}"]`);
+  opts.forEach(o=>{
+    o.disabled=true;
+    if(+o.dataset.o === quiz[qi].c) o.classList.add('correct');
+    else if(+o.dataset.o===oi) o.classList.add('wrong');
+  });
+  if(oi===quiz[qi].c) score++;
+  document.getElementById(`fb-${qi}`).classList.add('show');
+  document.getElementById(`fb-${qi}`).textContent = oi===quiz[qi].c ? "✅ Правильно." : "❌ Неправильно. Правильна відповідь підсвічена вище.";
+  document.getElementById('quizScore').textContent = `${score} / ${quiz.length}`;
+});
+</script>
+</body>
+</html>

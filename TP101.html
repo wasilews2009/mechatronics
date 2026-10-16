@@ -1,0 +1,769 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Пресування сирних головок</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: технічний паспорт вправи — бічний зміст + одна колонка читання; схеми як креслення на «міліметрівці» */
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --surface-2:#e4eaee; --ink:#14202a; --muted:#566573; --line:#cdd6dd;
+  --air:#0a7fc0; --air-soft:#d5ebf7; --idle:#9fb3c2; --warn:#b86e00; --warn-soft:#fbefd9; --ok:#1f8a4c; --bad:#c23a2b;
+  --grid:rgba(10,127,192,.07);
+  --f-display:"Unbounded","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e151b; --surface:#151f28; --surface-2:#1c2833; --ink:#e3ebf1; --muted:#93a3b1; --line:#2a3a47;
+  --air:#3db2f0; --air-soft:#123349; --idle:#4c6273; --warn:#f0a63a; --warn-soft:#3a2a10; --ok:#4cc583; --bad:#ff6d5c;
+  --grid:rgba(61,178,240,.06); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151b; --surface:#151f28; --surface-2:#1c2833; --ink:#e3ebf1; --muted:#93a3b1; --line:#2a3a47;
+  --air:#3db2f0; --air-soft:#123349; --idle:#4c6273; --warn:#f0a63a; --warn-soft:#3a2a10; --ok:#4cc583; --bad:#ff6d5c;
+  --grid:rgba(61,178,240,.06); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.62 var(--f-body)}
+a{color:var(--air)}
+h1,h2,h3{text-wrap:balance;line-height:1.2}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:0 0 .9rem}
+h3{font-size:1.08rem;margin:1.6rem 0 .5rem;font-weight:600}
+p{margin:.55rem 0}
+code,.mono{font-family:var(--f-mono);font-size:.9em}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* hero */
+.hero{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;border-bottom:1px solid var(--line)}
+.hero .wrap{padding-block:40px 30px}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--air)}
+.hero h1{font-size:clamp(1.8rem,4.6vw,3rem);margin:.6rem 0 .5rem;max-width:20ch}
+.hero .lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+.spec{display:flex;flex-wrap:wrap;gap:0;margin-top:22px;border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden}
+.spec div{flex:1 1 150px;padding:10px 14px;border-right:1px solid var(--line)}
+.spec div:last-child{border-right:0}
+.spec dt{font:600 .68rem/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.spec dd{margin:4px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* layout */
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:32px 80px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:.9rem}
+.toc ol{list-style:none;padding:0;margin:0;counter-reset:t;border-left:2px solid var(--line)}
+.toc li{counter-increment:t}
+.toc a{display:block;padding:5px 0 5px 14px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+.toc a::before{content:counter(t,decimal-leading-zero) "  ";font-family:var(--f-mono);font-size:.75rem;color:var(--idle)}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--air)}
+.toc-mobile{display:none}
+main{min-width:0}
+section{padding-block:8px 34px;border-bottom:1px solid var(--line);margin-bottom:34px;scroll-margin-top:20px}
+section:last-child{border-bottom:0}
+.secnum{font:600 .74rem var(--f-mono);color:var(--air);letter-spacing:.1em}
+.prose{max-width:70ch}
+@media (max-width:960px){.layout{grid-template-columns:minmax(0,1fr)}.toc{display:none}.toc-mobile{display:block;margin-bottom:24px}}
+
+/* blocks */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+.note{border-left:3px solid var(--air);background:var(--air-soft);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0;max-width:70ch}
+.warn{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0;max-width:70ch}
+.note b,.warn b{display:block;margin-bottom:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:14px 0}
+.cols>*{min-width:0}
+.seq{list-style:none;padding:0;margin:12px 0;counter-reset:s;display:grid;gap:8px;max-width:70ch}
+.seq li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start}
+.seq li::before{content:counter(s);font:600 .85rem/30px var(--f-mono);text-align:center;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--air);color:var(--air)}
+.tablewrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.94rem;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.85rem}
+td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.formula{font:600 1.15rem var(--f-mono);background:var(--surface);border:1px dashed var(--line);padding:12px 16px;border-radius:6px;display:inline-block;margin:6px 0}
+.kbd{font:600 .8rem var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:var(--surface)}
+.svgbox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.svgbox svg{display:block;width:100%;height:auto}
+
+/* svg primitives */
+.sym{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.symf{fill:var(--ink)}
+.thin{stroke:var(--muted);stroke-width:1.2;fill:none}
+.lbl{fill:var(--ink);font:600 13px var(--f-mono)}
+.lbl-s{fill:var(--muted);font:500 11px var(--f-mono)}
+.part{fill:var(--surface-2);stroke:var(--ink);stroke-width:1.6}
+.metal{fill:var(--idle);stroke:var(--ink);stroke-width:1.4}
+.chamber{fill:var(--surface)}
+.chamber.live{fill:var(--air-soft)}
+.pipe{stroke:var(--idle);stroke-width:3;fill:none;stroke-linecap:round}
+.pipe.live{stroke:var(--air);stroke-dasharray:9 6;animation:flow .6s linear infinite}
+.pipe.vent{stroke:var(--warn);stroke-dasharray:4 5;animation:flow .4s linear infinite reverse}
+@keyframes flow{to{stroke-dashoffset:-15}}
+@media (prefers-reduced-motion:reduce){.pipe.live,.pipe.vent{animation:none}}
+
+/* anatomy */
+.hot{cursor:pointer}
+.hot circle{fill:var(--surface);stroke:var(--air);stroke-width:2}
+.hot text{fill:var(--air);font:700 13px var(--f-mono);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.hot:hover circle,.hot.on circle{fill:var(--air)}
+.hot:hover text,.hot.on text{fill:var(--surface)}
+.hot:focus{outline:none}.hot:focus-visible circle{stroke-width:4}
+.partinfo{margin-top:12px;min-height:84px}
+.partinfo h4{margin:0 0 4px;font-size:1rem}
+
+/* controls */
+.btn{font:600 .95rem var(--f-body);border:1.5px solid var(--air);background:var(--surface);color:var(--air);padding:9px 16px;border-radius:5px;cursor:pointer}
+.btn:hover{background:var(--air-soft)}
+.btn.solid{background:var(--air);color:var(--surface)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--air);outline-offset:2px}
+.seg{display:inline-flex;border:1.5px solid var(--air);border-radius:5px;overflow:hidden}
+.seg button{border:0;background:var(--surface);color:var(--air);font:600 .88rem var(--f-body);padding:8px 14px;cursor:pointer}
+.seg button.on{background:var(--air);color:var(--surface)}
+label.field{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+input[type=number],select{font:500 1rem var(--f-mono);padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);width:100%}
+input[type=range]{width:100%;min-width:0;margin:0;accent-color:var(--air)}
+
+/* simulator */
+.sim{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:16px;align-items:start}
+@media (max-width:760px){.sim{grid-template-columns:minmax(0,1fr)}}
+.sim-ctrl{display:grid;gap:14px;min-width:0}
+.sim-ctrl label{min-width:0}
+.push{width:100%;padding:18px 12px;font:700 1rem var(--f-display);border-radius:8px;border:2px solid var(--ink);background:var(--ok);color:#fff;box-shadow:0 5px 0 var(--ink);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;transition:transform .05s,box-shadow .05s}
+.push.down{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.push small{display:block;font:500 .75rem var(--f-body);opacity:.9;margin-top:4px}
+.readout{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.readout div{background:var(--surface-2);border-radius:5px;padding:8px 10px}
+.readout dt{font:600 .66rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.readout dd{margin:2px 0 0;font:600 1.05rem var(--f-mono);font-variant-numeric:tabular-nums}
+.chk{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.chk input{width:18px;height:18px;accent-color:var(--air)}
+.status{font:600 .85rem var(--f-mono);padding:6px 10px;border-radius:4px;background:var(--surface-2)}
+.status.w{background:var(--warn-soft);color:var(--warn)}
+canvas{display:block;width:100%;height:150px;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+
+/* steps */
+.steps{list-style:none;padding:0;margin:14px 0;counter-reset:st;display:grid;gap:12px}
+.steps>li{counter-increment:st;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px 14px 60px;position:relative}
+.steps>li::before{content:counter(st,decimal-leading-zero);position:absolute;left:16px;top:14px;font:700 1rem var(--f-display);color:var(--air)}
+.steps>li.done{border-color:var(--ok)}
+.steps>li.done::before{content:"✓";color:var(--ok)}
+.steps h4{margin:0 0 4px;font-size:1rem}
+.steps p{margin:.35rem 0}
+.steps .tick{position:absolute;right:14px;top:14px}
+.steps ul{margin:.3rem 0;padding-left:1.2rem}
+.path{font:500 .85rem var(--f-mono);background:var(--surface-2);padding:1px 6px;border-radius:3px}
+.progress{height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;max-width:420px}
+.progress i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+
+/* quiz */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin-bottom:12px}
+.q p.qt{font-weight:600;margin-top:0}
+.q label{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-radius:5px;cursor:pointer}
+.q label:hover{background:var(--surface-2)}
+.q input{margin-top:5px;accent-color:var(--air)}
+.q label.r{background:color-mix(in srgb,var(--ok) 15%,transparent)}
+.q label.x{background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.q .fb{font-size:.92rem;color:var(--muted);margin-top:6px}
+.score{font:700 1.1rem var(--f-display)}
+
+/* actuation grid */
+.acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:12px 0}
+.act{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px;display:grid;gap:4px;justify-items:start}
+.act svg{width:100%;max-width:120px;height:auto}
+.act b{font-size:.88rem}
+.act span{font-size:.8rem;color:var(--muted)}
+footer{color:var(--muted);font-size:.85rem;padding-block:24px 40px;border-top:1px solid var(--line)}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Festo TP 101 · Пневматика, базовий рівень · Вправа 1</div>
+    <h1>Пресування сирних головок</h1>
+    <p class="lead">Посібник для студентів-мехатроніків: теорія циліндра однобічної дії та розподільника 3/2, розрахунок зусилля, інтерактивна модель схеми і покрокова збірка проєкту в симуляторі FluidSIM.</p>
+    <dl class="spec">
+      <div><dt>Тип керування</dt><dd>Пряме, ручне</dd></div>
+      <div><dt>Виконавчий механізм</dt><dd>Циліндр однобічної дії</dd></div>
+      <div><dt>Розподільник</dt><dd>3/2, кнопка, НЗ</dd></div>
+      <div><dt>Тиск у вправі</dt><dd>≤ 3,5 бар (350 кПа)</dd></div>
+      <div><dt>Орієнтовний час</dt><dd>2 академ. години</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Зміст">
+    <ol id="toc">
+      <li><a href="#task">Завдання проєкту</a></li>
+      <li><a href="#basics">Основи пневматики</a></li>
+      <li><a href="#cyl">Циліндр однобічної дії</a></li>
+      <li><a href="#force">Розрахунок зусилля</a></li>
+      <li><a href="#valve">Розподільник 3/2</a></li>
+      <li><a href="#direct">Пряме керування</a></li>
+      <li><a href="#sim">Інтерактивна схема</a></li>
+      <li><a href="#fluidsim">Проєкт у FluidSIM</a></li>
+      <li><a href="#report">Звіт і обладнання</a></li>
+      <li><a href="#quiz">Самоперевірка</a></li>
+      <li><a href="#extra">Додаткові завдання</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <details class="toc-mobile panel"><summary><b>Зміст посібника</b></summary><div id="tocm"></div></details>
+
+    <!-- 1 -->
+    <section id="task">
+      <div class="secnum">01 · ЗАВДАННЯ</div>
+      <h2>Що потрібно зробити</h2>
+      <div class="prose">
+        <p>На сироварні пневматичні циліндри притискають кришки до форм, у яких пресуються сирні головки. Потрібно спроєктувати систему керування одним таким пресом: оператор вкладає головку у форму, натискає кнопку, і циліндр притискає кришку. Поки кнопку утримують, тиск зберігається; коли кнопку відпускають, циліндр повертається у вихідне положення.</p>
+      </div>
+      <h3>Технологічна послідовність</h3>
+      <ol class="seq">
+        <li><span>Сирну головку вручну вкладають у пристрій.</span></li>
+        <li><span>Натискання кнопки змушує циліндр висунутися і притиснути кришку до форми.</span></li>
+        <li><span>Кнопку утримують натиснутою до завершення пресування.</span></li>
+        <li><span>Після відпускання кнопки циліндр втягується і звільняє пристрій.</span></li>
+        <li><span>Готову головку виймають.</span></li>
+      </ol>
+      <div class="cols">
+        <div class="panel">
+          <h3 style="margin-top:0">Умови (параметри)</h3>
+          <ul>
+            <li>Виконавчий механізм — <b>циліндр однобічної дії</b> з сильною поворотною пружиною.</li>
+            <li>Керування циліндром — <b>ручним розподільником</b> (без проміжних клапанів).</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0">Що здати (проєктні завдання)</h3>
+          <ol style="padding-left:1.2rem;margin:0">
+            <li>Описати роботу циліндра однобічної дії.</li>
+            <li>Описати роботу розподільника 3/2.</li>
+            <li>Накреслити пневматичну схему з позначенням портів.</li>
+            <li>Зібрати схему (FluidSIM / стенд).</li>
+            <li>Перевірити роботу.</li>
+            <li>Описати роботу схеми.</li>
+            <li>Скласти перелік обладнання.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="warn"><b>Безпека</b>Для цієї вправи обмежте тиск на блоці підготовки повітря до 3,5 бар (350 кПа). У FluidSIM задайте таке саме значення, щоб результати моделі й стенда збігалися.</div>
+    </section>
+
+    <!-- 2 -->
+    <section id="basics">
+      <div class="secnum">02 · ТЕОРІЯ</div>
+      <h2>Основи пневматики</h2>
+      <div class="prose">
+        <p><b>Пневматика</b> використовує стиснене повітря як носій енергії. Компресор стискає атмосферне повітря, блок підготовки очищує його і встановлює робочий тиск, розподільники спрямовують потік, а виконавчі механізми (циліндри, пневмомотори) перетворюють енергію тиску на механічний рух.</p>
+        <p>Переваги пневматики: повітря доступне всюди, не забруднює продукт (важливо для харчової промисловості, як у нашому прикладі із сиром), безпечне при перевантаженні, дає високі швидкості руху. Обмеження: стисливість повітря ускладнює точне позиціювання, зусилля обмежені тиском у мережі (зазвичай 6–8 бар).</p>
+      </div>
+      <h3>Тиск та одиниці вимірювання</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Величина</th><th class="num">Співвідношення</th><th>Коментар</th></tr>
+        <tr><td>Паскаль</td><td class="num">1 Па = 1 Н/м²</td><td>Одиниця SI, у формулах завжди використовуйте Па</td></tr>
+        <tr><td>Бар</td><td class="num">1 бар = 100 кПа = 10⁵ Па</td><td>Найпоширеніша одиниця в пневматиці</td></tr>
+        <tr><td>Робочий тиск стенда TP101</td><td class="num">≤ 6 бар (600 кПа)</td><td>Оптимально — 5 бар, без змащування</td></tr>
+        <tr><td>Тиск у цій вправі</td><td class="num">≤ 3,5 бар (350 кПа)</td><td>Вимога безпеки вправи 1</td></tr>
+      </table></div>
+      <p class="prose">Манометри в пневматиці показують <b>надлишковий тиск</b> — тобто тиск понад атмосферний. Коли манометр показує 0 бар, у лінії атмосферний тиск.</p>
+
+      <h3>Структура пневматичної системи керування</h3>
+      <div class="prose"><p>Схеми креслять так, щоб потік сигналів ішов знизу вгору: внизу — джерело енергії, над ним — елементи введення сигналів, ще вище — керувальні елементи, вгорі — виконавчі механізми.</p></div>
+      <div class="tablewrap"><table>
+        <tr><th>Рівень</th><th>Приклади</th><th>У вправі 1</th></tr>
+        <tr><td>Виконавчі механізми</td><td>Циліндри, пневмомотори</td><td>Циліндр однобічної дії <code>1A1</code></td></tr>
+        <tr><td>Керувальні елементи</td><td>Розподільники з пневмокеруванням</td><td>Немає — пряме керування</td></tr>
+        <tr><td>Обробка сигналів</td><td>Клапани «І», «АБО», реле часу</td><td>Немає</td></tr>
+        <tr><td>Введення сигналів</td><td>Кнопки, кінцеві вимикачі, датчики</td><td>Розподільник 3/2 з кнопкою <code>1S1</code></td></tr>
+        <tr><td>Енергопостачання</td><td>Компресор, блок підготовки, колектор</td><td><code>0Z1</code>, <code>0Z2</code></td></tr>
+      </table></div>
+
+      <h3>Позначення обладнання (DIN ISO 1219-2)</h3>
+      <div class="prose"><p>Кожен компонент отримує код: <b>номер контуру</b> + <b>літера типу</b> + <b>порядковий номер</b>. Елементи енергопостачання мають номер контуру 0.</p></div>
+      <div class="tablewrap"><table>
+        <tr><th>Літера</th><th>Тип</th><th>Приклади</th></tr>
+        <tr><td><code>A</code></td><td>Виконавчий механізм (циліндр)</td><td>1A1, 2A1</td></tr>
+        <tr><td><code>V</code></td><td>Клапан, розподільник</td><td>1V1, 1V2</td></tr>
+        <tr><td><code>S</code></td><td>Елемент введення сигналу (кнопка)</td><td>1S1, 1S2</td></tr>
+        <tr><td><code>B</code></td><td>Датчик</td><td>1B1</td></tr>
+        <tr><td><code>Z</code></td><td>Допоміжне обладнання (підготовка, колектор)</td><td>0Z1, 0Z2</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 3 -->
+    <section id="cyl">
+      <div class="secnum">03 · ТЕОРІЯ</div>
+      <h2>Циліндр однобічної дії</h2>
+      <div class="prose">
+        <p>У циліндрі однобічної дії стиснене повітря подається лише з одного боку поршня. Повітря висуває шток (робочий хід), а назад поршень повертає вбудована <b>пружина</b>. Порожнина з боку пружини з'єднана з атмосферою через вентиляційний отвір, тому при русі поршня повітря там не стискається.</p>
+        <p>Натисніть на номер, щоб побачити назву та призначення деталі.</p>
+      </div>
+      <div class="svgbox"><svg id="anat" viewBox="0 0 640 230" role="img" aria-label="Будова циліндра однобічної дії в розрізі"></svg></div>
+      <div class="panel partinfo" id="partinfo" aria-live="polite"><h4>1 · Задня кришка</h4><p>Закриває гільзу з боку подачі повітря; у ній виконано приєднувальний канал.</p></div>
+      <div class="note"><b>Зверніть увагу на нумерацію</b>У робочому аркуші зошита Festo деталі пронумеровано інакше. Користуйтеся цією схемою, щоб зрозуміти призначення деталей, а таблицю на аркуші заповнюйте за малюнком із зошита.</div>
+
+      <h3>Умовне позначення</h3>
+      <div class="cols">
+        <div class="svgbox"><svg viewBox="0 0 300 110" role="img" aria-label="Символ циліндра однобічної дії">
+          <rect class="sym" x="40" y="30" width="190" height="44"/>
+          <line class="sym" x1="90" y1="30" x2="90" y2="74"/>
+          <line class="sym" x1="90" y1="52" x2="270" y2="52"/>
+          <polyline class="sym" points="94,52 104,34 116,70 128,34 140,70 152,34 164,70 176,34 188,70 200,34 212,70 222,52"/>
+          <line class="sym" x1="55" y1="74" x2="55" y2="100"/>
+          <text class="lbl" x="62" y="98">1</text>
+          <text class="lbl" x="40" y="20">1A1</text>
+        </svg></div>
+        <div class="prose" style="font-size:.95rem">
+          <p>Прямокутник — гільза, вертикальна лінія — поршень, горизонтальна — шток, зигзаг — поворотна пружина. Порт подачі розташований з боку, протилежного пружині.</p>
+          <p>Порт на стороні пружини на символі зазвичай не показують: він постійно з'єднаний з атмосферою.</p>
+        </div>
+      </div>
+      <h3>Властивості</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Переваги</th><th>Обмеження</th></tr>
+        <tr><td>Половина витрати повітря порівняно з циліндром двобічної дії; простіше керування (достатньо розподільника 3/2); при зникненні тиску шток сам повертається у безпечне положення</td><td>Пружина «з'їдає» частину зусилля; обмежена довжина ходу (пружина займає місце); зусилля зворотного ходу мале і не регулюється</td></tr>
+      </table></div>
+      <p class="prose">Саме тому в задачі вимагається <b>сильна</b> поворотна пружина: вона має надійно підняти кришку преса з форми після відпускання кнопки.</p>
+    </section>
+
+    <!-- 4 -->
+    <section id="force">
+      <div class="secnum">04 · РОЗРАХУНОК</div>
+      <h2>Зусилля на штоку</h2>
+      <div class="prose">
+        <p><b>Теоретичне зусилля</b> — добуток площі поршня на тиск:</p>
+        <div class="formula">F<sub>th</sub> = A · p</div>
+        <p>де A — ефективна площа поршня, м² (A = π·D²/4), p — робочий тиск, Па.</p>
+        <p>На практиці частину зусилля витрачено на тертя ущільнень (близько 10 % від F<sub>th</sub> при 4–8 бар), а в циліндрі однобічної дії — ще й на стискання пружини:</p>
+        <div class="formula">F<sub>eff</sub> = A · p − (F<sub>F</sub> + F<sub>R</sub>)</div>
+        <p>F<sub>F</sub> — сила тертя, F<sub>R</sub> — сила поворотної пружини (беруть з паспорта циліндра, частина D зошита).</p>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:0">
+          <label class="field">Діаметр поршня D, мм<input type="number" id="fD" value="20" min="5" max="200" step="1"></label>
+          <label class="field">Тиск p, бар<input type="number" id="fP" value="6" min="0" max="10" step="0.1"></label>
+          <label class="field">Сила пружини F<sub>R</sub>, Н<input type="number" id="fR" value="13.6" min="0" max="500" step="0.1"></label>
+          <label class="field">Тертя, % від F<sub>th</sub><input type="number" id="fF" value="10" min="0" max="30" step="1"></label>
+        </div>
+        <div class="tablewrap"><table id="fTable"></table></div>
+        <p style="font-size:.88rem;color:var(--muted);margin-bottom:0">Значення D = 20 мм і F<sub>R</sub> = 13,6 Н наведено як приклад для навчального циліндра однобічної дії. Перед здачею звірте їх із паспортом (data sheet) у частині D зошита або на CD.</p>
+      </div>
+      <div class="note"><b>Типова помилка</b>Тиск у формулу підставляють у паскалях, а площу — у квадратних метрах. 6 бар = 600 000 Па; D = 20 мм = 0,02 м.</div>
+    </section>
+
+    <!-- 5 -->
+    <section id="valve">
+      <div class="secnum">05 · ТЕОРІЯ</div>
+      <h2>Розподільник 3/2</h2>
+      <div class="prose">
+        <p>Назва «3/2» означає: <b>3 приєднання</b> (порти) і <b>2 положення</b> перемикання. Кожне положення на символі — окремий квадрат. Порти підводять до того квадрата, що відповідає <b>вихідному (нормальному)</b> положенню.</p>
+      </div>
+      <div class="tablewrap"><table>
+        <tr><th>Порт</th><th>Призначення</th><th>Стара літера</th></tr>
+        <tr><td><code>1</code></td><td>Подача стисненого повітря</td><td>P</td></tr>
+        <tr><td><code>2</code></td><td>Робоча лінія (до циліндра)</td><td>A</td></tr>
+        <tr><td><code>3</code></td><td>Вихлоп в атмосферу</td><td>R</td></tr>
+        <tr><td><code>12</code></td><td>Керувальний вхід: з'єднує 1 з 2</td><td>Z</td></tr>
+      </table></div>
+
+      <h3>Нормально закритий і нормально відкритий</h3>
+      <div class="cols">
+        <div>
+          <div class="seg" role="group" aria-label="Тип розподільника">
+            <button id="vNC" class="on">Нормально закритий (НЗ)</button><button id="vNO">Нормально відкритий (НВ)</button>
+          </div>
+          <div class="seg" role="group" aria-label="Стан" style="margin-top:8px">
+            <button id="vRest" class="on">Вихідне положення</button><button id="vAct">Натиснуто</button>
+          </div>
+          <div class="svgbox" style="margin-top:10px"><svg id="vsym" viewBox="0 0 300 150" role="img" aria-label="Символ розподільника 3/2"></svg></div>
+        </div>
+        <div class="panel prose" id="vtext" style="font-size:.95rem"></div>
+      </div>
+
+      <h3>Конструкція: сідельний розподільник</h3>
+      <div class="prose">
+        <p>Навчальний розподільник із кнопкою виконано за сідельною (тарілчастою) схемою. У вихідному положенні пружина притискає ущільнювальний диск до сідла — шлях 1→2 закритий, а робоча лінія 2 через отвір у штовхачі з'єднана з вихлопом 3. При натисканні кнопки штовхач спочатку закриває вихлоп 3, а потім відриває диск від сідла — повітря проходить 1→2. Після відпускання пружина повертає все у вихідний стан, і повітря з циліндра виходить через 3.</p>
+        <p>Сідельні розподільники мають короткий хід перемикання, нечутливі до бруду і добре герметичні; проте зусилля натискання зростає з тиском, тому їх роблять малого розміру.</p>
+      </div>
+
+      <h3>Способи керування (приведення в дію)</h3>
+      <div class="acts" id="acts"></div>
+      <p class="prose" style="font-size:.92rem;color:var(--muted)">Позначення приводу малюють біля того квадрата, положення якого він вмикає. Пружина з протилежного боку повертає розподільник у вихідне положення.</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="direct">
+      <div class="secnum">06 · ТЕОРІЯ</div>
+      <h2>Пряме керування</h2>
+      <div class="prose">
+        <p>При <b>прямому</b> керуванні виконавчий механізм живиться безпосередньо через розподільник, який вмикає оператор (або механізм). Між кнопкою і циліндром немає проміжних клапанів: порт 2 кнопкового розподільника з'єднаний прямо з циліндром.</p>
+        <p>Такий спосіб придатний, коли циліндр малий (потрібна невелика витрата повітря), кнопка розташована поруч, а логіка проста — «натиснуто: висунути; відпущено: втягнути».</p>
+        <p>Для великих циліндрів, віддалених пультів і складних умов використовують <b>непряме</b> керування: кнопка подає лише керувальний сигнал на пневморозподільник, що вже комутує основний потік (вправа 2 і далі).</p>
+      </div>
+      <div class="tablewrap"><table>
+        <tr><th></th><th>Пряме</th><th>Непряме</th></tr>
+        <tr><td>Кількість розподільників</td><td>1</td><td>2 і більше</td></tr>
+        <tr><td>Розмір циліндра</td><td>Малий</td><td>Будь-який</td></tr>
+        <tr><td>Зусилля оператора</td><td>Росте з витратою</td><td>Мале, сталe</td></tr>
+        <tr><td>Логіка (І, АБО, затримки)</td><td>Майже неможлива</td><td>Легко додається</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 7 -->
+    <section id="sim">
+      <div class="secnum">07 · МОДЕЛЬ</div>
+      <h2>Інтерактивна схема преса</h2>
+      <div class="prose"><p>Модель поводиться так само, як схема у FluidSIM: лінії під тиском забарвлюються і «течуть», корпус розподільника зсувається, коли перемикається положення. Натисніть і утримуйте зелену кнопку (або клавішу <span class="kbd">Пробіл</span>, коли кнопка у фокусі).</p></div>
+      <div class="sim" style="margin-top:12px">
+        <div class="svgbox"><svg id="circuit" viewBox="0 0 660 400" role="img" aria-label="Пневматична схема: джерело 0Z1, розподільник 1S1, циліндр 1A1"></svg></div>
+        <div class="sim-ctrl">
+          <button class="push" id="push" aria-pressed="false">1S1 — НАТИСНУТИ<small>натисніть і утримуйте</small></button>
+          <label class="chk"><input type="checkbox" id="lock"> Зафіксувати кнопку (як <span class="kbd">Shift</span>+клік у FluidSIM)</label>
+          <label class="chk"><input type="checkbox" id="air" checked> Подачу повітря ввімкнено</label>
+          <label class="field">Тиск на блоці підготовки: <b id="pv" style="color:var(--ink)">3,5 бар</b>
+            <input type="range" id="pr" min="0" max="6" step="0.1" value="3.5"></label>
+          <div class="status" id="st">Вихідне положення: шток втягнутий</div>
+          <dl class="readout">
+            <div><dt>Тиск у лінії 2</dt><dd id="r2">0,0 бар</dd></div>
+            <div><dt>Положення штока</dt><dd id="rx">0 мм</dd></div>
+            <div><dt>Зусилля F<sub>eff</sub></dt><dd id="rf">0 Н</dd></div>
+            <div><dt>Стан 1S1</dt><dd id="rv">0</dd></div>
+          </dl>
+        </div>
+      </div>
+      <h3>Діаграма стану (як у FluidSIM)</h3>
+      <canvas id="chart" aria-label="Діаграма переміщення штока і стану кнопки за останні 10 секунд"></canvas>
+      <p class="prose" style="font-size:.9rem;color:var(--muted)">Верхній рядок — стан кнопки 1S1 (0/1), нижній — хід штока 1A1 (0…50 мм) за останні 10 с. Зверніть увагу: шток рухається з затримкою відносно кнопки, а при меншому тиску висувається повільніше. Нижче приблизно 0,6 бар зусилля не вистачає, щоб подолати пружину й тертя.</p>
+    </section>
+
+    <!-- 8 -->
+    <section id="fluidsim">
+      <div class="secnum">08 · ПРАКТИКА</div>
+      <h2>Реалізація проєкту у FluidSIM</h2>
+      <div class="prose">
+        <p>Нижче — порядок дій для FluidSIM Pneumatics (версії 4–6). Назви меню наведено українською та англійською, бо інтерфейс у лабораторії може бути англомовним. Розташування пунктів у різних версіях трохи відрізняється — орієнтуйтеся на назву команди. Позначайте виконані кроки, прогрес зберігається у вашому браузері.</p>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="progress" style="flex:1 1 200px"><i id="prog"></i></div><span class="mono" id="progt">0 / 11</span></div>
+      <ol class="steps" id="steps">
+        <li><h4>Створіть новий проєкт</h4>
+          <p><span class="path">Файл → Новий</span> (<span class="path">File → New</span>). Збережіть одразу під іменем <code>Ex01_syr_pres</code>, щоб не втратити роботу.</p>
+          <p>Переконайтеся, що відкрито бібліотеку компонентів (зазвичай ліворуч). Компоненти перетягують з бібліотеки на робоче поле мишею.</p></li>
+        <li><h4>Додайте джерело стисненого повітря</h4>
+          <p>У групі <span class="path">Елементи живлення / Supply elements</span> виберіть <b>джерело стисненого повітря</b> (Compressed air supply). Для відповідності стенду можна додатково поставити <b>блок підготовки повітря</b> (Service unit / Start-up valve with filter regulator) — <code>0Z1</code>.</p>
+          <p>Двічі клацніть по джерелу і встановіть робочий тиск <b>3,5 бар</b> (Operating pressure).</p></li>
+        <li><h4>Додайте розподільник 3/2 з кнопкою</h4>
+          <p>Варіант А: у групі <span class="path">Розподільники / Directional valves</span> знайдіть готовий <b>3/2-розподільник з кнопкою, нормально закритий</b>.</p>
+          <p>Варіант Б: перетягніть <b>налаштовуваний 3/n-розподільник</b> (Configurable 3/n way valve) і двічі клацніть по ньому:</p>
+          <ul><li>ліве положення — привід <b>Ручний → Кнопка</b> (Manually → Pushbutton);</li>
+          <li>праве положення — <b>Пружина</b> (Spring);</li>
+          <li>вміст квадратів: лівий — прохід 1→2, вихлоп 3 закритий; правий — прохід 2→3, порт 1 закритий.</li></ul></li>
+        <li><h4>Додайте циліндр однобічної дії</h4>
+          <p><span class="path">Виконавчі механізми → Циліндри / Actuators → Cylinders</span>: <b>Single acting cylinder</b> з поворотною пружиною. Подвійним клацанням задайте хід 50 мм і діаметр поршня 20 мм, якщо ваша версія дозволяє.</p></li>
+        <li><h4>Розташуйте компоненти за правилом «знизу вгору»</h4>
+          <p>Джерело — внизу, над ним розподільник, угорі — циліндр. Шток спрямуйте вправо або вгору, як у зразку. Так схему легко читати й перевіряти.</p></li>
+        <li><h4>З'єднайте порти лініями</h4>
+          <p>Наведіть курсор на порт (кружечок на кінці приєднання) — курсор зміниться на перехрестя. Затисніть ліву кнопку миші й протягніть лінію до іншого порту.</p>
+          <ul><li>Порт <code>1</code> розподільника → джерело (або вихід блоку підготовки).</li>
+          <li>Порт <code>2</code> розподільника → порт циліндра.</li>
+          <li>Порт <code>3</code> — вихлоп: залиште вільним і двічі клацніть по ньому, щоб призначити <b>вихлоп / глушник</b> (Simple exhaust / Silencer).</li></ul>
+          <p>Не призначайте на порт 3 заглушку (Blind plug): повітрю з циліндра не буде куди вийти, і шток не повернеться.</p></li>
+        <li><h4>Підпишіть компоненти</h4>
+          <p>Двічі клацніть по компоненту і введіть позначення (Label): циліндр — <code>1A1</code>, розподільник — <code>1S1</code>, джерело / блок підготовки — <code>0Z1</code>. Увімкніть показ номерів портів: <span class="path">Вигляд → Позначення приєднань</span> (<span class="path">View → Connection designations</span>).</p></li>
+        <li><h4>Перевірте креслення</h4>
+          <p>Виконайте <span class="path">Креслення → Перевірити креслення</span> (<span class="path">Drawing → Check drawing</span>). Програма покаже незʼєднані порти, накладені лінії та компоненти. Виправте всі зауваження, крім свідомо відкритого вихлопу 3.</p></li>
+        <li><h4>Запустіть симуляцію</h4>
+          <p>Кнопка <b>Старт</b> на панелі або <span class="kbd">F9</span>. Лінії під тиском стають темно-синіми. Клацніть по кнопці розподільника і утримуйте — циліндр висувається. Відпустіть — циліндр втягується.</p>
+          <p>Щоб кнопка залишилася натиснутою без утримання мишею, клацніть по ній з затиснутою <span class="kbd">Shift</span>; повторне звичайне клацання відпускає її.</p></li>
+        <li><h4>Додайте вимірювання та діаграму стану</h4>
+          <p>Зупиніть симуляцію (<span class="kbd">F5</span>). Вставте <b>манометр</b> у лінію між портом 2 і циліндром (через трійник). Додайте <b>діаграму стану</b> (State diagram) і перетягніть на неї циліндр і розподільник — так ви запишете графік переміщення, як у моделі вище.</p>
+          <p>Запустіть знову й порівняйте тиск на манометрі при натиснутій і відпущеній кнопці.</p></li>
+        <li><h4>Проведіть дослідження й збережіть результат</h4>
+          <p>Повторіть запуск при тиску 1, 2 і 3,5 бар. Зафіксуйте, як змінюється час висування. Збережіть файл і зробіть знімок схеми та діаграми для звіту.</p></li>
+      </ol>
+
+      <h3>Гарячі клавіші симуляції</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Дія</th><th>Клавіша</th></tr>
+        <tr><td>Запуск симуляції</td><td><span class="kbd">F9</span></td></tr>
+        <tr><td>Пауза</td><td><span class="kbd">F8</span></td></tr>
+        <tr><td>Зупинка, повернення в режим редагування</td><td><span class="kbd">F5</span></td></tr>
+        <tr><td>Фіксація ручного приводу</td><td><span class="kbd">Shift</span> + клік</td></tr>
+      </table></div>
+      <p style="font-size:.9rem;color:var(--muted)">Клавіші відповідають стандартним налаштуванням FluidSIM; у вашій версії перевірте їх у меню «Виконати / Execute».</p>
+
+      <h3>Пошук несправностей</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Симптом</th><th>Імовірна причина</th><th>Що зробити</th></tr>
+        <tr><td>Після старту нічого не рухається, лінії не забарвлюються</td><td>Джерело не з'єднане з портом 1 або лінія закінчується поруч із портом, а не на ньому</td><td>Перетягніть кінець лінії точно на порт; запустіть «Перевірити креслення»</td></tr>
+        <tr><td>Циліндр висувається одразу після запуску без натискання</td><td>Обрано нормально відкритий розподільник або переплутано вміст квадратів</td><td>Перевірте: у вихідному положенні 1 закритий, 2→3</td></tr>
+        <tr><td>Циліндр висунувся, але не повертається</td><td>Порт 3 заглушено, або фіксацію Shift не знято</td><td>Призначте на порт 3 вихлоп; звичайним клацанням відпустіть кнопку</td></tr>
+        <tr><td>Циліндр рухається дуже повільно</td><td>Занизький тиск джерела</td><td>Подвійним клацанням перевірте тиск (3,5 бар)</td></tr>
+        <tr><td>Повідомлення про відкриті приєднання</td><td>Вільний порт без призначеного вихлопу</td><td>Подвійне клацання по порту → вихлоп або глушник</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 9 -->
+    <section id="report">
+      <div class="secnum">09 · ЗВІТ</div>
+      <h2>Опис роботи схеми, збирання і перелік обладнання</h2>
+      <h3>Опис роботи схеми (завдання 6)</h3>
+      <div class="prose">
+        <p><b>Вихідне положення.</b> Стиснене повітря від блоку підготовки 0Z1 через колектор 0Z2 надходить до порту 1 розподільника 1S1. Розподільник нормально закритий: порт 1 перекрито, а робоча лінія 2 з'єднана з вихлопом 3. Порожнина циліндра 1A1 сполучена з атмосферою, пружина утримує шток у втягнутому положенні.</p>
+        <p><b>Натискання кнопки.</b> Розподільник 1S1 перемикається: 1→2 відкрито, 3 закрито. Повітря надходить у поршневу порожнину циліндра, долає силу пружини і тертя, шток висувається і притискає кришку до форми із сиром. Поки кнопку утримують, зусилля пресування зберігається.</p>
+        <p><b>Відпускання кнопки.</b> Пружина повертає розподільник у вихідне положення: 1 закрито, 2→3. Повітря з циліндра виходить в атмосферу через порт 3, пружина циліндра втягує шток, кришка піднімається, головку можна вийняти.</p>
+      </div>
+      <h3>Збирання на стенді (завдання 4–5)</h3>
+      <ol class="seq">
+        <li><span>Закріпіть на профільній плиті блок підготовки 0Z1 і колектор 0Z2, розподільник 1S1 та циліндр 1A1 (циліндр — поворотним кріпленням із синьою гайкою).</span></li>
+        <li><span>При <b>вимкненому</b> повітрі з'єднайте трубками 4 мм: вихід блоку підготовки → колектор → порт 1 розподільника; порт 2 → порт циліндра. Вставляйте трубку у фітинг до упору.</span></li>
+        <li><span>Встановіть на регуляторі тиск 3,5 бар і лише тоді відкрийте запірний клапан блоку підготовки.</span></li>
+        <li><span>Натисніть і утримуйте кнопку: шток має висунутися. Відпустіть: шток має повернутися. Зіставте з результатом FluidSIM.</span></li>
+        <li><span>Перед розбиранням перекрийте подачу повітря. Під тиском фітинг не відпустить трубку.</span></li>
+      </ol>
+      <h3>Перелік обладнання (завдання 7)</h3>
+      <div class="tablewrap"><table>
+        <tr><th class="num">К-сть</th><th>Найменування</th><th>Позначення</th><th class="num">Номер Festo</th></tr>
+        <tr><td class="num">1</td><td>Циліндр однобічної дії</td><td><code>1A1</code></td><td class="num">152887</td></tr>
+        <tr><td class="num">1</td><td>Розподільник 3/2 з кнопкою, нормально закритий</td><td><code>1S1</code></td><td class="num">152860</td></tr>
+        <tr><td class="num">1</td><td>Блок підготовки повітря із запірним клапаном і фільтром-регулятором</td><td><code>0Z1</code></td><td class="num">540691</td></tr>
+        <tr><td class="num">1</td><td>Розподільний колектор</td><td><code>0Z2</code></td><td class="num">152896</td></tr>
+        <tr><td class="num">—</td><td>Пластикова трубка PUN 4×0,75</td><td>—</td><td class="num">151496</td></tr>
+      </table></div>
+      <p style="font-size:.9rem;color:var(--muted)">Номери взято з комплектації набору TP101 у вступній частині зошита. Блок підготовки й колектор не показано на схемі вправи, але вони потрібні для збирання.</p>
+    </section>
+
+    <!-- 10 -->
+    <section id="quiz">
+      <div class="secnum">10 · САМОПЕРЕВІРКА</div>
+      <h2>Перевірте себе</h2>
+      <div id="qz"></div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn solid" id="qcheck">Перевірити відповіді</button><button class="btn" id="qreset">Почати знову</button><span class="score" id="qscore"></span></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="extra">
+      <div class="secnum">11 · ДОДАТКОВО</div>
+      <h2>Додаткові завдання для FluidSIM</h2>
+      <ol class="seq">
+        <li><span><b>НВ замість НЗ.</b> Замініть розподільник на нормально відкритий. Опишіть, як тепер працює прес і чому для преса такий варіант небезпечний.</span></li>
+        <li><span><b>Тиск і час.</b> Побудуйте таблицю «тиск (1…3,5 бар) — час висування». Поясніть, чому залежність нелінійна.</span></li>
+        <li><span><b>Мінімальний тиск.</b> Знаходьте в моделі FluidSIM тиск, за якого шток ще висувається. Порівняйте з розрахунком: p<sub>min</sub> ≈ F<sub>R</sub> / (0,9·A).</span></li>
+        <li><span><b>Два пости.</b> Додайте другий кнопковий розподільник, щоб прес можна було вмикати з двох місць. Чому просте з'єднання двох портів 2 трійником не працює? (Підказка: ви повернетеся до цього у вправі з човниковим клапаном «АБО».)</span></li>
+      </ol>
+    </section>
+  </main>
+</div>
+<footer><div class="wrap">За матеріалами робочого зошита Festo Didactic «Pneumatics, Basic Level, TP 101», вправа 1. Посібник STEAM-HUB ПУЕТ для самостійної роботи студентів.</div></footer>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const fmt=(n,d=1)=>n.toLocaleString('uk-UA',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+/* ---------- mobile toc ---------- */
+$('#tocm').innerHTML='<ol style="padding-left:1.2rem;margin:.6rem 0 0">'+$('#toc').innerHTML+'</ol>';
+const links=[...document.querySelectorAll('#toc a')];
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))}})},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s=>io.observe(s));
+}
+
+/* ---------- svg helpers ---------- */
+function arrow(x1,y1,x2,y2){const a=Math.atan2(y2-y1,x2-x1),L=10,W=4.5;const bx=x2-L*Math.cos(a),by=y2-L*Math.sin(a),px=-Math.sin(a)*W,py=Math.cos(a)*W;
+  return `<line class="sym" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/><polygon class="symf" points="${x2},${y2} ${bx+px},${by+py} ${bx-px},${by-py}"/>`}
+function block(x,yb){return `<line class="sym" x1="${x}" y1="${yb}" x2="${x}" y2="${yb-12}"/><line class="sym" x1="${x-7}" y1="${yb-12}" x2="${x+7}" y2="${yb-12}"/>`}
+// box at x0,y0 size 60; content: 'p12' (1→2, 3 blocked) or 'p23' (2→3, 1 blocked)
+function box(x0,y0,kind){let s=`<rect class="sym" x="${x0}" y="${y0}" width="60" height="60"/>`;
+  if(kind==='p12') s+=arrow(x0+15,y0+60,x0+15,y0)+block(x0+45,y0+60);
+  else s+=arrow(x0+15,y0,x0+45,y0+60)+block(x0+15,y0+60);
+  return s}
+function spring(x,y,len){let p=`M${x} ${y}`;const n=6,st=len/n;for(let i=0;i<n;i++){p+=` L${x+st*(i+.5)} ${y+(i%2?8:-8)}`}p+=` L${x+len} ${y}`;return `<path class="sym" d="${p}"/>`}
+function pushbtn(x,y){return `<line class="sym" x1="${x}" y1="${y}" x2="${x-14}" y2="${y}"/><line class="sym" x1="${x-14}" y1="${y-8}" x2="${x-14}" y2="${y+8}"/><path class="sym" d="M${x-14} ${y-8} A8 8 0 0 0 ${x-14} ${y+8}"/>`}
+function exhaust(x,y){return `<polygon class="sym" points="${x-7},${y} ${x+7},${y} ${x},${y+11}"/>`}
+function source(x,y){return `<circle class="sym" cx="${x}" cy="${y}" r="14"/><polygon class="symf" points="${x},${y-8} ${x-7},${y+5} ${x+7},${y+5}"/>`}
+
+/* ---------- anatomy ---------- */
+const parts=[
+ ['Задня кришка','Закриває гільзу з боку подачі повітря; у ній виконано приєднувальний канал і впирається поршень у втягнутому положенні.',60,200,60,170],
+ ['Приєднувальний порт (подача)','Сюди підключають трубку від порту 2 розподільника. Через нього повітря і надходить, і виходить у вихлоп.',60,20,60,38],
+ ['Гільза (корпус)','Труба з гладкою внутрішньою поверхнею, у якій ковзає поршень. Утримує тиск робочої порожнини.',280,30,280,70],
+ ['Поршень з ущільненням','Розділяє гільзу на дві порожнини. Тиск повітря на його площу створює зусилля F = A·p. Манжета не дає повітрю перетікати.',123,205,123,156],
+ ['Поворотна пружина','Стискається при висуванні штока і повертає поршень, коли порожнину з’єднано з вихлопом. Її сила F_R зменшує корисне зусилля.',330,205,330,150],
+ ['Вентиляційний отвір','З’єднує порожнину пружини з атмосферою, щоб там не виникало стиснення чи розрідження. Часто закритий фільтром.',478,20,478,52],
+ ['Передня кришка з підшипником','Напрямна втулка і грязезйомник для штока; обмежує хід поршня вперед.',520,205,485,170],
+ ['Шток','Передає зусилля поршня на робочий орган — у нашому випадку на кришку преса.',600,72,575,110]];
+const an=$('#anat');
+let s=`<rect class="part" x="40" y="60" width="40" height="110"/><rect class="part" x="460" y="60" width="40" height="110"/>
+<rect class="part" x="80" y="70" width="380" height="90" style="fill:var(--surface)"/>
+<rect class="chamber live" x="80" y="72" width="30" height="86"/>
+<rect x="55" y="38" width="10" height="34" class="part" style="fill:var(--air-soft)"/><rect x="50" y="30" width="20" height="10" class="metal"/>
+<rect x="474" y="52" width="8" height="18" class="part" style="fill:var(--surface)"/>
+<rect x="500" y="98" width="14" height="34" class="part"/>
+<rect class="metal" x="136" y="104" width="439" height="22" rx="2"/>
+<rect class="metal" x="110" y="74" width="26" height="82" style="fill:var(--ink)"/><rect x="114" y="74" width="6" height="82" style="fill:var(--warn)"/>`;
+let sp='M136 115';for(let i=0;i<14;i++){const x=136+(i+.5)*(324/14);sp+=` L${x} ${i%2?150:80}`}sp+=' L460 115';
+s+=`<path d="${sp}" class="sym" style="stroke:var(--muted)"/>`;
+s+=`<path class="sym" style="stroke:var(--air)" d="M60 34 V10"/><polygon style="fill:var(--air)" points="60,40 55,30 65,30"/>`;
+parts.forEach((p,i)=>{s+=`<line class="thin" x1="${p[2]}" y1="${p[3]}" x2="${p[4]}" y2="${p[5]}"/><g class="hot${i===0?' on':''}" data-i="${i}" tabindex="0" role="button" aria-label="${i+1}. ${p[0]}"><circle cx="${p[2]}" cy="${p[3]}" r="12"/><text x="${p[2]}" y="${p[3]}">${i+1}</text></g>`});
+an.innerHTML=s;
+an.querySelectorAll('.hot').forEach(g=>{const show=()=>{an.querySelectorAll('.hot').forEach(h=>h.classList.remove('on'));g.classList.add('on');const p=parts[+g.dataset.i];$('#partinfo').innerHTML=`<h4>${+g.dataset.i+1} · ${p[0]}</h4><p>${p[1]}</p>`};
+  g.addEventListener('click',show);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}})});
+
+/* ---------- force calc ---------- */
+function calc(){const D=+$('#fD').value/1000,p=+$('#fP').value*1e5,FR=+$('#fR').value,fr=+$('#fF').value/100;
+  const A=Math.PI*D*D/4,Fth=A*p,FF=Fth*fr,Fe=Fth-FF-FR;
+  $('#fTable').innerHTML=`<tr><th>Крок</th><th>Обчислення</th><th class="num">Результат</th></tr>
+  <tr><td>Площа поршня</td><td class="mono">A = π·${fmt(D,3)}²/4</td><td class="num">${(A*1e6).toFixed(1).replace('.',',')} мм² = ${A.toExponential(3).replace('.',',')} м²</td></tr>
+  <tr><td>Теоретичне зусилля</td><td class="mono">F<sub>th</sub> = ${A.toExponential(3).replace('.',',')} · ${p.toLocaleString('uk-UA')}</td><td class="num">${fmt(Fth)} Н</td></tr>
+  <tr><td>Тертя</td><td class="mono">F<sub>F</sub> = ${fmt(fr*100,0)} % · F<sub>th</sub></td><td class="num">${fmt(FF)} Н</td></tr>
+  <tr><td>Пружина</td><td class="mono">F<sub>R</sub></td><td class="num">${fmt(FR)} Н</td></tr>
+  <tr><td><b>Ефективне зусилля</b></td><td class="mono">F<sub>eff</sub> = F<sub>th</sub> − F<sub>F</sub> − F<sub>R</sub></td><td class="num"><b style="color:${Fe>0?'var(--ok)':'var(--bad)'}">${fmt(Fe)} Н</b></td></tr>`}
+['#fD','#fP','#fR','#fF'].forEach(id=>$(id).addEventListener('input',calc));calc();
+
+/* ---------- valve symbol NC/NO ---------- */
+let vNC=true,vAct=false;
+function drawV(){const P=150;const dx=vAct?60:0;const bx=P-60+dx;
+  const leftK=vNC?'p12':'p23',rightK=vNC?'p23':'p12';
+  let s=`<g>${box(bx,40,leftK)}${box(bx+60,40,rightK)}${pushbtn(bx,70)}<line class="sym" x1="${bx+120}" y1="70" x2="${bx+124}" y2="70"/>${spring(bx+124,70,22)}</g>`;
+  s+=`<line class="pipe${(vNC===vAct)?' live':''}" x1="${P+15}" y1="40" x2="${P+15}" y2="12"/><line class="pipe live" x1="${P+15}" y1="100" x2="${P+15}" y2="126"/><line class="sym" x1="${P+45}" y1="100" x2="${P+45}" y2="112"/>${exhaust(P+45,112)}`;
+  s+=`<text class="lbl" x="${P+22}" y="22">2</text><text class="lbl" x="${P+22}" y="122">1</text><text class="lbl" x="${P+52}" y="110">3</text>`;
+  $('#vsym').innerHTML=s;
+  const open=vNC===vAct;
+  $('#vtext').innerHTML=`<p><b>${vNC?'Нормально закритий':'Нормально відкритий'}</b>, ${vAct?'кнопку натиснуто':'вихідне положення'}.</p>
+  <p>${open?'Порт 1 з\'єднано з портом 2: повітря йде до циліндра, вихлоп 3 перекрито.':'Порт 1 перекрито, робоча лінія 2 з\'єднана з вихлопом 3: циліндр без тиску.'}</p>
+  <p style="color:var(--muted)">${vNC?'НЗ розподільник подає тиск лише під час натискання — саме він потрібен для преса.':'НВ розподільник подає тиск, доки кнопку не натиснули. Прес з ним опускався б одразу після подачі повітря.'}</p>`}
+const sg=(a,b,f)=>{a.onclick=()=>{a.classList.add('on');b.classList.remove('on');f();drawV()}};
+sg($('#vNC'),$('#vNO'),()=>vNC=true);sg($('#vNO'),$('#vNC'),()=>vNC=false);sg($('#vRest'),$('#vAct'),()=>vAct=false);sg($('#vAct'),$('#vRest'),()=>vAct=true);drawV();
+
+/* ---------- actuation symbols ---------- */
+const edge='<rect class="sym" x="60" y="10" width="40" height="40"/>';
+const acts=[
+ ['Ручне, загальне','будь-яке ручне',`<line class="sym" x1="60" y1="30" x2="36" y2="30"/><line class="sym" x1="36" y1="20" x2="36" y2="40"/>`],
+ ['Кнопка','вправа 1, 1S1',`<line class="sym" x1="60" y1="30" x2="38" y2="30"/><line class="sym" x1="38" y1="22" x2="38" y2="38"/><path class="sym" d="M38 22 A8 8 0 0 0 38 38"/>`],
+ ['Важіль','перемикач з фіксацією',`<line class="sym" x1="60" y1="30" x2="40" y2="30"/><line class="sym" x1="46" y1="30" x2="32" y2="12"/><circle class="sym" cx="30" cy="10" r="3"/>`],
+ ['Педаль','ножне керування',`<line class="sym" x1="60" y1="30" x2="40" y2="30"/><polyline class="sym" points="40,30 40,40 26,22"/>`],
+ ['Ролик','кінцевий вимикач',`<line class="sym" x1="60" y1="30" x2="40" y2="30"/><circle class="sym" cx="34" cy="30" r="6"/>`],
+ ['Пружина','повернення',`<line class="sym" x1="60" y1="30" x2="56" y2="30"/><path class="sym" d="M56 30 L52 22 L46 38 L40 22 L34 38 L30 30"/>`],
+ ['Пневматичне','тиск на вхід 12/14',`<line class="sym" x1="60" y1="30" x2="44" y2="30" style="stroke-dasharray:4 3"/><polygon class="symf" points="60,30 50,25 50,35"/>`]];
+$('#acts').innerHTML=acts.map(a=>`<div class="act"><svg viewBox="0 0 104 60">${edge}${a[2]}</svg><b>${a[0]}</b><span>${a[1]}</span></div>`).join('');
+
+/* ---------- simulator ---------- */
+const C=$('#circuit');
+const P=230; // port box x
+const CY0=60,CY1=120,CX0=215,CX1=445; // barrel
+C.innerHTML=`
+<text class="lbl" x="${CX0}" y="${CY0-12}">1A1</text>
+<rect class="sym" x="${CX0}" y="${CY0}" width="${CX1-CX0}" height="${CY1-CY0}"/>
+<rect id="ch" class="chamber" x="${CX0+2}" y="${CY0+2}" width="10" height="${CY1-CY0-4}"/>
+<path id="spr" class="sym" style="stroke:var(--muted)"/>
+<g id="pist"><rect x="0" y="${CY0+2}" width="10" height="${CY1-CY0-4}" style="fill:var(--ink)"/><rect x="10" y="${(CY0+CY1)/2-6}" width="222" height="12" class="metal"/><rect x="232" y="${CY0-6}" width="9" height="${CY1-CY0+12}" style="fill:var(--ink)"/></g>
+<rect x="${CX1+0}" y="${(CY0+CY1)/2-8}" width="4" height="16" style="fill:var(--ink)"/>
+<g id="cheese"><rect x="560" y="${CY0-14}" width="10" height="${CY1-CY0+28}" class="part"/>
+<rect x="570" y="${CY0-6}" width="44" height="${CY1-CY0+12}" rx="10" style="fill:#e9c46a;stroke:var(--ink);stroke-width:1.4"/>
+<rect x="614" y="${CY0-22}" width="12" height="${CY1-CY0+44}" class="part"/></g>
+<text class="lbl-s" x="560" y="${CY1+40}">форма з сиром</text>
+<text class="lbl-s" x="455" y="${CY1+40}" id="gtxt"></text>
+<path id="L2" class="pipe" d="M${P+15} 250 V185 H${CX0-25} V${(CY0+CY1)/2} H${CX0}"/>
+<text class="lbl" x="${P+22}" y="244">2</text>
+<g id="vbody">${box(P-60,250,'p12')}${box(P,250,'p23')}${pushbtn(P-60,280)}<line class="sym" x1="${P+60}" y1="280" x2="${P+64}" y2="280"/>${spring(P+64,280,22)}</g>
+<text class="lbl" x="${P-150}" y="285">1S1</text>
+<line id="L1" class="pipe live" x1="${P+15}" y1="310" x2="${P+15}" y2="352"/>
+<text class="lbl" x="${P+22}" y="330">1</text>
+<line id="L3" class="pipe" x1="${P+45}" y1="310" x2="${P+45}" y2="326"/>${exhaust(P+45,326)}
+<text class="lbl" x="${P+52}" y="322">3</text>
+${source(P+15,366)}
+<text class="lbl" x="${P+38}" y="372">0Z1</text>
+<text class="lbl-s" x="${P+38}" y="388" id="ptxt">3,5 бар</text>`;
+// make L2 enter barrel at port: move cylinder port to x=P+15
+const L1=$('#L1'),L2=$('#L2'),L3=$('#L3'),pist=$('#pist'),spr=$('#spr'),ch=$('#ch'),vb=$('#vbody');
+let pressed=false,locked=false,airOn=true,p=3.5,x=0,vent=0;
+const STROKE=100,PX0=CX0+4; // pixel stroke maps to 50 mm
+const hist=[];let tAcc=0;
+function render(){
+  const act=pressed||locked;
+  vb.setAttribute('transform',`translate(${act?60:0} 0)`);
+  const px=PX0+x*STROKE;
+  pist.setAttribute('transform',`translate(${px} 0)`);
+  ch.setAttribute('width',Math.max(2,px-CX0-2));
+  const live=act&&airOn&&p>0;
+  ch.classList.toggle('live',live);
+  {let d=`M${px+10} ${(CY0+CY1)/2}`;const n=10,a=px+10,e=CX1,q=(e-a)/n;for(let i=0;i<n;i++)d+=` L${a+q*(i+.5)} ${i%2?CY1-4:CY0+4}`;spr.setAttribute('d',d+` L${e} ${(CY0+CY1)/2}`);}
+  L1.classList.toggle('live',airOn&&p>0);
+  L2.classList.toggle('live',live);
+  L2.classList.toggle('vent',!live&&vent>0);
+  L3.classList.toggle('vent',!live&&vent>0);
+  const p2=live?p:0;
+  $('#r2').textContent=fmt(p2)+' бар';
+  $('#rx').textContent=Math.round(x*50)+' мм';
+  const A=Math.PI*0.01*0.01,Fe=live?Math.max(0,A*p*1e5*0.9-13.6):0;
+  $('#rf').textContent=Math.round(Fe)+' Н';
+  $('#rv').textContent=act?'1':'0';
+  $('#gtxt').textContent='';
+  const st=$('#st');st.classList.remove('w');
+  if(p>3.5){st.textContent='Увага: тиск вище 3,5 бар — заборонено у вправі 1';st.classList.add('w')}
+  else if(act&&!airOn){st.textContent='Кнопку натиснуто, але повітря не подано';st.classList.add('w')}
+  else if(act&&p<0.6){st.textContent='Тиску не вистачає, щоб подолати пружину';st.classList.add('w')}
+  else if(act&&x>=1)st.textContent='Пресування: кришку притиснуто';
+  else if(act)st.textContent='Шток висувається…';
+  else if(x>0)st.textContent='Повернення: повітря виходить через порт 3';
+  else st.textContent='Вихідне положення: шток втягнутий';
+  const b=$('#push');b.classList.toggle('down',act);b.setAttribute('aria-pressed',act)}
+let last=performance.now();
+function loop(t){const dt=Math.min(.05,(t-last)/1000);last=t;
+  const act=pressed||locked;const drive=act&&airOn&&p>=0.6;
+  const prev=x;
+  if(drive){x=Math.min(1,x+dt*0.62*(p-0.45))}else{x=Math.max(0,x-dt*1.5)}
+  if(!drive&&prev>0&&x<prev)vent=0.3;else vent=Math.max(0,vent-dt);
+  tAcc+=dt;if(tAcc>=0.05){tAcc=0;hist.push([act?1:0,x]);if(hist.length>200)hist.shift();drawChart()}
+  render();requestAnimationFrame(loop)}
+const pb=$('#push');
+const down=e=>{e.preventDefault();pressed=true;try{pb.setPointerCapture(e.pointerId)}catch(_){}};
+const up=()=>{pressed=false};
+pb.addEventListener('pointerdown',down);pb.addEventListener('pointerup',up);pb.addEventListener('pointercancel',up);pb.addEventListener('lostpointercapture',up);
+pb.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();pressed=true}});
+pb.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter')pressed=false});
+pb.addEventListener('click',e=>e.preventDefault());
+$('#lock').onchange=e=>locked=e.target.checked;
+$('#air').onchange=e=>airOn=e.target.checked;
+$('#pr').oninput=e=>{p=+e.target.value;$('#pv').textContent=fmt(p)+' бар';$('#ptxt').textContent=fmt(p)+' бар';$('#pv').style.color=p>3.5?'var(--warn)':'var(--ink)'};
+
+/* chart */
+const cv=$('#chart'),cx=cv.getContext('2d');
+function drawChart(){const r=cv.getBoundingClientRect();if(!r.width)return;const dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(r.width*dpr)){cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr)}
+  const cs=getComputedStyle(document.documentElement);const ink=cs.getPropertyValue('--ink'),mut=cs.getPropertyValue('--muted'),air=cs.getPropertyValue('--air'),ln=cs.getPropertyValue('--line'),ok=cs.getPropertyValue('--ok');
+  cx.setTransform(dpr,0,0,dpr,0,0);const W=r.width,H=r.height;cx.clearRect(0,0,W,H);
+  const L=74,R=W-12;const rows=[[14,48],[70,136]];
+  cx.font='600 11px "JetBrains Mono",monospace';cx.fillStyle=mut;cx.strokeStyle=ln;cx.lineWidth=1;
+  cx.fillText('1S1',8,rows[0][0]+12);cx.fillText('1',L-14,rows[0][0]+4);cx.fillText('0',L-14,rows[0][1]+4);
+  cx.fillText('1A1',8,rows[1][0]+12);cx.fillText('50',L-22,rows[1][0]+4);cx.fillText('0',L-14,rows[1][1]+4);
+  for(const[a,b]of rows){cx.beginPath();cx.moveTo(L,a);cx.lineTo(R,a);cx.moveTo(L,b);cx.lineTo(R,b);cx.stroke()}
+  for(let s=0;s<=10;s+=2){const xx=L+(R-L)*s/10;cx.beginPath();cx.moveTo(xx,rows[0][0]);cx.lineTo(xx,rows[1][1]);cx.stroke();cx.fillText((s-10)+' с',xx-12,H-2)}
+  const n=hist.length,step=(R-L)/200;const off=L+(200-n)*step;
+  const plot=(k,a,b,col)=>{cx.strokeStyle=col;cx.lineWidth=2.2;cx.beginPath();hist.forEach((h,i)=>{const xx=off+i*step,yy=b-(b-a)*h[k];i?cx.lineTo(xx,yy):cx.moveTo(xx,yy)});cx.stroke()};
+  if(n){plot(0,rows[0][0],rows[0][1],ok);plot(1,rows[1][0],rows[1][1],air)}}
+window.addEventListener('resize',drawChart);
+requestAnimationFrame(loop);
+
+/* ---------- steps progress ---------- */
+const KEY='ex01-fluidsim-steps';let done=[];try{done=JSON.parse(localStorage.getItem(KEY))||[]}catch(_){}
+const items=[...document.querySelectorAll('#steps>li')];
+items.forEach((li,i)=>{const c=document.createElement('input');c.type='checkbox';c.className='tick';c.id='st'+i;c.setAttribute('aria-label','Крок '+(i+1)+' виконано');c.style.cssText='width:20px;height:20px;accent-color:var(--ok)';c.checked=done.includes(i);li.appendChild(c);
+  c.onchange=()=>{done=items.map((_,j)=>j).filter(j=>$('#st'+j).checked);try{localStorage.setItem(KEY,JSON.stringify(done))}catch(_){}upd()}});
+function upd(){items.forEach((li,i)=>li.classList.toggle('done',$('#st'+i).checked));const k=done.length;$('#prog').style.width=(k/items.length*100)+'%';$('#progt').textContent=k+' / '+items.length}upd();
+
+/* ---------- quiz ---------- */
+const Q=[
+ ['Що означає позначення «3/2» у назві розподільника?',['3 положення, 2 порти','3 порти, 2 положення','3 бар, 2 мм','Розподільник для 3 циліндрів'],1,'Перше число — кількість приєднань (1, 2, 3), друге — кількість положень перемикання.'],
+ ['Як повертається шток циліндра однобічної дії?',['Тиском повітря з порту 3','Вбудованою пружиною','Вагою кришки преса','Другим розподільником'],1,'Повітря подається лише з одного боку поршня; зворотний хід забезпечує пружина.'],
+ ['Що з’єднано у нормально закритому 3/2-розподільнику в вихідному положенні?',['1 з 2, 3 закритий','1 з 3, 2 закритий','2 з 3, 1 закритий','Усі порти закриті'],2,'Подачу 1 перекрито, а робоча лінія 2 скидає повітря через вихлоп 3.'],
+ ['Яке позначення має кнопковий розподільник у вправі 1?',['1A1','0Z1','1S1','1B1'],2,'Літера S — елемент введення сигналу, номер контуру 1.'],
+ ['Чому в цій схемі керування називається прямим?',['Кнопка розташована прямо на циліндрі','Розподільник із кнопкою живить циліндр безпосередньо','Повітря йде без трубок','Використано прямий циліндр'],1,'Між кнопковим розподільником і циліндром немає проміжного розподільника.'],
+ ['Теоретичне зусилля циліндра Ø20 мм при 6 бар приблизно дорівнює:',['18,8 Н','188 Н','1885 Н','12 Н'],1,'A = 3,14·10⁻⁴ м²; F = 3,14·10⁻⁴ · 600 000 ≈ 188 Н.'],
+ ['У FluidSIM на порт 3 поставили заглушку. Що станеться?',['Нічого не зміниться','Шток не висунеться','Шток висунеться, але не повернеться','Тиск зросте вдвічі'],2,'Повітрю з циліндра нікуди вийти, тож пружина не може втягнути шток.'],
+ ['Який максимальний тиск дозволено для вправи 1?',['6 бар','8 бар','3,5 бар','1 бар'],2,'Вимога безпеки зошита: не більше 3,5 бар (350 кПа) на блоці підготовки.']];
+$('#qz').innerHTML=Q.map((q,i)=>`<div class="q" id="q${i}"><p class="qt">${i+1}. ${q[0]}</p>${q[1].map((o,j)=>`<label><input type="radio" name="q${i}" value="${j}" id="q${i}o${j}"><span>${o}</span></label>`).join('')}<div class="fb" hidden></div></div>`).join('');
+$('#qcheck').onclick=()=>{let sc=0;Q.forEach((q,i)=>{const el=$('#q'+i),sel=el.querySelector('input:checked');el.querySelectorAll('label').forEach(l=>l.classList.remove('r','x'));
+  el.querySelectorAll('label')[q[2]].classList.add('r');if(sel&&+sel.value===q[2])sc++;else if(sel)sel.parentElement.classList.add('x');const fb=el.querySelector('.fb');fb.hidden=false;fb.textContent=q[3]});
+  $('#qscore').textContent=`Результат: ${sc} з ${Q.length}`};
+$('#qreset').onclick=()=>{document.querySelectorAll('#qz input').forEach(i=>i.checked=false);document.querySelectorAll('#qz label').forEach(l=>l.classList.remove('r','x'));document.querySelectorAll('#qz .fb').forEach(f=>f.hidden=true);$('#qscore').textContent=''};
+})();
+</script>
+
+</body></html>

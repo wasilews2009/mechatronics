@@ -1,0 +1,1548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Пневматика TP101 у FluidSIM</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: технічний «робочий зошит» — липкий зміст ліворуч, основна колонка з теорією, віртуальними стендами та 19 проєктами */
+:root{
+  --bg:#EDF1EF; --surface:#F9FBFA; --surface2:#E3E9E6; --ink:#13201F; --muted:#56666A; --rule:#C6D0CD;
+  --accent:#0B6E62; --accent-soft:#D3EAE5; --warn:#A35F00; --warn-soft:#F6E7CC;
+  --air:#1D55C9; --line-off:#9FB3BE; --danger:#B3261E;
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1416; --surface:#151E21; --surface2:#1C282C; --ink:#E1E9E8; --muted:#93A4A7; --rule:#2B393D;
+  --accent:#43C3AF; --accent-soft:#16352F; --warn:#E3A33D; --warn-soft:#3A2C14;
+  --air:#6FA2FF; --line-off:#3E5663; --danger:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1416; --surface:#151E21; --surface2:#1C282C; --ink:#E1E9E8; --muted:#93A4A7; --rule:#2B393D;
+  --accent:#43C3AF; --accent-soft:#16352F; --warn:#E3A33D; --warn-soft:#3A2C14;
+  --air:#6FA2FF; --line-off:#3E5663; --danger:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2;margin:0}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(1.9rem,4.6vw,3.1rem);letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:clamp(1.35rem,2.6vw,1.8rem)}
+h3{font-size:1.2rem;font-weight:700}
+h4{font-size:1rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+.tag{font-family:var(--f-mono);font-size:.8em;font-weight:600;background:var(--surface2);border:1px solid var(--rule);padding:0 .35em;border-radius:4px;white-space:nowrap}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--rule);
+  margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topbar-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:16px;min-height:52px;flex-wrap:wrap;padding-block:6px}
+.brand{font-family:var(--f-display);font-weight:600;font-size:.95rem;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+.brand svg{flex:none}
+.topnav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.topnav a{text-decoration:none;color:var(--ink);font-size:.9rem;padding:4px 10px;border-radius:6px}
+.topnav a:hover{background:var(--surface2)}
+.theme-btn{border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-size:.85rem;cursor:pointer}
+
+.wrap{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:32px 80px}
+@media (max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.toc{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:.88rem;padding-right:6px}
+.toc h4{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.toc a{display:block;text-decoration:none;color:var(--ink);padding:3px 8px;border-radius:5px;line-height:1.35}
+.toc a:hover{background:var(--surface2)}
+.toc a.done::after{content:" ✓";color:var(--accent);font-weight:700}
+main{min-width:0;display:flex;flex-direction:column;gap:64px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero-text{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hero .lead{font-size:1.1rem;max-width:62ch;color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.9rem;color:var(--muted)}
+.facts b{color:var(--ink);font-family:var(--f-mono)}
+.hero-plate{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:12px;min-width:0}
+.hero-plate .cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+
+/* sections */
+.sec{display:flex;flex-direction:column;gap:20px;scroll-margin-top:80px}
+.sec-head{display:flex;flex-direction:column;gap:6px;border-top:2px solid var(--ink);padding-top:14px}
+.topic{display:flex;flex-direction:column;gap:14px;scroll-margin-top:80px;padding-top:8px}
+.topic+.topic{border-top:1px solid var(--rule);padding-top:24px}
+.topic h3 .num{font-family:var(--f-mono);color:var(--accent);margin-right:.4em}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:72ch}
+.prose ul,.prose ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:4px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.cols>*{min-width:0}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.95rem;max-width:72ch}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note b:first-child{display:block;margin-bottom:2px}
+.formula{font-family:var(--f-mono);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;font-size:.92rem;overflow-x:auto;white-space:pre;line-height:1.7}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;background:var(--surface2);font-size:.85rem}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+details{border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+details>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:baseline}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"+";font-family:var(--f-mono);color:var(--accent);width:1ch}
+details[open]>summary::before{content:"−"}
+details>.d-body{padding:0 14px 14px 38px;display:flex;flex-direction:column;gap:8px}
+
+/* stand */
+.stand{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);display:flex;flex-direction:column;min-width:0}
+.stand-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--rule)}
+.stand-head .t{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stand-head .sp{flex:1}
+.sbtn{font:inherit;font-size:.85rem;border:1px solid var(--rule);background:var(--surface2);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.sbtn:hover{border-color:var(--accent)}
+.svgbox{overflow-x:auto;padding:8px;touch-action:manipulation}
+.svgbox svg{display:block;width:100%;height:auto;min-width:460px;max-height:640px;user-select:none;-webkit-user-select:none}
+.stand-ctl{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 12px;border-top:1px solid var(--rule);align-items:center}
+.ctl-group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.opbtn{font:inherit;font-size:.86rem;font-weight:600;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:7px;padding:6px 12px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.opbtn .id{font-family:var(--f-mono);font-size:.8rem;margin-right:6px;color:var(--accent)}
+.opbtn[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.opbtn[aria-pressed="true"] .id{color:var(--surface)}
+.slider{display:flex;flex-direction:column;gap:2px;font-size:.8rem;min-width:150px;flex:1 1 150px;max-width:240px}
+.slider label{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+.slider output{font-family:var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.slider input{width:100%;accent-color:var(--accent)}
+.chk{display:flex;gap:6px;align-items:center;font-size:.86rem}
+.readout{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);padding:6px 12px 10px;display:flex;flex-wrap:wrap;gap:4px 16px;font-variant-numeric:tabular-nums}
+.readout b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:22px;height:0;border-top:2.4px solid var(--air);vertical-align:middle;margin-right:6px}
+.legend i.off{border-top:1.5px solid var(--line-off)}
+.legend i.box{width:14px;height:12px;border:1.5px solid var(--accent);background:var(--accent-soft)}
+
+/* svg symbols */
+.w{fill:none;stroke:var(--line-off);stroke-width:1.5;stroke-linejoin:round}
+.w.on{stroke:var(--air);stroke-width:2.4}
+.dot{fill:var(--line-off)}.dot.on{fill:var(--air)}
+.s{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+.sf{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.ink{fill:var(--ink)}
+.vb{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.vb.act{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.vf{stroke:var(--ink);stroke-width:1.2;fill:none}.vh{fill:var(--ink)}
+.vf.hot{stroke:var(--air);stroke-width:1.8}.vh.hot{fill:var(--air)}
+.dash{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 2}
+.lbl{font-family:var(--f-mono);font-size:10px;font-weight:600;fill:var(--ink)}
+.pn{font-family:var(--f-mono);font-size:7.5px;fill:var(--muted)}
+.val{font-family:var(--f-mono);font-size:8.5px;fill:var(--air);font-weight:600}
+.sub{font-family:var(--f-body);font-size:8.5px;fill:var(--muted)}
+.sens{stroke:var(--muted);stroke-width:1.5}.sens.on{stroke:var(--warn);stroke-width:2.6}
+.senst{font-family:var(--f-mono);font-size:8.5px;fill:var(--muted)}.senst.on{fill:var(--warn);font-weight:600}
+.cylb{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.rod{fill:var(--surface2);stroke:var(--ink);stroke-width:1.1}
+.gface{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.needle{stroke:var(--danger);stroke-width:1.6}
+.tmr-ring{fill:none;stroke:var(--warn);stroke-width:2.5}
+g.man{cursor:pointer}
+g.man:hover .vb{stroke:var(--accent)}
+
+/* projects */
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pick{font:inherit;text-align:left;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pick .no{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between}
+.pick .nm{font-size:.86rem;font-weight:600;line-height:1.25}
+.pick:hover{border-color:var(--accent)}
+.pick[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pick.done .no::after{content:"✓ виконано";color:var(--accent);font-weight:600}
+.proj{display:flex;flex-direction:column;gap:22px;scroll-margin-top:80px}
+.proj-head{display:flex;flex-direction:column;gap:8px}
+.proj-head h3{font-family:var(--f-display);font-weight:500;font-size:clamp(1.3rem,2.4vw,1.7rem)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border:1px solid var(--rule);border-radius:999px;padding:1px 9px;color:var(--muted);background:var(--surface)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.box h4{font-size:.95rem}
+.box ul,.box ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:5px}
+.steps{counter-reset:st;list-style:none;padding:0!important}
+.steps>li{counter-increment:st;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps>li::before{content:counter(st);font-family:var(--f-mono);font-size:.8rem;font-weight:600;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;margin-top:1px}
+.seq{display:flex;flex-direction:column;gap:0}
+.seq>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px dashed var(--rule)}
+.seq>div:last-child{border-bottom:0}
+.seq b{font-family:var(--f-mono);font-size:.82rem;color:var(--accent)}
+@media (max-width:520px){.seq>div{grid-template-columns:minmax(0,1fr);gap:2px}}
+.checklist{list-style:none;padding:0!important}
+.checklist li{display:flex;gap:8px;align-items:flex-start}
+.checklist input{margin-top:5px;accent-color:var(--accent)}
+.done-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.variant-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.variant-tabs button{font:inherit;font-size:.85rem;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.variant-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* calculator & quiz */
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:700px){.calc{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:3px;font-size:.85rem}
+.field input{font:inherit;font-family:var(--f-mono);padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.res{display:flex;flex-direction:column;gap:6px}
+.res div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--rule);padding:4px 0;font-size:.9rem}
+.res b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.q{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r)}
+.q .opts{display:flex;flex-direction:column;gap:6px}
+.q button.opt{font:inherit;text-align:left;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:7px;padding:7px 10px;cursor:pointer}
+.q button.opt:hover{border-color:var(--accent)}
+.q button.opt.ok{border-color:var(--accent);background:var(--accent-soft)}
+.q button.opt.bad{border-color:var(--danger);color:var(--danger)}
+.q .fb{font-size:.9rem;color:var(--muted)}
+.score{font-family:var(--f-mono);font-size:.95rem}
+footer{border-top:1px solid var(--rule);padding-top:16px;color:var(--muted);font-size:.85rem;max-width:80ch}
+.hero-plate .svgbox svg{min-width:0}
+@media (max-width:620px){.brand .bt{display:none}.topbar-in{flex-wrap:nowrap}.topnav{flex-wrap:nowrap;overflow-x:auto;min-width:0;margin-left:0}.topnav a{white-space:nowrap;padding:4px 8px}.theme-btn{margin-left:auto;flex:none}}
+.kbd{font-family:var(--f-mono);font-size:.8em;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface)}
+</style>
+
+<header class="topbar"><div class="topbar-in">
+  <a class="brand" href="#top"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="6" width="14" height="10" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5" y="7.5" width="2.4" height="7" fill="currentColor"/><rect x="7.4" y="10" width="13" height="2" fill="currentColor"/></svg><span class="bt">Пневматика TP101</span></a>
+  <nav class="topnav" aria-label="Розділи">
+    <a href="#theory">Теорія</a><a href="#fluidsim">FluidSIM</a><a href="#projects">Проєкти</a><a href="#quiz">Самоперевірка</a>
+  </nav>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Перемкнути тему">◐ Тема</button>
+</div></header>
+
+<div class="wrap" id="top">
+<aside class="toc" aria-label="Зміст">
+  <h4>Теорія</h4>
+  <a href="#t1">1. Стиснене повітря і тиск</a>
+  <a href="#t2">2. Структура схеми, позначення</a>
+  <a href="#t3">3. Пневмоциліндри</a>
+  <a href="#t4">4. Розподільники</a>
+  <a href="#t5">5. Пряме і непряме керування</a>
+  <a href="#t6">6. Керування швидкістю</a>
+  <a href="#t7">7. Логічні функції І, АБО, НЕ</a>
+  <a href="#t8">8. Пам'ять сигналу</a>
+  <a href="#t9">9. Датчики положення</a>
+  <a href="#t10">10. Керування за тиском</a>
+  <a href="#t11">11. Керування за часом</a>
+  <a href="#t12">12. Послідовності, два циліндри</a>
+  <h4>FluidSIM</h4>
+  <a href="#f1">Інтерфейс і робочий цикл</a>
+  <a href="#f2">Прийоми побудови схем</a>
+  <a href="#f3">Діагностика помилок</a>
+  <h4>Проєкти 1–19</h4>
+  <div id="tocProjects"></div>
+  <h4>Підсумок</h4>
+  <a href="#quiz">Самоперевірка</a>
+</aside>
+
+<main>
+<section class="hero" aria-labelledby="h1">
+  <div class="hero-text">
+    <span class="eyebrow">Мехатроніка · робочий зошит TP101 · базовий рівень</span>
+    <h1 id="h1">Пневматика TP101 у&nbsp;FluidSIM</h1>
+    <p class="lead">Інтерактивний посібник до 19 проєктів базового курсу пневматики. Тут зібрано теорію, потрібну для кожного завдання, і покрокові інструкції, як зібрати та перевірити кожну схему в симуляторі FluidSIM Pneumatics.</p>
+    <div class="facts"><span><b>19</b> проєктів</span><span><b>12</b> тем теорії</span><span><b>23</b> віртуальні стенди</span><span>робочий тиск <b>≤ 6 bar</b></span></div>
+    <div class="note"><b>Як працювати з посібником</b>Прочитайте теорію до теми проєкту, подивіться, як поводиться схема на віртуальному стенді, а потім зберіть ту саму схему у FluidSIM за інструкцією. Стенд показує очікувану поведінку. Він не замінює симулятор, бо модель у ньому спрощена.</div>
+  </div>
+  <figure class="hero-plate" style="margin:0">
+    <div class="stand-mount" data-demo="hero"></div>
+    <figcaption class="cap">Проєкт 8 на стенді: натисніть <span class="tag">1S1</span>, щоб засувка закрилася (швидкий хід), і <span class="tag">1S2</span>, щоб вона повільно відкрилася. Сині лінії під тиском.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ THEORY ============ -->
+<section class="sec" id="theory" aria-labelledby="th">
+  <div class="sec-head"><span class="eyebrow">Розділ I</span><h2 id="th">Теоретичні основи</h2></div>
+
+  <article class="topic" id="t1">
+    <h3><span class="num">1</span>Стиснене повітря, тиск і безпека</h3>
+    <div class="prose">
+      <p>Пневматична система перетворює енергію стисненого повітря на механічний рух. Компресор стискає атмосферне повітря, блок підготовки очищує його і встановлює робочий тиск, розподільники керують потоком, а циліндри виконують роботу.</p>
+      <p>У пневматиці тиск зазвичай вказують як <b>надлишковий</b>, тобто понад атмосферний. Основна одиниця на стенді та у FluidSIM — бар.</p>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Величина</th><th>Співвідношення</th><th>Де трапляється</th></tr></thead>
+      <tbody>
+        <tr><td>1 bar</td><td class="n">= 100 kPa = 0,1 MPa = 10⁵ Pa</td><td>манометри, властивості компонентів у FluidSIM</td></tr>
+        <tr><td>Тиск компресора стенда</td><td class="n">до 8 bar (800 kPa)</td><td>портативний компресор 230 V</td></tr>
+        <tr><td>Максимальний робочий тиск</td><td class="n">6 bar (600 kPa)</td><td>межа для всіх вправ TP101</td></tr>
+        <tr><td>Оптимальний робочий тиск</td><td class="n">5 bar без масла</td><td>найстабільніша робота схем</td></tr>
+        <tr><td>Тиск для вправ 1–11</td><td class="n">≤ 3,5 bar</td><td>вимога безпеки у завданнях</td></tr>
+      </tbody></table></div>
+    <div class="cols">
+      <div class="box"><h4>Блок підготовки повітря <span class="tag">0Z1</span></h4><p>Запірний клапан, фільтр і регулятор тиску з манометром. Він відсікає подачу, очищує повітря і тримає заданий тиск. У FluidSIM його можна показати спрощено або взагалі обійтися джерелом стисненого повітря з налаштованим тиском.</p></div>
+      <div class="box"><h4>Розподільний блок <span class="tag">0Z2</span></h4><p>Колектор із кількома виходами, від якого повітря розводять до всіх розподільників схеми. На схемах його часто не показують, а кожне живлення позначають трикутником <span class="mono">▵</span>.</p></div>
+    </div>
+    <div class="note warn"><b>Правила безпеки на реальному стенді</b>Не перевищуйте 6 bar. Вмикайте повітря лише після того, як усі трубки під'єднано. Не від'єднуйте трубки під тиском. Під час увімкнення циліндри можуть рушити самі. Якщо трубка зіскочила, негайно перекрийте повітря. Працюйте в захисних окулярах, а кінцеві вимикачі не натискайте фронтально і перевіряйте їх інструментом.</div>
+  </article>
+
+  <article class="topic" id="t2">
+    <h3><span class="num">2</span>Структура схеми і позначення за ISO 1219</h3>
+    <div class="prose">
+      <p>Схему креслять за потоком сигналу знизу вгору: внизу джерело енергії та сигнальні елементи, вище обробка сигналів, ще вище керувальний розподільник, нагорі виконавчий механізм. Усі елементи показують у <b>вихідному положенні</b>, коли повітря подано, але жодна кнопка не натиснута.</p>
+    </div>
+    <div class="cols">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Рівень</th><th>Приклади</th></tr></thead>
+        <tbody>
+          <tr><td>Виконавчий механізм</td><td>циліндри <span class="tag">1A1</span>, <span class="tag">2A1</span></td></tr>
+          <tr><td>Керувальний елемент</td><td>розподільник 5/2, що живить циліндр <span class="tag">1V1</span></td></tr>
+          <tr><td>Обробка сигналу</td><td>клапани І/АБО, таймер, клапан тиску</td></tr>
+          <tr><td>Вхідні сигнали</td><td>кнопки <span class="tag">1S1</span>, датчики <span class="tag">1B1</span></td></tr>
+          <tr><td>Енергопостачання</td><td>компресор, <span class="tag">0Z1</span>, <span class="tag">0Z2</span></td></tr>
+        </tbody></table></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Код</th><th>Що означає</th></tr></thead>
+        <tbody>
+          <tr><td class="n">1A1, 2A1</td><td>циліндри (A = actuator). Перша цифра — номер контуру</td></tr>
+          <tr><td class="n">1V1, 1V2…</td><td>клапани та розподільники контуру 1</td></tr>
+          <tr><td class="n">1S1, 1S2</td><td>сигнальні входи: кнопки, перемикачі</td></tr>
+          <tr><td class="n">1B1, 1B2</td><td>датчики: роликові, пневматичні магнітні</td></tr>
+          <tr><td class="n">0Z1, 1Z1</td><td>допоміжні: блок підготовки, манометри</td></tr>
+        </tbody></table></div>
+    </div>
+    <h4>Нумерація портів розподільників</h4>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Порт</th><th>Призначення</th><th>Пам'ятка</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td>живлення (подача стисненого повітря)</td><td>колись позначали P</td></tr>
+        <tr><td class="n">2, 4</td><td>робочі виходи до циліндра або наступного клапана</td><td>A, B</td></tr>
+        <tr><td class="n">3, 5</td><td>вихлоп в атмосферу</td><td>R, S</td></tr>
+        <tr><td class="n">12</td><td>керування, яке з'єднує 1 з 2</td><td>«1 → 2»</td></tr>
+        <tr><td class="n">14</td><td>керування, яке з'єднує 1 з 4</td><td>«1 → 4»</td></tr>
+        <tr><td class="n">10</td><td>керування, яке перекриває 1 (вихід без тиску)</td><td>«1 → 0»</td></tr>
+      </tbody></table></div>
+  </article>
+
+  <article class="topic" id="t3">
+    <h3><span class="num">3</span>Пневмоциліндри однобічної і двобічної дії</h3>
+    <div class="cols">
+      <div class="prose">
+        <h4>Циліндр однобічної дії</h4>
+        <p>Повітря подається лише в поршневу порожнину. Тиск діє на поршень, і коли сила перевищує тертя спокою, шток висувається. Повний робочий тиск у порожнині встановлюється лише в кінцевому положенні. Після скидання тиску поворотна пружина повертає поршень назад.</p>
+        <p>Пружина слабка, тому корисну роботу такий циліндр виконує лише в одному напрямку. Складові: гільза, задня кришка, передня кришка, шток, поршень, поворотна пружина, порт живлення, порт вихлопу (дихальний отвір).</p>
+      </div>
+      <div class="prose">
+        <h4>Циліндр двобічної дії</h4>
+        <p>Має два порти: поршневої і штокової порожнини. Для висування повітря подають у поршневу порожнину, а штокова випускає повітря. Для втягування навпаки. Пружини немає, тому зусилля є в обох напрямках, але повітря витрачається більше.</p>
+        <p>Площа з боку штока менша на площу перерізу штока, тому зусилля втягування при тому самому тиску менше за зусилля висування.</p>
+      </div>
+    </div>
+    <div class="formula">Теоретична сила:      F_th = A · p
+Площа поршня:          A  = π·D² / 4
+Кільцева площа:        A' = π·(D² − d²) / 4
+Тертя (4…8 bar):       F_R ≈ 10 % від F_th
+
+Однобічна дія:         F_eff = A·p − (F_R + F_F)     F_F — сила пружини
+Двобічна, висування:   F_eff = A·p − F_R
+Двобічна, втягування:  F_eff = A'·p − F_R</div>
+    <div class="box">
+      <h4>Калькулятор зусилля циліндра</h4>
+      <div class="calc">
+        <div class="fields">
+          <label class="field" for="cD">Діаметр поршня D, мм<input id="cD" type="number" value="20" min="1" step="1"></label>
+          <label class="field" for="cd">Діаметр штока d, мм<input id="cd" type="number" value="8" min="0" step="1"></label>
+          <label class="field" for="cp">Тиск p, bar<input id="cp" type="number" value="6" min="0" step="0.1"></label>
+          <label class="field" for="cF">Пружина F_F, Н<input id="cF" type="number" value="13.6" min="0" step="0.1"></label>
+          <label class="field" for="cR">Тертя, %<input id="cR" type="number" value="10" min="0" max="50" step="1"></label>
+        </div>
+        <div class="res" id="calcRes" aria-live="polite"></div>
+      </div>
+      <p class="sub" style="font-size:.85rem;color:var(--muted)">Стандартні значення взято з робочого зошита: циліндри стенда мають D = 20 мм, d = 8 мм, пружина 13,6 Н. Зошит дає відповіді 155,96 Н (однобічна дія), 169,6 Н і 142,4 Н (двобічна, висування і втягування) при 6 bar.</p>
+    </div>
+  </article>
+
+  <article class="topic" id="t4">
+    <h3><span class="num">4</span>Розподільники: позначення, положення, способи керування</h3>
+    <div class="prose">
+      <p>Назва «3/2» означає 3 керовані порти і 2 положення. Кожне положення креслять окремим квадратом. Стрілки в квадраті показують шляхи повітря, а знак <span class="mono">⊤</span> — закритий порт. Лінії схеми під'єднують до квадрата <b>вихідного положення</b>, того, що біля пружини.</p>
+      <ul>
+        <li><b>Нормально закритий (НЗ) 3/2</b>: без керування 1 закрито, вихід 2 з'єднаний з вихлопом 3. При натисканні 1 → 2.</li>
+        <li><b>Нормально відкритий (НВ) 3/2</b>: без керування 1 → 2. При натисканні 1 закрито, 2 → 3.</li>
+        <li><b>5/2</b>: в одному положенні 1 → 2 і 4 → 5, в іншому 1 → 4 і 2 → 3. Тиск є завжди на одному з виходів, тому 5/2 керує циліндром двобічної дії.</li>
+        <li><b>Моностабільний</b> (з поворотною пружиною) тримає положення лише поки діє сигнал. <b>Бістабільний</b> (керування з обох боків, «імпульсний») запам'ятовує останній сигнал.</li>
+      </ul>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Спосіб керування</th><th>Як поводиться</th><th>Де в проєктах</th></tr></thead>
+      <tbody>
+        <tr><td>Кнопка (без фіксації)</td><td>діє, поки її тримають; пружина повертає</td><td>1, 2, 8–19</td></tr>
+        <tr><td>Перемикач з фіксацією</td><td>залишається в обраному положенні</td><td>3–7</td></tr>
+        <tr><td>Роликовий важіль</td><td>натискається кулачком штока; знижене зусилля за рахунок пілотного керування</td><td>10, 13, 18, 19</td></tr>
+        <tr><td>Пневматичне (сигнал 12/14/10)</td><td>перемикається тиском керування</td><td>5, 8, 10–19</td></tr>
+        <tr><td>Пневматичний магнітний датчик</td><td>3/2-клапан, що спрацьовує від магніту на поршні</td><td>12–19</td></tr>
+        <tr><td>Пружина</td><td>повертає у вихідне положення</td><td>моностабільні клапани</td></tr>
+      </tbody></table></div>
+    <div class="stand-mount" data-demo="valves"></div>
+    <p class="sub" style="font-size:.85rem;color:var(--muted)">Натисніть кнопки і перемикач на стенді. Активне положення розподільника виділено зеленуватою рамкою, манометри показують тиск на виходах.</p>
+  </article>
+
+  <article class="topic" id="t5">
+    <h3><span class="num">5</span>Пряме і непряме керування</h3>
+    <div class="cols">
+      <div class="prose"><h4>Пряме керування (проєкти 1–4)</h4><p>Ручний розподільник сам живить циліндр. Це просто, але підходить лише для малих циліндрів: великий циліндр потребує великої витрати, а розподільник з великим прохідним перерізом важко перемкнути рукою. До того ж довгі лінії від пульта до циліндра повільні.</p></div>
+      <div class="prose"><h4>Непряме керування (з проєкту 5)</h4><p>Невеликий <b>сигнальний елемент</b> (кнопка, перемикач, датчик) лише подає керувальний сигнал. Потужний <b>керувальний елемент</b> (розподільник з пневмокеруванням) розташований біля циліндра і перемикає основний потік. Так пульт можна винести далеко, а сигнали обробити логікою.</p></div>
+    </div>
+    <div class="note"><b>Як відрізнити на схемі</b>Сигнальні елементи стоять у нижньому ряду і мають ручне чи механічне керування. Керувальний елемент стоїть над ними, має пневматичне керування 12/14 і живить циліндр.</div>
+  </article>
+
+  <article class="topic" id="t6">
+    <h3><span class="num">6</span>Керування швидкістю, вимірювання тиску</h3>
+    <div class="prose">
+      <p><b>Дросель зі зворотним клапаном</b> (one-way flow control valve) обмежує потік в одному напрямку. У зворотному напрямку повітря вільно проходить через зворотний клапан. Регулюванням перерізу дроселя змінюють швидкість штока.</p>
+    </div>
+    <div class="cols">
+      <div class="box"><h4>Дроселювання на вході</h4><p>Обмежують повітря, що надходить у циліндр, а вихлоп іде вільно. Найменша зміна навантаження змінює швидкість; навантаження в напрямку руху розганяє шток. Підходить для циліндрів однобічної дії та малих об'ємів.</p></div>
+      <div class="box"><h4>Дроселювання на виході</h4><p>Повітря подається вільно, а дросель гальмує вихлоп. Поршень затиснутий між двома повітряними подушками, тому рух рівномірний і мало залежить від навантаження. <b>Для циліндрів двобічної дії рекомендовано саме цей спосіб.</b></p></div>
+    </div>
+    <div class="cols">
+      <div class="prose"><h4>Стрибкоподібний рух (stick-slip)</h4><p>Виникає при дуже низькому тиску або надмірному дроселюванні. Тиск наростає на нерухомому поршні, поки не подолає тертя спокою. Поршень рушає, тертя ковзання менше, об'єм збільшується, тиск падає швидше, ніж встигає відновитися, і поршень зупиняється. Цикл повторюється, і поршень «заїкається».</p></div>
+      <div class="prose"><h4>Клапан швидкого вихлопу</h4><p>Ставлять безпосередньо на порт циліндра. Повітря від розподільника проходить 1 → 2, вихлоп 3 закритий. Коли тиск на 1 падає, повітря з циліндра виходить 2 → 3 прямо в атмосферу, не долаючи опору трубки і розподільника. Хід стає помітно швидшим.</p></div>
+    </div>
+    <div class="note"><b>Перевірка дроселя манометрами</b>Два манометри ставлять безпосередньо до і після дроселя. Під час руху на боці циліндра видно протитиск, якого немає на боці розподільника. Це видно у проєктах 6 і 10.</div>
+  </article>
+
+  <article class="topic" id="t7">
+    <h3><span class="num">7</span>Логічні функції І, АБО, НЕ</h3>
+    <div class="cols">
+      <div class="prose"><h4>АБО: човниковий клапан</h4><p>Сигнал на будь-якому з входів 1 дає сигнал на виході 2. Кулька перекриває той вхід, де тиску немає, тому повітря не витікає через вихлоп непрацюючої кнопки. Якщо сигнали на обох входах, на вихід проходить той, що прийшов першим.</p></div>
+      <div class="prose"><h4>І: клапан подвійного тиску</h4><p>Вихід 2 отримує сигнал, лише коли тиск є на обох входах. Якщо сигнали приходять у різний час, на вихід проходить пізніший. Якщо тиски різні, проходить менший.</p></div>
+      <div class="prose"><h4>НЕ: нормально відкритий 3/2</h4><p>Без керування сигнал є, при спрацюванні зникає. Так у проєкті 13 перевіряють, що зона відбору <b>не</b> зайнята, а в проєкті 16 блокують старт, якщо тиск <b>не</b> нижчий за межу.</p></div>
+    </div>
+    <div class="note warn"><b>Чому не можна просто з'єднати дві кнопки трійником</b>Якщо натиснути одну кнопку, повітря піде не лише в циліндр, а й через вихлоп 3 другої, ненатиснутої кнопки. Тиск у лінії впаде, і циліндр не розвине потрібного зусилля. Саме цю помилку аналізують у проєкті 9.</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Вхід 1</th><th>Вхід 2</th><th>АБО (човниковий)</th><th>І (подвійного тиску)</th></tr></thead>
+      <tbody><tr><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr><tr><td class="n">1</td><td class="n">0</td><td class="n">1</td><td class="n">0</td></tr><tr><td class="n">0</td><td class="n">1</td><td class="n">1</td><td class="n">0</td></tr><tr><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr></tbody></table></div>
+    <div class="stand-mount" data-demo="logic"></div>
+  </article>
+
+  <article class="topic" id="t8">
+    <h3><span class="num">8</span>Пам'ять сигналу: бістабільний розподільник і самоутримання</h3>
+    <div class="cols">
+      <div class="prose"><h4>Бістабільний розподільник 5/2</h4><p>Короткого імпульсу на 14 достатньо, щоб з'єднати 1 → 4. Після зникнення сигналу золотник залишається на місці, доки імпульс на 12 не поверне його (1 → 2). Якщо сигнали є на обох входах одночасно, домінує той, що прийшов першим. Таке <b>перекриття сигналів</b> блокує перемикання. У проєкті 19 воно навмисно затримує втягування другого циліндра.</p></div>
+      <div class="prose"><h4>Схема самоутримання (проєкт 11)</h4><p>Короткий сигнал кнопки перетворюється на тривалий. Вихід 3/2-клапана з пневмокеруванням повертається через клапан АБО на власний вхід керування. Нормально відкрита кнопка «Стоп» розриває цю петлю. При одночасному натисканні «Пуск» і «Стоп» виходу немає, тобто домінує скидання. Таку схему називають RS-тригером.</p></div>
+    </div>
+  </article>
+
+  <article class="topic" id="t9">
+    <h3><span class="num">9</span>Датчики кінцевих положень</h3>
+    <div class="cols">
+      <div class="prose"><h4>Роликовий 3/2-розподільник</h4><p>Ролик натискає кулачок на штоку. Розподільник треба встановити так, щоб він був натиснутий саме в кінцевому положенні. Якщо поставити його перед кулачком або під ним, ролик не спрацює, умова І не виконається і схема не стартує. Наїжджати на ролик фронтально не можна.</p></div>
+      <div class="prose"><h4>Пневматичний магнітний датчик</h4><p>3/2-клапан, який перемикає постійний магніт на поршні циліндра. Кріпиться прямо на гільзу і не має механічного контакту, тому не зношується і не заважає руху. Положення датчика вздовж гільзи задає точку спрацювання; на цьому побудовано коливальний рух у проєкті 18.</p></div>
+    </div>
+    <div class="note"><b>Умова старту</b>Майже в усіх проєктах з 10-го старт дозволено лише тоді, коли датчик вихідного положення підтверджує, що шток втягнутий. Якщо подача повітря зникне посеред ходу, механізм зупиниться між датчиками, і після відновлення тиску його доведеться довести до кінцевого положення вручну.</div>
+  </article>
+
+  <article class="topic" id="t10">
+    <h3><span class="num">10</span>Керування залежно від тиску</h3>
+    <div class="cols">
+      <div class="prose"><h4>Регулятор тиску</h4><p>Вхідний (первинний) тиск має бути вищим за вихідний (вторинний). Вихідний тиск діє на мембрану з одного боку, пружина з налаштувальним гвинтом — з іншого. Якщо вторинний тиск зростає, мембрана стискає пружину і прикриває сідло, а надлишок скидається в атмосферу. Якщо тиск падає, пружина відкриває клапан. Значення видно на манометрі.</p></div>
+      <div class="prose"><h4>Клапан послідовності (реле тиску)</h4><p>Поєднує регульований клапан тиску і 3/2-розподільник. Коли тиск на вході керування 12 перевищить налаштоване значення, 3/2-клапан перемикається і подає повітря на вихід 2. Коли тиск падає нижче порогу, клапан повертається. Так схема стартує лише при достатньому тиску (проєкти 14–16).</p></div>
+    </div>
+    <div class="stand-mount" data-demo="seq"></div>
+  </article>
+
+  <article class="topic" id="t11">
+    <h3><span class="num">11</span>Керування за часом: клапан затримки</h3>
+    <div class="cols">
+      <div class="prose"><p>Пневматичний клапан затримки (нормально закритий) поєднує дросель, невеликий ресивер і 3/2-розподільник з пневмокеруванням. Повітря з порту 1 через дросель наповнює ресивер. Коли тиск у ньому досягне тиску перемикання, клапан з'єднує 1 → 2. Якщо подачу на 1 перервати, вихід 2 знову без тиску, а клапан скидається протягом 200 мс. Час налаштовують ручкою.</p></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Технічні дані</th><th>Значення</th></tr></thead>
+        <tbody>
+          <tr><td>Діапазон тиску</td><td class="n">2…6 bar</td></tr>
+          <tr><td>Тиск увімкнення</td><td class="n">&gt; 1,6 bar</td></tr>
+          <tr><td>Номінальна витрата</td><td class="n">50 л/хв</td></tr>
+          <tr><td>Час затримки</td><td class="n">2…30 с</td></tr>
+          <tr><td>Точність налаштування</td><td class="n">±0,6 с</td></tr>
+          <tr><td>Пауза для скидання</td><td class="n">&gt; 200 мс</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="stand-mount" data-demo="timer"></div>
+  </article>
+
+  <article class="topic" id="t12">
+    <h3><span class="num">12</span>Послідовності руху і схеми з двома циліндрами</h3>
+    <div class="prose">
+      <p>Послідовність руху описують словами по кроках («вихідне положення, крок 1–2, крок 2–3…») або <b>діаграмою шлях–крок</b>. По горизонталі відкладають кроки, по вертикалі положення кожного циліндра: 0 втягнутий, 1 висунутий. Стрілки між лініями показують, який сигнал запускає наступний рух.</p>
+      <p>У проєкті 19 затискний циліндр <span class="tag">1A1</span> висувається першим, його кінцеве положення (ролик <span class="tag">1B2</span>) запускає прес <span class="tag">2A1</span>, а кінцеве положення преса (<span class="tag">2B2</span>) повертає обидва.</p>
+    </div>
+    <div class="tbl-wrap" style="padding:10px">
+      <svg viewBox="0 0 520 170" role="img" aria-label="Діаграма шлях–крок для проєкту 19" style="width:100%;min-width:420px;height:auto">
+        <g font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor">
+          <text x="10" y="45" class="lbl">1A1</text><text x="10" y="125" class="lbl">2A1</text>
+          <text x="48" y="28" class="pn">1</text><text x="48" y="66" class="pn">0</text>
+          <text x="48" y="108" class="pn">1</text><text x="48" y="146" class="pn">0</text>
+          <g class="pn" text-anchor="middle"><text x="80" y="164">1</text><text x="180" y="164">2</text><text x="280" y="164">3</text><text x="380" y="164">4</text><text x="480" y="164">5=1</text></g>
+        </g>
+        <g stroke="var(--rule)" stroke-width="1"><path d="M80 18V150M180 18V150M280 18V150M380 18V150M480 18V150"/><path d="M60 25H500M60 63H500M60 105H500M60 143H500" stroke-dasharray="3 3"/></g>
+        <path d="M80 63 L180 25 L380 25 L480 63" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+        <path d="M80 143 L180 143 L280 105 L380 105 L480 143" fill="none" stroke="var(--air)" stroke-width="2.5"/>
+        <g fill="none" stroke="var(--warn)" stroke-width="1.3"><path d="M180 30 V100 M176 94 L180 100 L184 94"/><path d="M280 108 C 330 90 340 50 378 30 M370 30 L378 30 L376 38"/></g>
+        <text x="186" y="80" class="pn" style="fill:var(--warn)">1B2</text><text x="300" y="70" class="pn" style="fill:var(--warn)">2B2</text>
+        <text x="92" y="40" class="pn">1S1 &amp; 2B1</text>
+      </svg>
+    </div>
+    <div class="cols">
+      <div class="prose"><h4>Коливальний рух (проєкт 18)</h4><p>Два датчики на одному циліндрі по черзі перемикають бістабільний розподільник: у кінцевому положенні шток повертається, у середньому знову висувається. Живлення датчиків іде через 3/2-пам'ять, яку скидає клапан затримки після 20 с. Тоді циліндр повертається у вихідне положення.</p></div>
+      <div class="prose"><h4>Перекриття сигналів</h4><p>Якщо в момент, коли потрібне перемикання, на протилежному вході бістабільного розподільника ще є сигнал, перемикання не відбудеться. Такі місця треба знаходити заздалегідь: на діаграмі шлях–крок або спостерігаючи стан ліній у FluidSIM.</p></div>
+    </div>
+  </article>
+</section>
+
+<!-- ============ FLUIDSIM ============ -->
+<section class="sec" id="fluidsim" aria-labelledby="fh">
+  <div class="sec-head"><span class="eyebrow">Розділ II</span><h2 id="fh">Робота у FluidSIM Pneumatics</h2></div>
+  <div class="prose"><p>FluidSIM від Festo Didactic поєднує редактор схем за ISO 1219 і фізичну симуляцію. Компоненти в бібліотеці відповідають обладнанню стенда TP101, тому назви з переліків обладнання в проєктах легко знайти. Розташування меню трохи різниться у версіях 4, 5 і 6, тож інструкції нижче описують дії, а не точні пункти меню. До робочого зошита додається компакт-диск із готовими файлами FluidSIM для всіх 19 вправ: порівняйте з ними свою схему після самостійної збірки.</p></div>
+
+  <article class="topic" id="f1">
+    <h3><span class="num">F1</span>Інтерфейс і робочий цикл</h3>
+    <div class="cols">
+      <div class="box"><h4>Частини вікна</h4><ul>
+        <li><b>Бібліотека компонентів</b> ліворуч: дерево груп (джерела, виконавчі механізми, розподільники, клапани, вимірювальні прилади). У нових версіях є поле пошуку.</li>
+        <li><b>Креслення</b> праворуч: робоче поле, куди перетягують компоненти.</li>
+        <li><b>Панель інструментів</b>: створити, відкрити, зберегти, керування симуляцією (пуск, пауза, стоп, покроково).</li>
+        <li><b>Рядок стану</b> показує підказки і режим (редагування чи симуляція).</li>
+      </ul></div>
+      <div class="box"><h4>Цикл роботи над проєктом</h4><ol class="steps">
+        <li>Створіть новий файл і збережіть його як <span class="mono">TP101_Pnn.ct</span>.</li>
+        <li>Перетягніть компоненти з бібліотеки, розставте їх як на схемі.</li>
+        <li>З'єднайте порти лініями.</li>
+        <li>Задайте позначення (1A1, 1V1…) і параметри.</li>
+        <li>Перевірте креслення на відкриті порти.</li>
+        <li>Запустіть симуляцію і пройдіть сценарій перевірки.</li>
+        <li>Оформіть перелік обладнання та опис послідовності.</li>
+      </ol></div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Дія під час симуляції</th><th>Як виконати</th></tr></thead>
+      <tbody>
+        <tr><td>Пуск / пауза / стоп</td><td>кнопки на панелі інструментів (у більшості версій пуск — <span class="kbd">F9</span>, стоп — <span class="kbd">F5</span>, пауза — <span class="kbd">F8</span>)</td></tr>
+        <tr><td>Натиснути кнопку розподільника</td><td>клацніть по символу ручного керування; кнопка діє, поки затиснута миша</td></tr>
+        <tr><td>Перемикач з фіксацією</td><td>одне клацання перемикає і залишає положення</td></tr>
+        <tr><td>Читати тиск</td><td>манометр на лінії; у властивостях лінії або компонента також видно значення</td></tr>
+        <tr><td>Кольори ліній</td><td>темно-синя лінія під тиском, світло-синя без тиску (так само на стендах цього посібника)</td></tr>
+        <tr><td>Змінити параметр «на ходу»</td><td>подвійне клацання по дроселю, регулятору чи таймеру в режимі симуляції або паузи</td></tr>
+      </tbody></table></div>
+  </article>
+
+  <article class="topic" id="f2">
+    <h3><span class="num">F2</span>Прийоми побудови схем</h3>
+    <div class="cols">
+      <div class="box"><h4>Лінії і з'єднання</h4><ul>
+        <li>Наведіть курсор на порт: він зміниться на перехрестя. Затисніть кнопку миші і протягніть лінію до іншого порту.</li>
+        <li>Щоб розгалузити лінію, протягніть нову лінію від порту до вже наявної лінії: FluidSIM створить вузол-трійник.</li>
+        <li>Перемістіть компонент, і лінії перебудуються. Виділену лінію можна перетягнути, щоб гарно вирівняти.</li>
+        <li>Не з'єднуйте вихлопні порти 3 і 5 з лініями.</li>
+      </ul></div>
+      <div class="box"><h4>Порти: заглушка і глушник</h4><ul>
+        <li>Подвійне клацання по порту відкриває його властивості: можна поставити <b>заглушку</b> (blind plug) або <b>глушник</b> (silencer).</li>
+        <li>Відкритий робочий порт симулятор вважає витоком і попереджає про це під час перевірки.</li>
+        <li>У проєктах 18 і 19 так перетворюють 5/2 на 3/2: порт 4 закривають заглушкою.</li>
+      </ul></div>
+      <div class="box"><h4>Розподільники з налаштуванням</h4><ul>
+        <li>Готові розподільники лежать у групі directional valves. Є також «налаштовувані» 3/n і 5/n, де в діалозі обирають тип керування зліва і справа, наявність пружини і нормальне положення.</li>
+        <li>Для пневмокерованого 3/2 НВ (проєкт 16) задайте пневмокерування зліва, пружину справа і нормально відкрите положення.</li>
+      </ul></div>
+      <div class="box"><h4>Датчики і мітки</h4><ul>
+        <li>Роликові розподільники і пневматичні датчики зв'язуються з циліндром через <b>мітки</b> (label).</li>
+        <li>На циліндрі в потрібних позиціях ставлять мітки, наприклад <span class="mono">1B1</span> на 0 мм і <span class="mono">1B2</span> у кінці ходу. У FluidSIM 4 для цього над циліндром розміщують лінійку (distance rule), у новіших версіях позиції задають у властивостях циліндра.</li>
+        <li>У властивостях роликового клапана чи датчика вкажіть ту саму мітку. Мітки чутливі до написання.</li>
+      </ul></div>
+      <div class="box"><h4>Параметри компонентів</h4><ul>
+        <li>Джерело: робочий тиск (за завданням 3, 3,5 або 6 bar).</li>
+        <li>Циліндр: діаметр поршня 20 мм, штока 8 мм, хід (наприклад 100 мм), навантаження.</li>
+        <li>Дросель: відкриття у відсотках.</li>
+        <li>Регулятор і клапан послідовності: тиск у барах.</li>
+        <li>Клапан затримки: час у секундах.</li>
+      </ul></div>
+      <div class="box"><h4>Аналіз і документація</h4><ul>
+        <li>Діаграма станів (state diagram): перетягніть на неї циліндри і розподільники, щоб отримати графік шлях–крок прямо під час симуляції.</li>
+        <li>Манометри показують тиск у точці. Ставте їх через трійник на лінію.</li>
+        <li>Текстові позначення (1A1, 1V1) додайте як текст або властивість компонента, щоб схема відповідала зошиту.</li>
+      </ul></div>
+    </div>
+  </article>
+
+  <article class="topic" id="f3">
+    <h3><span class="num">F3</span>Діагностика: що робити, якщо схема не працює</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Симптом</th><th>Імовірна причина</th><th>Що перевірити</th></tr></thead>
+      <tbody>
+        <tr><td>Нічого не рухається після пуску</td><td>немає живлення або порт 1 не з'єднано</td><td>джерело в схемі, тиск джерела &gt; 0, лінії до порту 1</td></tr>
+        <tr><td>Циліндр рухається не в той бік</td><td>переплутано порти 2 і 4</td><td>порт 4 до поршневої, порт 2 до штокової порожнини</td></tr>
+        <tr><td>Бістабільний розподільник не перемикається</td><td>сигнали на 12 і 14 одночасно</td><td>чи не натиснутий постійно датчик протилежного кінця</td></tr>
+        <tr><td>Датчик «не бачить» циліндр</td><td>мітка не збігається або стоїть не в тій позиції</td><td>написання мітки, позиція 0 / кінець ходу</td></tr>
+        <tr><td>Попередження про відкритий порт</td><td>робочий порт без лінії</td><td>поставте заглушку або під'єднайте лінію</td></tr>
+        <tr><td>Клапан послідовності не спрацьовує</td><td>тиск нижче порогу</td><td>налаштування регулятора, порогу і тиску джерела</td></tr>
+        <tr><td>Таймер не вмикається</td><td>вхідний тиск &lt; тиску перемикання або сигнал переривається</td><td>чи тримається сигнал на вході весь час затримки</td></tr>
+        <tr><td>Циліндр заїкається</td><td>малий тиск або надто закритий дросель</td><td>збільште тиск чи відкриття дроселя</td></tr>
+      </tbody></table></div>
+  </article>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section class="sec" id="projects" aria-labelledby="ph">
+  <div class="sec-head"><span class="eyebrow">Розділ III</span><h2 id="ph">19 проєктів у FluidSIM</h2></div>
+  <div class="prose"><p>Кожен проєкт побудовано однаково: виробнича задача, умови, потрібна теорія, перелік обладнання, покрокова збірка у FluidSIM, сценарій перевірки, опис послідовності та контрольні питання. Оберіть проєкт; позначку «виконано» браузер запам'ятає.</p></div>
+  <div class="legend"><span><i></i>лінія під тиском</span><span><i class="off"></i>без тиску</span><span><i class="box"></i>активне положення розподільника</span><span style="color:var(--warn)">▮ датчик спрацював</span></div>
+  <div class="picker" id="picker" role="list"></div>
+  <div class="proj" id="proj" aria-live="polite"></div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="sec" id="quiz" aria-labelledby="qh">
+  <div class="sec-head"><span class="eyebrow">Розділ IV</span><h2 id="qh">Самоперевірка</h2></div>
+  <div class="prose"><p>Дванадцять питань за всіма темами курсу. Після відповіді з'явиться пояснення.</p></div>
+  <div id="quizBox" style="display:flex;flex-direction:column;gap:12px"></div>
+  <p class="score" id="quizScore"></p>
+</section>
+
+<footer>Посібник складено за робочим зошитом Festo Didactic «Pneumatics, Basic level, Workbook TP101» (541088, 2012) для навчального використання. Схеми на стендах перекреслено спрощено, а модель руху наближена: для точних значень користуйтеся FluidSIM. Назви компонентів у переліках подано так, як вони звучать у бібліотеці FluidSIM англійською.</footer>
+</main>
+</div>
+<script>
+
+/* ================= ENGINE: symbols + simulation ================= */
+const B=28, C=36, TH=1.2;
+const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+function portsOf(c){
+  const x=c.x,y=c.y;
+  switch(c.t){
+    case 'cyl': return {A:[x+10,y+26,'d'],B:[x+118,y+26,'d']};
+    case 'v32': case 'v32b': case 'tmr': {
+      const m=c.mirror?-1:1;
+      return {'2':[x+8,y,'u'],'1':[x+8,y+B,'d'],
+        pl:[m>0?x-B-14:x+2*B+14,y+B/2,m>0?'l':'r'],
+        pr:[x+B+14,y+B/2,'r']};
+    }
+    case 'v52': case 'v52b': return {'4':[x+9,y,'u'],'2':[x+27,y,'u'],'1':[x+18,y+B,'d'],'14':[x-C-14,y+B/2,'l'],'12':[x+C+14,y+B/2,'r']};
+    case 'or': case 'and': case 'leak': return {out:[x+28,y,'u'],i1:[x,y+9,'l'],i2:[x+56,y+9,'r']};
+    case 'fc': return {c:[x+15,y,'u'],v:[x+15,y+40,'d']};
+    case 'qev': return {c:[x+15,y,'u'],v:[x+15,y+30,'d']};
+    case 'reg': return {'2':[x+15,y,'u'],'1':[x+15,y+36,'d']};
+    case 'regl': return {c:[x+15,y,'u'],v:[x+15,y+36,'d']};
+    case 'seq': return {'2':[x+40,y,'u'],'1':[x+40,y+34,'d'],'12':[x+12,y+34,'d']};
+    default: return {};
+  }
+}
+function route(a,b,o){
+  o=o||{};
+  if(o.pts) return [a,...o.pts,b];
+  const ad=a[2],bd=b[2];
+  const av=!ad||ad==='u'||ad==='d', bv=!bd||bd==='u'||bd==='d';
+  if(av&&bv){ if(a[0]===b[0]) return [a,b]; const y=o.y!=null?o.y:(a[1]+b[1])/2; return [a,[a[0],y],[b[0],y],b]; }
+  if(av&&!bv) return [a,[a[0],b[1]],b];
+  if(!av&&bv) return [a,[b[0],a[1]],b];
+  const x=o.x!=null?o.x:(a[0]+b[0])/2; return [a,[x,a[1]],[x,b[1]],b];
+}
+
+/* --- valve box contents (local coords) --- */
+const T32NC={n:[['t',8,'b'],['a',8,0,20,B]],a:[['a',8,B,8,0],['t',20,'b']]};
+const T32NO={n:[['a',8,B,8,0],['t',20,'b']],a:[['t',8,'b'],['a',8,0,20,B]]};
+const T52={n:[['a',18,B,27,0],['a',9,0,5,B]],a:[['a',18,B,9,0],['a',27,0,31,B]]};
+
+function arrow(x1,y1,x2,y2,hot){
+  const a=Math.atan2(y2-y1,x2-x1),L=5.5;
+  const h1x=x2-L*Math.cos(a-0.42),h1y=y2-L*Math.sin(a-0.42),h2x=x2-L*Math.cos(a+0.42),h2y=y2-L*Math.sin(a+0.42);
+  const cl=hot?' hot':'';
+  return `<path d="M${x1} ${y1}L${x2} ${y2}" class="vf${cl}"/><path d="M${x2} ${y2}L${h1x.toFixed(1)} ${h1y.toFixed(1)}L${h2x.toFixed(1)} ${h2y.toFixed(1)}Z" class="vh${cl}"/>`;
+}
+function vbox(x0,y,w,items,active,hot){
+  let s=`<rect x="${x0}" y="${y}" width="${w}" height="${B}" class="vb${active?' act':''}"/>`;
+  for(const it of items){
+    if(it[0]==='a') s+=arrow(x0+it[1],y+it[2]+(it[2]===0?1.5:-1.5),x0+it[3],y+it[4]+(it[4]===0?1.5:-1.5),active&&hot);
+    else { const px=x0+it[1], yy=y+B-6; s+=`<path d="M${px} ${y+B}V${yy}M${px-4} ${yy}H${px+4}" class="vf"/>`; }
+  }
+  return s;
+}
+function spring(ox,cy,d){
+  let p=`M${ox} ${cy}`; for(let i=0;i<4;i++){p+=`L${ox+d*(2+i*4)} ${cy+(i%2?5:-5)}`;} p+=`L${ox+d*16} ${cy}`;
+  return `<path d="${p}" class="s"/>`;
+}
+function pilotSym(ex,cy,d,lab){
+  return `<path d="M${ex+d*14} ${cy}H${ex+d*10}" class="s"/><path d="M${ex} ${cy}L${ex+d*10} ${cy-5}L${ex+d*10} ${cy+5}Z" class="sf"/>`+
+    (lab?`<text x="${ex+d*12}" y="${cy-7}" class="pn" text-anchor="middle">${lab}</text>`:'');
+}
+function actuator(c,ex,cy,d,S){
+  const a=c.a;
+  if(a==='push') return `<path d="M${ex} ${cy}H${ex+d*10}M${ex+d*10} ${cy-6}V${cy+6}" class="s" stroke-width="1.6"/>`;
+  if(a==='sel') return `<path d="M${ex} ${cy}H${ex+d*8}M${ex+d*8} ${cy-7}V${cy+7}M${ex+d*8} ${cy-7}H${ex+d*14}" class="s" stroke-width="1.4"/><path d="M${ex+d*2} ${cy+4}v4h${d*4}v-4" class="s"/>`;
+  if(a==='roller') return `<path d="M${ex} ${cy}H${ex+d*8}" class="s"/><circle cx="${ex+d*12}" cy="${cy}" r="4" class="sf"/><circle cx="${ex+d*12}" cy="${cy}" r="1" class="ink"/>`;
+  if(a==='prox') return `<path d="M${ex} ${cy}H${ex+d*3}" class="s"/><rect x="${d>0?ex+3:ex-15}" y="${cy-6}" width="12" height="12" class="sf"/><path d="M${ex+d*9} ${cy-4}L${ex+d*13} ${cy}L${ex+d*9} ${cy+4}L${ex+d*5} ${cy}Z" class="s"/>`;
+  if(a==='pilot') return pilotSym(ex,cy,d,c.pl||(c.t==='v32b'?'12':'12'));
+  if(a==='timer') return pilotSym(ex,cy,d,'')+`<text x="${ex+d*7}" y="${cy-8}" class="lbl" text-anchor="middle" font-style="italic">t</text>`;
+  return '';
+}
+function supplyTri(px,py){ return `<path d="M${px} ${py}V${py+6}" class="s"/><path d="M${px} ${py+6}L${px-6} ${py+16}L${px+6} ${py+16}Z" class="sf"/>`; }
+function exhTri(px,py){ return `<path d="M${px} ${py}V${py+3}" class="s"/><path d="M${px-4} ${py+3}H${px+4}L${px} ${py+9}Z" class="sf"/>`; }
+
+function rV32(c,S){
+  const x=c.x,y=c.y,m=c.mirror?-1:1, act=S.act(c);
+  const tbl=(c.t==='v32b'||c.t==='tmr')?T32NC:(c.no?T32NO:T32NC);
+  const ax=m>0?x-B:x+B, hot=S.v(c.p1)>0.3;
+  const man=S.isManual(c);
+  let s=`<g class="comp${man?' man':''}" data-c="${c.id}"${man?` role="button" aria-label="${esc(c.id)}"`:''}>`;
+  s+=vbox(x,y,B,tbl.n,!act,hot)+vbox(ax,y,B,tbl.a,act,hot);
+  const ex=m>0?ax:ax+B, d=m>0?-1:1;
+  const aType=c.t==='tmr'?'timer':(c.t==='v32b'?'pilot':c.a);
+  s+=actuator({...c,a:aType,pl:c.t==='v32b'?'12':(c.pilotLab||'12')},ex,y+B/2,d,S);
+  const ox=m>0?x+B:x;
+  if(c.t==='v32b') s+=pilotSym(ox,y+B/2,-d,'10'); else s+=spring(ox,y+B/2,-d);
+  s+=exhTri(x+20,y+B);
+  if(c.p1==='P') s+=supplyTri(x+8,y+B);
+  s+=`<text x="${x+11}" y="${y-3}" class="pn">2</text><text x="${x+2}" y="${y+B+9}" class="pn">1</text><text x="${x+24}" y="${y+B+8}" class="pn">3</text>`;
+  const lx=m>0?ax-20:x;
+  s+=`<text x="${lx}" y="${y-5}" class="lbl">${esc(c.id)}</text>`;
+  if(c.note) s+=`<text x="${lx}" y="${y+B+26}" class="sub">${esc(c.note)}</text>`;
+  if(c.t==='tmr'){
+    const st=S.cs[c.id], fr=Math.min(1,st.acc/st.delay), cx=ax-34, cy=y-6, r=7;
+    s+=`<circle cx="${cx}" cy="${cy}" r="${r}" class="s" stroke="var(--rule)"/>`;
+    if(fr>0){const ang=fr*Math.PI*2-Math.PI/2, x2=cx+r*Math.cos(ang), y2=cy+r*Math.sin(ang);
+      s+= fr>=0.999?`<circle cx="${cx}" cy="${cy}" r="${r}" class="tmr-ring"/>`:`<path d="M${cx} ${cy-r}A${r} ${r} 0 ${fr>0.5?1:0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" class="tmr-ring"/>`;}
+    s+=`<text x="${cx}" y="${cy-11}" class="val" text-anchor="middle" style="fill:var(--warn)">${f1(Math.min(st.acc,st.delay))}/${f1(st.delay)} с</text>`;
+    s+=`<path d="M${x+8} ${y+B+2}V${y+B+6}H${ax-12}V${y+B/2+6}" class="dash"/>`;
+  }
+  return s+'</g>';
+}
+function rV52(c,S){
+  const x=c.x,y=c.y,act=S.act(c),hot=S.v(c.p1)>0.3, man=S.isManual(c);
+  let s=`<g class="comp${man?' man':''}" data-c="${c.id}"${man?` role="button" aria-label="${esc(c.id)}"`:''}>`;
+  s+=vbox(x,y,C,T52.n,!act,hot)+vbox(x-C,y,C,T52.a,act,hot);
+  s+= c.t==='v52b'||c.a==='pilot' ? pilotSym(x-C,y+B/2,-1,'14') : actuator(c,x-C,y+B/2,-1,S);
+  s+= c.t==='v52b' ? pilotSym(x+C,y+B/2,1,'12') : spring(x+C,y+B/2,1);
+  s+=exhTri(x+5,y+B)+exhTri(x+31,y+B);
+  if(c.p1==='P') s+=supplyTri(x+18,y+B);
+  s+=`<text x="${x+2}" y="${y-3}" class="pn">4</text><text x="${x+30}" y="${y-3}" class="pn">2</text><text x="${x+21}" y="${y+B+9}" class="pn">1</text><text x="${x-2}" y="${y+B+8}" class="pn">5</text><text x="${x+35}" y="${y+B+8}" class="pn">3</text>`;
+  s+=`<text x="${x-C-18}" y="${y-5}" class="lbl">${esc(c.id)}</text>`;
+  return s+'</g>';
+}
+function rGate(c,S){
+  const x=c.x,y=c.y,a=S.v(c.i1),b=S.v(c.i2);
+  if(c.t==='leak') return '';
+  let s=`<g class="comp"><rect x="${x}" y="${y}" width="56" height="18" class="sf"/>`;
+  s+=`<path d="M${x+28} ${y}V${y+9}" class="s"/>`;
+  if(c.t==='or'){
+    const sh = a>b+0.05?10:(b>a+0.05?-10:0);
+    s+=`<path d="M${x} ${y+9}H${x+56}" class="s"/><path d="M${x+12} ${y+3}L${x+8} ${y+9}L${x+12} ${y+15}M${x+44} ${y+3}L${x+48} ${y+9}L${x+44} ${y+15}" class="s"/><circle cx="${x+28+sh}" cy="${y+9}" r="4.5" class="sf"/>`;
+  } else {
+    const sh = a>0.3&&b<0.3?6:(b>0.3&&a<0.3?-6:0);
+    s+=`<path d="M${x} ${y+9}H${x+56}" class="s"/><path d="M${x+16+sh} ${y+3}V${y+15}M${x+40+sh} ${y+3}V${y+15}" class="s" stroke-width="2.4"/><path d="M${x+16+sh} ${y+9}H${x+40+sh}" class="s" stroke-width="2"/>`;
+  }
+  s+=`<text x="${x+40}" y="${y-4}" class="pn">2</text><text x="${x+3}" y="${y+27}" class="pn">1</text><text x="${x+49}" y="${y+27}" class="pn">1</text>`;
+  s+=`<text x="${x-2}" y="${y-5}" class="lbl" text-anchor="end">${esc(c.id)}</text><text x="${x-2}" y="${y+5}" class="sub" text-anchor="end">${c.t==='or'?'АБО':'І'}</text>`;
+  return s+'</g>';
+}
+function rFC(c,S){
+  const x=c.x,y=c.y,st=S.cs[c.id];
+  const up=c.dir==='out'; // free flow upward (valve->cyl) when restricting out of cylinder
+  let s=`<g class="comp"><rect x="${x}" y="${y}" width="30" height="40" class="sf" fill-opacity="0"/>`;
+  s+=`<path d="M${x+15} ${y}V${y+13}M${x+15} ${y+27}V${y+40}" class="s"/><path d="M${x+11} ${y+12}Q${x+16} ${y+20} ${x+11} ${y+28}M${x+19} ${y+12}Q${x+14} ${y+20} ${x+19} ${y+28}" class="s"/>`;
+  s+=arrow(x+6,y+29,x+24,y+11,false);
+  s+=`<path d="M${x+15} ${y+5}H${x+25}V${y+35}H${x+15}" class="s"/>`;
+  s+= up?`<path d="M${x+25} ${y+16}L${x+21} ${y+23}H${x+29}Z" class="ink"/>`:`<path d="M${x+25} ${y+24}L${x+21} ${y+17}H${x+29}Z" class="ink"/>`;
+  s+=`<text x="${x+18}" y="${y-2}" class="pn">1</text><text x="${x+18}" y="${y+48}" class="pn">2</text>`;
+  s+=`<text x="${x-4}" y="${y+16}" class="lbl" text-anchor="end">${esc(c.id)}</text>`;
+  if(!c.deco) s+=`<text x="${x-4}" y="${y+27}" class="sub" text-anchor="end">${Math.round(st.open*100)} %</text>`;
+  else s+=`<text x="${x-4}" y="${y+27}" class="sub" text-anchor="end">закр.</text>`;
+  return s+'</g>';
+}
+function rQEV(c,S){
+  const x=c.x,y=c.y;
+  let s=`<g class="comp"><rect x="${x}" y="${y}" width="30" height="30" class="sf" fill-opacity="0"/>`;
+  s+=`<path d="M${x+15} ${y}V${y+30}M${x+15} ${y+15}H${x+30}" class="s"/><path d="M${x+9} ${y+21}L${x+15} ${y+16}L${x+21} ${y+21}" class="s"/><circle cx="${x+15}" cy="${y+13}" r="4" class="sf"/>`;
+  s+=`<path d="M${x+30} ${y+11}L${x+38} ${y+15}L${x+30} ${y+19}Z" class="sf"/>`;
+  s+=`<text x="${x+18}" y="${y-2}" class="pn">2</text><text x="${x+18}" y="${y+38}" class="pn">1</text><text x="${x+31}" y="${y+9}" class="pn">3</text>`;
+  s+=`<text x="${x-4}" y="${y+18}" class="lbl" text-anchor="end">${esc(c.id)}</text>`;
+  return s+'</g>';
+}
+function gaugeSym(cx,cy,p,r){
+  r=r||11; const ang=(-135+Math.min(10,Math.max(0,p))/10*270)*Math.PI/180;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" class="gface"/><path d="M${cx} ${cy}L${(cx+(r-2)*Math.sin(ang)).toFixed(1)} ${(cy-(r-2)*Math.cos(ang)).toFixed(1)}" class="needle"/><circle cx="${cx}" cy="${cy}" r="1.6" class="ink"/>`;
+}
+function rReg(c,S){
+  const x=c.x,y=c.y,st=S.cs[c.id], out=S.v(c.t==='regl'?c.c:c.p2);
+  let s=`<g class="comp"><rect x="${x}" y="${y}" width="30" height="36" class="sf"/>`;
+  s+=`<path d="M${x+11} ${y+36}V${y+4}" class="s"/><path d="M${x+11} ${y+4}L${x+8} ${y+10}H${x+14}Z" class="ink"/>`;
+  s+=`<path d="M${x+19} ${y+30}L${x+27} ${y+26}L${x+19} ${y+22}L${x+27} ${y+18}L${x+19} ${y+14}" class="s"/><path d="M${x+16} ${y+32}L${x+29} ${y+10}" class="s"/><path d="M${x+29} ${y+10}l-1 5l-3-2z" class="ink"/>`;
+  s+=`<path d="M${x+11} ${y+8}H${x+4}V${y+30}" class="dash"/>`;
+  s+=`<path d="M${x+30} ${y+6}H${x+36}" class="s"/>`+gaugeSym(x+46,y+6,out,9);
+  s+=`<text x="${x+58}" y="${y+9}" class="val">${f1(out)} bar</text>`;
+  s+=`<text x="${x-4}" y="${y+14}" class="lbl" text-anchor="end">${esc(c.id)}</text><text x="${x-4}" y="${y+25}" class="sub" text-anchor="end">≤ ${f1(st.set)} bar</text>`;
+  if(c.p1==='P') s+=supplyTri(x+15,y+36);
+  return s+'</g>';
+}
+function rSeq(c,S){
+  const x=c.x,y=c.y,st=S.cs[c.id],on=st.on;
+  let s=`<g class="comp"><rect x="${x}" y="${y}" width="64" height="34" class="dash" style="stroke:var(--ink)"/>`;
+  s+=`<rect x="${x+4}" y="${y+7}" width="18" height="20" class="sf"/><path d="M${x+8} ${y+24}L${x+18} ${y+10}" class="s"/><path d="M${x+18} ${y+10}l-1 5l-3-2z" class="ink"/>`;
+  s+=`<path d="M${x+12} ${y+34}V${y+27}" class="dash"/><path d="M${x+22} ${y+17}H${x+30}" class="dash"/>`;
+  s+=`<rect x="${x+30}" y="${y+5}" width="22" height="24" class="vb${on?' act':''}"/>`;
+  s+= on?arrow(x+40,y+29,x+40,y+6,S.v(c.p1)>0.3):`<path d="M${x+40} ${y+29}V${y+22}M${x+36} ${y+22}H${x+44}" class="vf"/>`;
+  s+=spring(x+52,y+17,1);
+  s+=`<text x="${x+43}" y="${y-2}" class="pn">2</text><text x="${x+43}" y="${y+42}" class="pn">1</text><text x="${x+1}" y="${y+42}" class="pn">12</text>`;
+  s+=`<text x="${x-4}" y="${y+14}" class="lbl" text-anchor="end">${esc(c.id)}</text><text x="${x-4}" y="${y+25}" class="sub" text-anchor="end">поріг ${f1(st.set)} bar</text>`;
+  return s+'</g>';
+}
+function rGauge(c,S){
+  const p=S.v(c.n);
+  return `<g class="comp"><path d="M${c.x} ${c.y}L${c.at[0]} ${c.at[1]}" class="w${p>0.3?' on':''}"/><circle cx="${c.at[0]}" cy="${c.at[1]}" r="2.4" class="dot${p>0.3?' on':''}"/>${gaugeSym(c.x,c.y,p)}<text x="${c.x}" y="${c.y+22}" class="val" text-anchor="middle">${f1(p)} bar</text><text x="${c.x-14}" y="${c.y-8}" class="lbl" text-anchor="end">${esc(c.id)}</text></g>`;
+}
+function rCyl(c,S){
+  const x=c.x,y=c.y,st=S.cs[c.id],pos=st.pos,px=x+8+pos*90;
+  let s=`<g class="comp">`;
+  s+=`<rect x="${px+6}" y="${y+10}" width="140" height="6" class="rod"/>`;
+  s+=`<rect x="${x}" y="${y}" width="130" height="26" class="cylb" fill-opacity="0"/>`;
+  s+=`<path d="M${x} ${y}H${x+130}M${x} ${y+26}H${x+130}M${x} ${y}V${y+26}M${x+130} ${y}V${y+10}M${x+130} ${y+16}V${y+26}" class="s" stroke-width="1.5"/>`;
+  s+=`<rect x="${px}" y="${y+1.5}" width="6" height="23" class="ink"/>`;
+  if(c.kind==='sa'){
+    const a=px+7,b=x+128,n=7; let p=`M${a} ${y+13}`; for(let i=0;i<n;i++){p+=`L${(a+(b-a)*(i+0.5)/n).toFixed(1)} ${i%2?y+20:y+6}`;} p+=`L${b} ${y+13}`;
+    s+=`<path d="${p}" class="s" stroke-width="1"/>`;
+  }
+  for(const sn of (S.sensorsOf[c.id]||[])){
+    const sx=x+8+sn.at*90+3, on=S.act(sn);
+    s+=`<path d="M${sx} ${y-9}V${y-1}" class="sens${on?' on':''}"/><text x="${sx}" y="${y-12}" class="senst${on?' on':''}" text-anchor="middle">${esc(sn.id)}</text>`;
+  }
+  if(st.max<1) s+=`<rect x="${x+8+st.max*90+146+2}" y="${y-4}" width="8" height="34" fill="var(--warn)" opacity=".75"/><text x="${x+8+st.max*90+146+14}" y="${y+16}" class="sub">упор</text>`;
+  s+=`<text x="${x-5}" y="${y+16}" class="lbl" text-anchor="end">${esc(c.id)}</text>`;
+  return s+'</g>';
+}
+
+/* ================= SIM ================= */
+class Sim{
+  constructor(def){
+    this.def=def; this.byId={}; this.sensorsOf={};
+    def.comps.forEach(c=>{this.byId[c.id]=c;});
+    def.comps.forEach(c=>{ if((c.a==='roller'||c.a==='prox')&&c.cyl&&!c.manual){(this.sensorsOf[c.cyl]=this.sensorsOf[c.cyl]||[]).push(c);} });
+    this.reset();
+  }
+  reset(){
+    this.N={}; this.cs={}; this.t=0; this.p0=this.def.p0!=null?this.def.p0:6;
+    for(const c of this.def.comps){
+      const s={pressed:false,tog:!!c.tog,on:!!c.init,acc:0};
+      if(c.t==='cyl'){s.pos=c.pos0||0;s.max=1;s.moving=0;s.chA=0;s.chB=0;}
+      if(c.t==='fc') s.open=c.open!=null?c.open:0.5;
+      if(c.t==='reg'||c.t==='regl'||c.t==='seq') s.set=c.set;
+      if(c.t==='tmr') s.delay=c.delay||5;
+      this.cs[c.id]=s;
+    }
+    for(const tg of (this.def.toggles||[])) tg.on=false;
+    this.logic(); this.chains(0);
+  }
+  v(n){ if(n==null) return 0; if(n==='P') return this.p0; return this.N[n]||0; }
+  isManual(c){ return (c.t==='v32'&&(c.a==='push'||c.a==='sel'||c.manual))||(c.t==='v52'&&c.a==='sel'); }
+  act(c){
+    const s=this.cs[c.id];
+    if(c.t==='v32b'||c.t==='v52b'||c.t==='seq') return s.on;
+    if(c.t==='tmr') return s.acc>=s.delay && this.v(c.p1)>1.6;
+    switch(c.a){
+      case 'push': return s.pressed;
+      case 'sel': return s.tog;
+      case 'pilot': return this.v(c.t==='v52'?c.p14:c.pilot)>TH;
+      case 'roller': case 'prox': {
+        if(c.manual) return s.tog;
+        const cy=this.cs[c.cyl]; if(c.at<=0) return cy.pos<=0.012; if(c.at>=1) return cy.pos>=0.988; return Math.abs(cy.pos-c.at)<0.03;
+      }
+    }
+    return false;
+  }
+  comb(){
+    const N=this.N;
+    for(let it=0;it<12;it++){
+      for(const c of this.def.comps){
+        const s=this.cs[c.id];
+        switch(c.t){
+          case 'v32': { const a=this.act(c); N[c.p2]=(a!==!!c.no)?this.v(c.p1):0; break; }
+          case 'v32b': N[c.p2]=s.on?this.v(c.p1):0; break;
+          case 'tmr': N[c.p2]=this.act(c)?this.v(c.p1):0; break;
+          case 'v52': { const a=this.act(c), p=this.v(c.p1); N[c.n4]=a?p:0; N[c.n2]=a?0:p; break; }
+          case 'v52b': { const p=this.v(c.p1); N[c.n4]=s.on?p:0; N[c.n2]=s.on?0:p; break; }
+          case 'or': N[c.out]=Math.max(this.v(c.i1),this.v(c.i2)); break;
+          case 'and': { const a=this.v(c.i1),b=this.v(c.i2); N[c.out]=(a>0.3&&b>0.3)?Math.min(a,b):0; break; }
+          case 'leak': { const a=this.v(c.i1),b=this.v(c.i2); const o=(a>0.3&&b>0.3)?Math.min(a,b):((a>0.3||b>0.3)?Math.max(a,b)*0.25:0); N[c.out]=o; break; }
+          case 'reg': N[c.p2]=Math.min(this.v(c.p1),s.set); break;
+          case 'seq': N[c.p2]=s.on?this.v(c.p1):0; break;
+        }
+      }
+    }
+  }
+  mem(){
+    for(const c of this.def.comps){
+      const s=this.cs[c.id];
+      if(c.t==='v32b'){ const st=this.v(c.set)>TH, rs=this.v(c.rst)>TH; if(st&&!rs) s.on=true; else if(rs&&!st) s.on=false; }
+      if(c.t==='v52b'){ const st=this.v(c.p14)>TH, rs=this.v(c.p12)>TH; if(st&&!rs) s.on=true; else if(rs&&!st) s.on=false; }
+      if(c.t==='seq'){ const pil=this.v(c.p12); if(pil>=s.set-1e-6) s.on=true; else if(pil<s.set-0.15) s.on=false; }
+    }
+  }
+  logic(){
+    for(let r=0;r<3;r++){ this.comb(); this.mem(); }
+    this.comb();
+    for(const c of this.def.comps){ if(c.t==='leak'){ const o=this.N[c.out]; this.N[c.i1]=o; this.N[c.i2]=o; } }
+  }
+  chainInfo(ids){ return (ids||[]).map(id=>this.byId[id]); }
+  chains(dt){
+    const N=this.N;
+    for(const c of this.def.comps){
+      if(c.t!=='cyl') continue;
+      const st=this.cs[c.id], chA=this.chainInfo(c.chA), chB=this.chainInfo(c.chB);
+      const sup=(net,ch)=>{ let p=this.v(net); for(const el of ch){ if(el.t==='regl') p=Math.min(p,this.cs[el.id].set);} return p; };
+      const pa=sup(c.a,chA), pb=c.kind==='da'?sup(c.b,chB):0;
+      let dir=0;
+      if(c.kind==='da'){ if(pa>1&&pb<0.3) dir=1; else if(pb>1&&pa<0.3) dir=-1; }
+      else { if(pa>(c.thr||1.0)) dir=1; else if(pa<0.4) dir=-1; }
+      const fct=(ch,want)=>{let f=1; for(const el of ch){ if(el.t==='fc'&&!el.deco&&el.dir===want) f=Math.min(f,this.cs[el.id].open); if(el.t==='qev'&&want==='out') f*=1.8;} return f; };
+      let f=1, base=1.2;
+      if(dir>0){ f=fct(chA,'in')*(c.kind==='da'?fct(chB,'out'):1); f*=Math.min(1.25,0.45+pa/6); base=c.tA||1.2; }
+      if(dir<0){ f=c.kind==='da'?fct(chB,'in')*fct(chA,'out'):fct(chA,'out'); f*=c.kind==='da'?Math.min(1.25,0.45+pb/6):1; base=c.tR||(c.kind==='sa'?0.9:1.2); }
+      const old=st.pos;
+      if(dir&&dt) st.pos=Math.max(0,Math.min(st.max,st.pos+dir*dt*f/base));
+      const moving=Math.abs(st.pos-old)>1e-6;
+      st.moving=moving?dir:0;
+      const throttOut=ch=>ch.some(el=>el.t==='fc'&&!el.deco&&el.dir==='out');
+      const openOut=ch=>{let o=1; ch.forEach(el=>{if(el.t==='fc'&&!el.deco&&el.dir==='out') o=Math.min(o,this.cs[el.id].open);}); return o;};
+      const chamber=(supP,otherP,ch,isSupply)=>{
+        if(isSupply) return moving?supP*0.85:supP;
+        if(moving&&throttOut(ch)) return Math.min(otherP*0.9,otherP*(0.75-0.45*openOut(ch)));
+        return 0;
+      };
+      const cA=chamber(pa,pb,chA,pa>0.3), cB=c.kind==='da'?chamber(pb,pa,chB,pb>0.3):0;
+      st.chA=cA; st.chB=cB;
+      const setChain=(ch,valveNet,cham,isSupply)=>{
+        if(!ch.length) return;
+        if(isSupply){ let p=this.v(valveNet); ch.forEach((el,i)=>{ if(el.t==='regl') p=Math.min(p,this.cs[el.id].set); N[el.c]= i===ch.length-1?cham:p; }); }
+        else { let reached=false; for(let i=ch.length-1;i>=0;i--){ const el=ch[i]; N[el.c]=reached?0:cham; if(el.t==='fc'&&el.dir==='out'&&!el.deco) reached=true; if(el.t==='qev') reached=true; } }
+        ch.forEach(el=>{ if(el.v!==valveNet && N[el.v]==null) N[el.v]=0; });
+      };
+      setChain(chA,c.a,cA,pa>0.3);
+      if(c.kind==='da') setChain(chB,c.b,cB,pb>0.3);
+      if(!chA.length&&c.ca) N[c.ca]=cA;
+    }
+  }
+  step(dt){
+    this.logic();
+    for(const c of this.def.comps){ if(c.t==='tmr'){ const s=this.cs[c.id]; if(this.v(c.p1)>1.6) s.acc=Math.min(s.acc+dt,s.delay+0.0001); else s.acc=0; } }
+    this.logic();
+    this.chains(dt);
+    this.logic();
+    this.t+=dt;
+  }
+  render(){
+    const d=this.def, vb=d.vb;
+    let w='';
+    for(const wr of d.wires){
+      const [net,from,to,o]=wr;
+      const a=Array.isArray(from)?from:this.port(from), b=Array.isArray(to)?to:this.port(to);
+      const pts=route(a,b,o).map(p=>p[0]+' '+p[1]).join('L');
+      w+=`<path d="M${pts}" class="w${this.v(net)>0.3?' on':''}"/>`;
+    }
+    let dots='';
+    for(const dt of (d.dots||[])) dots+=`<circle cx="${dt[0]}" cy="${dt[1]}" r="2.6" class="dot${this.v(dt[2])>0.3?' on':''}"/>`;
+    let g='';
+    for(const c of d.comps){
+      switch(c.t){
+        case 'cyl': g+=rCyl(c,this); break;
+        case 'v32': case 'v32b': case 'tmr': g+=rV32(c,this); break;
+        case 'v52': case 'v52b': g+=rV52(c,this); break;
+        case 'or': case 'and': case 'leak': g+=rGate(c,this); break;
+        case 'fc': g+=rFC(c,this); break;
+        case 'qev': g+=rQEV(c,this); break;
+        case 'reg': case 'regl': g+=rReg(c,this); break;
+        case 'seq': g+=rSeq(c,this); break;
+        case 'gauge': g+=rGauge(c,this); break;
+      }
+    }
+    return `<svg viewBox="${vb.join(' ')}" style="max-width:${Math.round(vb[2]*1.55)}px;margin:0 auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(d.aria||'Пневматична схема')}">${w}${g}${dots}</svg>`;
+  }
+  port(ref){ const i=ref.indexOf('.'); const id=ref.slice(0,i), p=ref.slice(i+1); const c=this.byId[id]; if(!c) throw new Error('no comp '+ref); const pp=portsOf(c)[p]; if(!pp) throw new Error('no port '+ref); return pp; }
+}
+
+/* ================= STAND UI ================= */
+const STANDS=new Set();
+function mountStand(el,defOrVariants,opts){
+  opts=opts||{};
+  const variants=Array.isArray(defOrVariants)?defOrVariants:[defOrVariants];
+  let vi=0, sim=new Sim(variants[0]), running=true, last=0, dirty=true;
+  el.innerHTML='';
+  const wrap=document.createElement('div'); wrap.className='stand';
+  wrap.innerHTML=`<div class="stand-head"><span class="t">${esc(opts.title||'Віртуальний стенд')}</span>${variants.length>1?'<div class="variant-tabs"></div>':''}<span class="sp"></span><button class="sbtn" data-r="run" type="button">Пауза</button><button class="sbtn" data-r="reset" type="button">Скинути</button></div><div class="svgbox"></div><div class="stand-ctl"></div><div class="readout"></div>`;
+  el.appendChild(wrap);
+  const svgbox=wrap.querySelector('.svgbox'), ctl=wrap.querySelector('.stand-ctl'), ro=wrap.querySelector('.readout');
+  const runBtn=wrap.querySelector('[data-r=run]');
+  runBtn.onclick=()=>{running=!running; runBtn.textContent=running?'Пауза':'Пуск';};
+  wrap.querySelector('[data-r=reset]').onclick=()=>{sim.reset(); buildCtl(); dirty=true;};
+  if(variants.length>1){
+    const vt=wrap.querySelector('.variant-tabs');
+    variants.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.textContent=v.vname;b.setAttribute('aria-pressed',i===0);b.onclick=()=>{vi=i;sim=new Sim(variants[i]);vt.querySelectorAll('button').forEach((x,j)=>x.setAttribute('aria-pressed',j===i));buildCtl();dirty=true;};vt.appendChild(b);});
+  }
+  function press(id,on){ const c=sim.byId[id]; const s=sim.cs[id]; if(!c) return;
+    if(c.a==='push'){ s.pressed=on; } dirty=true; syncBtns(); }
+  function toggle(id){ const s=sim.cs[id]; s.tog=!s.tog; dirty=true; syncBtns(); }
+  function syncBtns(){ ctl.querySelectorAll('.opbtn').forEach(b=>{const s=sim.cs[b.dataset.id]; const c=sim.byId[b.dataset.id]; b.setAttribute('aria-pressed', c.a==='push'?s.pressed:s.tog);}); }
+  function buildCtl(){
+    ctl.innerHTML='';
+    const g1=document.createElement('div'); g1.className='ctl-group'; ctl.appendChild(g1);
+    for(const c of sim.def.comps){
+      if(!sim.isManual(c)) continue;
+      const b=document.createElement('button'); b.type='button'; b.className='opbtn'; b.dataset.id=c.id;
+      const kind=c.a==='push'?'кнопка':(c.manual?'перемикач':'перемикач');
+      b.innerHTML=`<span class="id">${esc(c.id)}</span>${esc(c.desc||kind)}`;
+      if(c.a==='push'){
+        b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture&&b.setPointerCapture(e.pointerId);press(c.id,true);});
+        const up=()=>press(c.id,false);
+        b.addEventListener('pointerup',up); b.addEventListener('pointercancel',up); b.addEventListener('lostpointercapture',up);
+        b.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();press(c.id,true);}});
+        b.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();press(c.id,false);}});
+      } else b.addEventListener('click',()=>toggle(c.id));
+      g1.appendChild(b);
+    }
+    const g2=document.createElement('div'); g2.className='ctl-group'; g2.style.flex='1 1 100%'; ctl.appendChild(g2);
+    const slider=(label,min,max,step,val,unit,fn)=>{
+      const id='s'+Math.random().toString(36).slice(2,8);
+      const w=document.createElement('div'); w.className='slider';
+      w.innerHTML=`<label for="${id}"><span>${esc(label)}</span><output>${val}${unit}</output></label><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${val}">`;
+      const inp=w.querySelector('input'), out=w.querySelector('output');
+      inp.addEventListener('input',()=>{const v=parseFloat(inp.value); out.textContent=(step<1?v.toFixed(step<0.1?2:1):v)+unit; fn(v); dirty=true;});
+      g2.appendChild(w);
+    };
+    if(sim.def.showP0!==false) slider('Тиск джерела',0,8,0.1,sim.p0.toFixed(1),' bar',v=>{sim.p0=v;});
+    for(const c of sim.def.comps){
+      const s=sim.cs[c.id];
+      if(c.t==='fc'&&!c.deco) slider(`${c.id} дросель, відкриття`,0.1,1,0.05,s.open.toFixed(2),'',v=>{s.open=v;});
+      if(c.t==='reg'||c.t==='regl') slider(`${c.id} регулятор`,0,8,0.1,s.set.toFixed(1),' bar',v=>{s.set=v;});
+      if(c.t==='seq') slider(`${c.id} поріг перемикання`,0.5,8,0.1,s.set.toFixed(1),' bar',v=>{s.set=v;});
+      if(c.t==='tmr') slider(`${c.id} час затримки`,1,30,0.5,s.delay.toFixed(1),' с',v=>{s.delay=v;});
+    }
+    for(const tg of (sim.def.toggles||[])){
+      const id='t'+Math.random().toString(36).slice(2,8);
+      const w=document.createElement('label'); w.className='chk'; w.htmlFor=id;
+      w.innerHTML=`<input type="checkbox" id="${id}"> ${esc(tg.label)}`;
+      w.querySelector('input').addEventListener('change',e=>{sim.cs[tg.cyl].max=e.target.checked?tg.max:1; dirty=true;});
+      g2.appendChild(w);
+    }
+    if(!g2.children.length) g2.remove();
+    syncBtns();
+  }
+  svgbox.addEventListener('pointerdown',e=>{
+    const g=e.target.closest('g.man'); if(!g) return; const id=g.dataset.c, c=sim.byId[id];
+    e.preventDefault();
+    if(c.a==='push'){ press(id,true); const up=()=>{press(id,false);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);}; window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up); }
+    else toggle(id);
+  });
+  buildCtl();
+  const api={
+    el:wrap,
+    tick(ts){
+      if(!wrap.isConnected) { STANDS.delete(api); return; }
+      const dt=last?Math.min(0.05,(ts-last)/1000):0; last=ts;
+      if(running&&dt>0){ const n=Math.ceil(dt/0.01); for(let i=0;i<n;i++) sim.step(dt/n); dirty=true; }
+      if(dirty){ svgbox.innerHTML=sim.render(); dirty=false;
+        let r=''; for(const c of sim.def.comps){ if(c.t==='cyl'){ const s=sim.cs[c.id]; r+=`<span>${esc(c.id)}: <b>${Math.round(s.pos*100)} %</b> ходу${s.moving>0?' ↗ висувається':s.moving<0?' ↙ втягується':''}</span>`; } }
+        r+=`<span>t = <b>${sim.t.toFixed(1)} с</b></span>`;
+        ro.innerHTML=r; }
+    }
+  };
+  STANDS.add(api);
+  svgbox.innerHTML=sim.render();
+  return api;
+}
+let rafOn=false;
+function loop(ts){ for(const s of STANDS) s.tick(ts); requestAnimationFrame(loop); }
+function startLoop(){ if(!rafOn){rafOn=true;requestAnimationFrame(loop);} }
+
+/* ================= PROJECT DATA ================= */
+const V32=(id,x,y,o)=>Object.assign({t:'v32',id,x,y,p1:'P',a:'push'},o);
+const V32B=(id,x,y,o)=>Object.assign({t:'v32b',id,x,y,p1:'P'},o);
+const TMR=(id,x,y,o)=>Object.assign({t:'tmr',id,x,y},o);
+const V52=(id,x,y,o)=>Object.assign({t:'v52',id,x,y,p1:'P'},o);
+const V52B=(id,x,y,o)=>Object.assign({t:'v52b',id,x,y,p1:'P'},o);
+const CYL=(id,x,y,o)=>Object.assign({t:'cyl',id,x,y,kind:'da',chA:[],chB:[]},o);
+const FC=(id,x,y,v,c,dir,o)=>Object.assign({t:'fc',id,x,y,v,c,dir,open:0.5},o);
+const QEV=(id,x,y,v,c)=>({t:'qev',id,x,y,v,c});
+const OR=(id,x,y,i1,i2,out)=>({t:'or',id,x,y,i1,i2,out});
+const AND=(id,x,y,i1,i2,out)=>({t:'and',id,x,y,i1,i2,out});
+const REG=(id,x,y,o)=>Object.assign({t:'reg',id,x,y,p1:'P'},o);
+const REGL=(id,x,y,o)=>Object.assign({t:'regl',id,x,y},o);
+const SEQ=(id,x,y,o)=>Object.assign({t:'seq',id,x,y},o);
+const G=(id,x,y,at,n)=>({t:'gauge',id,x,y,at,n});
+
+const FS={
+  sup:'Compressed air supply',
+  su:'Service unit (on-off valve with filter regulator)',
+  dist:'Distributor block',
+  sa:'Single-acting cylinder',
+  da:'Double-acting cylinder',
+  pbNC:'3/2-way valve with pushbutton, normally closed',
+  pbNO:'3/2-way valve with pushbutton, normally open',
+  selNC:'3/2-way valve with selector switch, normally closed',
+  sel52:'5/2-way valve with selector switch',
+  p52:'5/2-way valve, pneumatically actuated, spring return',
+  dp52:'5/2-way double pilot valve',
+  p32NC:'3/2-way valve, pneumatically actuated, normally closed',
+  p32NO:'3/2-way valve, pneumatically actuated, normally open',
+  roll:'3/2-way roller lever valve, normally closed',
+  prox:'Pneumatic proximity switch',
+  fc:'One-way flow control valve',
+  qev:'Quick exhaust valve',
+  pg:'Pressure gauge',
+  or:'Shuttle valve',
+  and:'Dual-pressure valve',
+  reg:'Pressure regulator with pressure gauge',
+  seq:'Pressure sequence valve',
+  tmr:'Time delay valve, normally closed',
+};
+const BASE=[[1,'Блок підготовки з запірним клапаном і фільтром-регулятором',FS.su],[1,'Розподільний блок (у FluidSIM не обов\'язковий)',FS.dist],[1,'Джерело стисненого повітря',FS.sup]];
+
+/* common DA cylinder + 5/2 at standard positions */
+const daChainOut=(fa,fb)=>[FC(fa,235,88,'a','ac','out'),FC(fb,343,88,'b','bc','out')];
+const daWires=(fa,fb,v)=>[['ac','1A1.A',fa+'.c'],['bc','1A1.B',fb+'.c'],['a',fa+'.v',v+'.4',{y:155}],['b',fb+'.v',v+'.2',{y:165}]];
+
+const PROJECTS=[
+/* 1 */ {n:1,title:'Пресування сиру',en:'Pressing cheeses',topic:'Пряме керування, циліндр однобічної дії',
+ chips:['циліндр однобічної дії','3/2 НЗ кнопка','пряме керування'],theory:['t3','t4','t5'],
+ goals:['будова і робота циліндра однобічної дії, розрахунок зусилля','будова і робота нормально закритого 3/2-розподільника','способи керування розподільниками','пряме керування циліндром'],
+ task:'Преси вдавлюють сир у форми. Сир кладуть у форму вручну, оператор утримує кнопку, і циліндр притискає кришку. Після відпускання кнопки циліндр повертається, і сир можна вийняти.',
+ cond:['Циліндр керується пневматично ручним розподільником з кнопкою.','Тиск на блоці підготовки не більше 3,5 bar.','У зошиті в параметрах помилково згадано циліндр двобічної дії; розв\'язок і перелік обладнання використовують циліндр однобічної дії.'],
+ proc:['Сир кладуть у форму вручну.','Натискання кнопки висуває циліндр, і він притискає кришку.','Кнопку тримають до кінця пресування.','Після відпускання циліндр втягується, форма відкрита.','Сир виймають.'],
+ equip:[[1,'Циліндр однобічної дії',FS.sa],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],...BASE],
+ build:['Перетягніть на креслення <b>Compressed air supply</b> і в його властивостях задайте тиск <b>3,5 bar</b>.','Додайте <b>Single-acting cylinder</b> угорі і підпишіть його <span class="tag">1A1</span>.','Під циліндром розмістіть <b>3/2-way valve with pushbutton, normally closed</b>, підпис <span class="tag">1S1</span>.','З\'єднайте порт 1 розподільника з джерелом, порт 2 з портом циліндра. Порт 3 залиште вихлопним.','Перевірте креслення: відкритих робочих портів бути не повинно.','Запустіть симуляцію, натисніть і утримуйте кнопку мишею.'],
+ test:['У вихідному положенні шток втягнутий, лінія 1S1–1A1 без тиску.','Поки кнопка затиснута, циліндр висувається і лінія темно-синя.','Після відпускання циліндр повертається пружиною, лінія скидає тиск через порт 3.','Якщо відпустити кнопку посеред ходу, циліндр одразу повертається.'],
+ seq:[['Вихідне положення','Розподільник 1S1 закритий, шток циліндра 1A1 втягнутий.'],['Крок 1–2','Натиснули кнопку 1S1: повітря йде в поршневу порожнину 1A1, шток висувається.'],['Крок 2–3','Кнопку відпустили: 1S1 з\'єднує циліндр з вихлопом, пружина повертає шток.']],
+ qa:[['Чому циліндр однобічної дії виконує роботу лише в одному напрямку?','Зворотний хід забезпечує пружина, а її сила мала. Вона здатна лише повернути поршень без навантаження.'],['Яке ефективне зусилля висування при 6 bar (D = 20 мм, пружина 13,6 Н)?','A = 0,000314 м², F_eff = 0,9 · 0,000314 · 600 000 − 13,6 ≈ 155,96 Н.'],['Що означає «нормально закритий»?','У вихідному положенні повітря від порту 1 не проходить, а вихід 2 з\'єднаний з вихлопом 3.']],
+ pit:['Лінію під\'єднали до порту 3 замість 2: циліндр не рухається.','Обрали розподільник з фіксацією: тоді циліндр не повернеться після відпускання.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{kind:'sa',a:'a'}),V32('1S1',242,180,{p2:'a',desc:'Пресувати'})],wires:[['a','1A1.A','1S1.2']]}},
+
+/* 2 */ {n:2,title:'Відкривання бункера з кормом',en:'Opening a fodder silo',topic:'Нормально відкритий 3/2-розподільник',
+ chips:['3/2 НВ кнопка','циліндр однобічної дії'],theory:['t4','t5'],
+ goals:['будова і робота нормально відкритого 3/2-розподільника','способи керування розподільниками','пряме керування'],
+ task:'Заслінка бункера з кормом відкривається, поки натиснута кнопка. Після відпускання вона знову закриває отвір.',
+ cond:['Циліндр однобічної дії, кнопка з пневматичним керуванням.','Тиск не більше 3,5 bar.','Схему креслять у вихідному положенні, коли шток висунутий і заслінка закрита.'],
+ proc:['Натискання кнопки втягує циліндр, заслінка відкривається.','Кнопку тримають, поки потрібно сипати корм.','Після відпускання циліндр висувається і заслінка закривається.'],
+ equip:[[1,'Циліндр однобічної дії',FS.sa],[1,'3/2-розподільник з кнопкою, нормально відкритий',FS.pbNO],...BASE],
+ build:['Скопіюйте файл проєкту 1 і збережіть під новою назвою.','Видаліть розподільник 1S1 і поставте <b>3/2-way valve with pushbutton, normally open</b>.','Відновіть з\'єднання: 1 до джерела, 2 до циліндра.','Тиск джерела 3,5 bar. Запустіть симуляцію: одразу після пуску циліндр висунеться, бо розподільник відкритий.'],
+ test:['Після пуску шток висувається і лишається висунутим.','Поки кнопку затиснуто, циліндр втягнутий, лінія скинута.','Після відпускання циліндр знову висувається.'],
+ seq:[['Вихідне положення','3/2-розподільник відкритий, поршнева порожнина під тиском, шток 1A1 висунутий.'],['Крок 1–2','Натиснули 1S1: порожнина скидається через розподільник, циліндр втягується.'],['Крок 2–3','Відпустили кнопку: пружина повертає розподільник, порожнина знову під тиском, циліндр висувається.']],
+ qa:[['Чим відрізняються символи НЗ і НВ 3/2-розподільника?','У НВ стрілка 1 → 2 намальована у квадраті вихідного положення (біля пружини), а в НЗ там закритий порт 1.'],['Чому при відключенні повітря заслінка відкриється?','Циліндр однобічної дії втягується пружиною, коли тиску немає. Для заслінки це варто врахувати з погляду безпеки.']],
+ pit:['Схему намалювали у стані «кнопка натиснута». За правилами креслять вихідне положення.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{kind:'sa',a:'a'}),V32('1S1',242,180,{no:true,p2:'a',desc:'Відкрити'})],wires:[['a','1A1.A','1S1.2']]}},
+
+/* 3 */ {n:3,title:'Затискання дощок на пилці',en:'Clamping boards to a saw bench',topic:'Перемикач з фіксацією, вибір схеми',
+ chips:['перемикач з фіксацією','аналіз варіантів'],theory:['t4','t5'],
+ goals:['розпізнавати способи керування','пряме керування','аналізувати й оптимізувати схеми'],
+ task:'Дошки кладуть на стіл циркулярної пилки, і пневмоциліндр притискає їх на час різання. Керування з окремого пульта. Для випробувань використовують один циліндр.',
+ cond:['Взяти схему з попередніх вправ і змінити її.','Один циліндр однобічної дії.','Тиск не більше 3,5 bar.'],
+ proc:['Дошку кладуть на стіл.','Після перемикання перемикача циліндр висувається і затискає дошку.','Циліндр лишається висунутим, навіть коли руку прибрали.','Після повернення перемикача циліндр втягується і чекає наступного перемикання.'],
+ equip:[[1,'Циліндр однобічної дії',FS.sa],[1,'3/2-розподільник з перемикачем, нормально закритий',FS.selNC],...BASE],
+ build:['Візьміть схему проєкту 1.','Замініть кнопку на <b>3/2-way valve with selector switch, normally closed</b>. У FluidSIM 5/6 можна обрати налаштовуваний 3/n розподільник і задати ручне керування з фіксацією.','Задайте тиск 3,5 bar і запустіть симуляцію.','Порівняйте з варіантом b: поставте на час перевірки НВ-розподільник з перемикачем і подивіться, в якому положенні циліндр без перемикання.'],
+ test:['Одне клацання по перемикачу висуває циліндр, і він лишається висунутим.','Друге клацання повертає циліндр.','Варіант із НВ-розподільником тримає циліндр висунутим без перемикання, а це суперечить завданню.'],
+ seq:[['Вихідне положення','Розподільник закритий, шток втягнутий.'],['Крок 1–2','Перемикач 1S1 увімкнено: повітря йде в поршневу порожнину, циліндр висувається.'],['Крок 2–3','Перемикач повернули: розподільник скидає тиск, пружина повертає шток.']],
+ qa:[['Яка зі схем a чи b правильна і чому?','Схема a (нормально закритий). Коли перемикач вимкнено, циліндр має бути в задньому кінцевому положенні.'],['Чому тут перемикач, а не кнопка?','Дошку треба тримати затиснутою весь час різання, а оператор не має утримувати кнопку.']],
+ pit:['Обрано кнопку замість перемикача: дошку не утримати без руки на пульті.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{kind:'sa',a:'a'}),V32('1S1',242,180,{a:'sel',p2:'a',desc:'Затиснути'})],wires:[['a','1A1.A','1S1.2']]}},
+
+/* 4 */ {n:4,title:'Сортування пакунків',en:'Sorting packages',topic:'Циліндр двобічної дії і 5/2-розподільник',
+ chips:['циліндр двобічної дії','5/2 перемикач'],theory:['t3','t4'],
+ goals:['будова і робота циліндра двобічної дії','розрахунок зусиль висування і втягування','будова і робота 5/2-розподільника'],
+ task:'На станції сортування пакунки з роликового конвеєра розкладають у контейнери. Коли контейнери міняють, потік пакунків перекривають заслінкою, хоча конвеєр працює далі. Заслінкою керують зі станції.',
+ cond:['Циліндр двобічної дії, бо робота виконується в обох напрямках.','Тиск не більше 3,5 bar.'],
+ proc:['Після перемикання циліндр висувається і заслінка перекриває потік.','Циліндр лишається висунутим після того, як руку прибрали.','Після повернення перемикача циліндр втягується, потік відновлюється.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'5/2-розподільник з перемикачем',FS.sel52],...BASE],
+ build:['Додайте <b>Double-acting cylinder</b> (1A1) і <b>5/2-way valve with selector switch</b> (1S1).','Порт 4 з\'єднайте з поршневою порожниною (лівий порт циліндра), порт 2 зі штоковою.','Порт 1 до джерела 3,5 bar, порти 3 і 5 вихлопні.','Запустіть симуляцію. Після пуску шток повинен лишатися втягнутим, бо штокова порожнина під тиском.'],
+ test:['У вихідному положенні штокова порожнина під тиском, поршнева скинута.','Клацання по перемикачу: тиск переходить на порт 4, циліндр висувається.','Повторне клацання: циліндр втягується під тиском.'],
+ seq:[['Вихідне положення','Пружина тримає 5/2-розподільник у вихідному положенні, штокова порожнина під тиском, шток втягнутий.'],['Крок 1–2','Перемикач 1S1 увімкнули: повітря йде в поршневу порожнину, штокова скидається, циліндр висувається. На кінці ходу в поршневій порожнині встановлюється повний тиск.'],['Крок 2–3','Перемикач повернули: тиск подається в штокову порожнину, циліндр втягується.']],
+ qa:[['Які вимоги до розподільника для циліндра двобічної дії?','Тиск має бути в обох положеннях, бо без тиску циліндр не втягнеться, а протилежна порожнина повинна скидатися.'],['Зусилля висування і втягування при 6 bar (D = 20 мм, d = 8 мм)?','Висування 0,9 · 0,000314 · 600 000 ≈ 169,6 Н. Втягування 0,9 · (0,000314 − 0,0000502) · 600 000 ≈ 142,4 Н.'],['Що спільного і відмінного між циліндрами однобічної і двобічної дії?','Обидва мають гільзу, поршень і шток. Двобічний не має пружини, натомість має два порти живлення.']],
+ pit:['Переплутано порти 2 і 4: у вихідному положенні циліндр висунеться.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b'}),V52('1S1',291,180,{a:'sel',n4:'a',n2:'b',desc:'Заслінка'})],wires:[['a','1A1.A','1S1.4',{y:120}],['b','1A1.B','1S1.2',{y:140}]]}},
+
+/* 5 */ {n:5,title:'Зупинка пляшок з молоком',en:'Stopping milk bottles',topic:'Непряме керування',
+ chips:['непряме керування','5/2 з пневмокеруванням','сигнальний і керувальний елементи'],theory:['t5','t4'],
+ goals:['пояснювати і будувати непряме керування','робота 5/2-розподільника з пневмокеруванням','різниця між сигнальним і керувальним елементом'],
+ task:'Пляшки на конвеєрі зупиняють під наливним пристроєм пневмоциліндром. Зупинку вмикають на центральному пульті, де є стиснене повітря.',
+ cond:['Керування з центрального пульта.','Розподільник циліндра має пневматичне керування.'],
+ proc:['Перемикач увімкнено: циліндр висувається, заслінка зупиняє пляшки.','Перемикач повернули: циліндр втягується, потік вільний.','Циліндр лишається втягнутим до наступного перемикання.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'5/2-розподільник з пневмокеруванням і пружиною',FS.p52],[1,'3/2-розподільник з перемикачем, нормально закритий',FS.selNC],...BASE],
+ build:['Почніть зі схеми проєкту 4 і замініть ручний 5/2 на <b>5/2-way valve, pneumatically actuated</b> (позначення <span class="tag">1V1</span>).','Нижче й лівіше поставте <b>3/2-way valve with selector switch, normally closed</b> (<span class="tag">1S1</span>).','Вихід 2 розподільника 1S1 з\'єднайте з входом керування 14 розподільника 1V1. Порт 1 обох розподільників до джерела.','Тиск 3,5 bar. Запустіть симуляцію і перемикайте 1S1.'],
+ test:['Перемикач увімкнено: лінія керування 14 темно-синя, 1V1 перемкнувся, циліндр висувається.','Перемикач вимкнено: лінія 14 скинута, пружина повертає 1V1, циліндр втягується.'],
+ seq:[['Вихідне положення','Сигнальний і керувальний елементи у положенні пружини.'],['Крок 1–2','Перемикач 1S1 подав тиск на керування 14 розподільника 1V1. Він перемкнувся: поршнева порожнина під тиском, штокова скидається, циліндр висувається.'],['Крок 2–3','Перемикач повернули: 1S1 перекриває подачу, керування 14 скидається, пружина повертає 1V1, циліндр втягується.']],
+ qa:[['Що таке непряме керування?','Сигнал формує малий розподільник, а основний потік до циліндра перемикає більший розподільник з пневмокеруванням. Так керують циліндрами великого діаметра, де ручне перемикання потребувало б завеликої сили.'],['Який елемент тут сигнальний, а який керувальний?','1S1 сигнальний, 1V1 керувальний.']],
+ pit:['Сигнальну лінію під\'єднали до порту 12 замість 14 або забули живлення 1S1.'],
+ circuit:{vb:[60,0,460,320],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b'}),V52('1V1',291,180,{a:'pilot',p14:'s',n4:'a',n2:'b'}),V32('1S1',142,260,{a:'sel',p2:'s',desc:'Зупинити пляшки'})],wires:[['a','1A1.A','1V1.4',{y:120}],['b','1A1.B','1V1.2',{y:140}],['s','1S1.2','1V1.14']]}},
+
+/* 6 */ {n:6,title:'Відкривання і закривання засувки трубопроводу',en:'Opening and closing a pipeline',topic:'Дроселювання, вимірювання тиску',
+ chips:['дросель зі зворотним клапаном','дроселювання на виході','манометри'],theory:['t6'],
+ goals:['вимірювати тиск у пневмосистемі','розрізняти способи дроселювання і застосовувати їх за вимогами'],
+ task:'Засувку трубопроводу очисних споруд відкривають і закривають циліндром двобічної дії через розподільник з перемикачем. Рух має бути повільним і рівномірним, щоб не виникали хвилі.',
+ cond:['Відкривання і закривання повільні.','Швидкість ходу стабільна.','Тиск не більше 3,5 bar.','Зафіксувати тиск до і після дроселя.'],
+ proc:['Перемикач увімкнено: циліндр висувається, засувка відкривається.','Перемикач вимкнено: циліндр втягується, засувка закривається.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[2,'Манометр',FS.pg],[1,'5/2-розподільник з перемикачем',FS.sel52],...BASE],
+ build:['Візьміть схему проєкту 4.','У обидві лінії між 5/2-розподільником і циліндром вставте <b>One-way flow control valve</b> (<span class="tag">1V1</span>, <span class="tag">1V2</span>).','Зорієнтуйте дроселі на <b>виході</b>: зворотний клапан має пропускати повітря до циліндра вільно, а дросель гальмує повітря, що виходить з циліндра.','Через трійники додайте два манометри на лінію поршневої порожнини: <span class="tag">1Z2</span> між циліндром і дроселем, <span class="tag">1Z1</span> між дроселем і розподільником.','Відкриття дроселів почніть з 50 %. Тиск джерела 3,5 bar.','Під час симуляції змінюйте відкриття і порівнюйте час ходу.'],
+ test:['Під час втягування 1Z2 показує протитиск, а 1Z1 майже 0: дросель гальмує вихлоп.','Після зупинки поршня тиск з боку циліндра падає до 0 (на вихлопі) або росте до тиску живлення (на подачі).','Менше відкриття дроселя дає повільніший рух. При дуже малому тиску рух стає нерівним.'],
+ seq:[['Вихідне положення','Поршень втягнутий, поршнева порожнина скинута через 5/2-розподільник 1S1.'],['Крок 1–2','5/2-розподільник перемкнули: поршнева порожнина наповнюється через зворотний клапан 1V1, штокова скидається через дросель 1V2. Циліндр висувається.'],['Крок 2–3','Перемикач повернули: штокова порожнина наповнюється через 1V2, поршнева скидається через дросель 1V1. Час ходу налаштовують дроселем за секундоміром.']],
+ qa:[['При якому тиску з\'являється стрибкоподібний рух?','При дуже низькому робочому тиску або надмірному дроселюванні.'],['Як виникає ривковий рух?','Тиск наростає на нерухомому поршні, поки не подолає тертя спокою. Поршень рушає, тертя ковзання менше, тиск падає швидше, ніж відновлюється, і поршень зупиняється. Цикл повторюється.'],['Чому для циліндра двобічної дії обирають дроселювання на виході?','Поршень затиснутий між двома повітряними подушками, тому швидкість рівномірна і майже не залежить від навантаження.']],
+ pit:['Дросель розвернутий: виходить дроселювання на вході, швидкість залежить від навантаження.','Манометр поставили не в ту точку і не видно різниці тисків.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V1'],chB:['1V2']}),...daChainOut('1V1','1V2'),V52('1S1',291,180,{a:'sel',n4:'a',n2:'b',desc:'Засувка'}),G('1Z2',205,66,[250,66],'ac'),G('1Z1',205,140,[250,140],'a')],
+   wires:daWires('1V1','1V2','1S1')}},
+
+/* 7 */ {n:7,title:'Перекривання трубопроводу',en:'Shutting off a pipeline',topic:'Різні швидкості висування і втягування',
+ chips:['дроселювання на виході','один дросель'],theory:['t6'],
+ goals:['налаштовувати швидкість висування і втягування','обирати спосіб дроселювання'],
+ task:'Молоко до наливного автомата подається трубою з засувкою. Відкривати засувку треба повільно, щоб на початку наливу нічого не розхлюпалося, а закривати якомога швидше.',
+ cond:['Регулювання швидкості має забезпечувати плавне відкривання.','Тиск не більше 3,5 bar.'],
+ proc:['Перемикач увімкнено: засувка повільно відкривається.','Перемикач вимкнено: засувка швидко закривається.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з перемикачем',FS.sel52],...BASE],
+ build:['Візьміть схему проєкту 6 і видаліть дросель поршневої лінії та манометри.','Залиште один <b>One-way flow control valve</b> (<span class="tag">1V1</span>) у лінії штокової порожнини, орієнтований на виході.','Повільне висування дає саме дроселювання вихлопу зі штокової порожнини.','Підберіть відкриття так, щоб висування тривало помітно довше за втягування.'],
+ test:['Висування повільне і рівномірне.','Втягування швидке, бо штокова порожнина наповнюється через зворотний клапан, а поршнева скидається вільно.'],
+ seq:[['Вихідне положення','Поршень у задньому кінцевому положенні, поршнева порожнина скинута через 1S1.'],['Крок 1–2','5/2-розподільник перемкнули: поршнева порожнина під тиском, штокова скидається через дросель 1V1. Циліндр повільно висувається.'],['Крок 2–3','Перемикач повернули: штокова порожнина наповнюється через зворотний клапан 1V1 без дроселювання, поршнева скидається через 1S1. Циліндр швидко втягується.']],
+ qa:[['Який спосіб дроселювання тут правильний?','Дроселювання на виході: воно дає рівномірну подачу незалежно від навантаження.'],['Як зафіксувати налаштований час?','Виміряти секундоміром і законтрити регулювальний гвинт дроселя контргайкою.']],
+ pit:['Дросель поставили в поршневу лінію: тоді повільним стане втягування.'],
+ circuit:{vb:[150,0,370,240],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b',chB:['1V1']}),FC('1V1',343,88,'b','bc','out',{open:0.3}),V52('1S1',291,180,{a:'sel',n4:'a',n2:'b',desc:'Засувка'})],
+   wires:[['a','1A1.A','1S1.4',{y:155}],['bc','1A1.B','1V1.c'],['b','1V1.v','1S1.2',{y:165}]]}},
+
+/* 8 */ {n:8,title:'Керування запірним пристроєм',en:'Actuating a shut-off device',topic:'Бістабільний розподільник, клапан швидкого вихлопу',
+ chips:['5/2 бістабільний','клапан швидкого вихлопу','пам\'ять сигналу'],theory:['t8','t6'],
+ goals:['запам\'ятовування сигналу в пневматичних системах','налаштування швидкості висування і втягування'],
+ task:'Засувку в установці наповнення пластиковими гранулами треба швидко закривати і повільно відкривати.',
+ cond:['Циліндр двобічної дії.','Закривання виконує прямий хід циліндра.','Тиск не більше 3,5 bar.'],
+ proc:['Перша кнопка: запірний пристрій (кульовий кран) швидко закривається.','Друга кнопка: пристрій повільно відкривається.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'Дросель зі зворотним клапаном',FS.fc],[1,'Клапан швидкого вихлопу',FS.qev],[1,'Манометр',FS.pg],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],...BASE],
+ build:['Поставте <b>5/2-way double pilot valve</b> (<span class="tag">1V1</span>) і дві кнопки <span class="tag">1S1</span> (на 14) та <span class="tag">1S2</span> (на 12).','У лінію поршневої порожнини вставте дросель <span class="tag">1V2</span>, що гальмує вихлоп з циліндра.','У лінію штокової порожнини якомога ближче до циліндра поставте <b>Quick exhaust valve</b> (<span class="tag">1V3</span>): порт 1 до розподільника, порт 2 до циліндра, порт 3 вихлоп.','Манометр <span class="tag">1Z1</span> на поршневій порожнині.','Перед пуском переконайтеся, що 1V1 у положенні «12». Якщо шток висунутий, натисніть 1S2.'],
+ test:['Короткого натискання 1S1 досить: циліндр швидко висувається і лишається висунутим.','1S2 повертає циліндр, і він рухається повільно (дросель 1V2).','Обидві кнопки одночасно: розподільник лишається в тому положенні, сигнал якого прийшов першим.'],
+ seq:[['Вихідне положення','Поршень втягнутий. Поршнева порожнина скинута через 1V1, штокова під тиском. Якщо шток висунутий, його повертають кнопкою 1S2.'],['Крок 1–2','1S1 перемикає 1V1: поршнева порожнина наповнюється через зворотний клапан 1V2, штокова скидається через клапан швидкого вихлопу. Циліндр швидко висувається і лишається там після відпускання 1S1.'],['Крок 2–3','1S2 перемикає 1V1 назад: штокова порожнина наповнюється через 1V3, поршнева скидається через дросель 1V2 і 1V1. Циліндр повільно втягується.']],
+ qa:[['Як працює клапан швидкого вихлопу?','Повітря від розподільника йде 1 → 2 при закритому вихлопі 3. Коли тиск на 1 падає, повітря з циліндра виходить 2 → 3 прямо в атмосферу.'],['Що станеться, якщо коротко подати тиск на 14?','Золотник з\'єднає 1 → 4, 2 → 3 і залишиться в цьому положенні після зникнення сигналу.'],['Чому клапан швидкого вихлопу ставлять прямо на циліндр?','Тоді повітря не проходить трубкою і розподільником, опір найменший.']],
+ pit:['Клапан швидкого вихлопу розвернутий: циліндр не отримує повітря.','Дросель у штоковій лінії замість поршневої: повільним стане закривання.'],
+ circuit:{vb:[60,0,460,320],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V2'],chB:['1V3']}),FC('1V2',235,88,'a','ac','out',{open:0.3}),QEV('1V3',343,92,'b','bc'),V52B('1V1',291,180,{p14:'s1',p12:'s2',n4:'a',n2:'b'}),V32('1S1',142,260,{p2:'s1',desc:'Закрити'}),V32('1S2',442,260,{p2:'s2',desc:'Відкрити'}),G('1Z1',205,66,[250,66],'ac')],
+   wires:[['ac','1A1.A','1V2.c'],['a','1V2.v','1V1.4',{y:155}],['bc','1A1.B','1V3.c'],['b','1V3.v','1V1.2',{y:165}],['s1','1S1.2','1V1.14'],['s2','1S2.2','1V1.12']]}},
+
+/* 9 */ {n:9,title:'Прес для сиру з двома кнопками',en:'Expanding the control system for pressing cheeses',topic:'Функція АБО',
+ chips:['човниковий клапан','АБО','аналіз помилкової схеми'],theory:['t7'],
+ goals:['розширювати наявні схеми','аналізувати запропоноване рішення','реалізувати функцію АБО'],
+ task:'Пресом для сиру мають керувати з двох місць: з боку завантаження і з боку вивантаження. Запропоноване рішення з трійником не дає потрібного зусилля пресування.',
+ cond:['Додати ще один ручний розподільник.','Керувати можна будь-яким з двох.','Тиск не більше 3,5 bar.'],
+ proc:['Сир кладуть у прес.','Натискання кнопки з будь-якого боку висуває циліндр.','Кнопку тримають до кінця пресування.','Після відпускання циліндр втягується.','Сир виймають.'],
+ equip:[[1,'Циліндр однобічної дії',FS.sa],[1,'Човниковий клапан (АБО)',FS.or],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],...BASE],
+ build:['Спершу зберіть хибну схему: дві кнопки, виходи 2 яких з\'єднано трійником з циліндром. Натисніть одну кнопку і подивіться на тиск у лінії.','Тепер правильна схема: між кнопками і циліндром поставте <b>Shuttle valve</b> (<span class="tag">1V1</span>). Вихід 1S1 на лівий вхід 1, вихід 1S2 на правий вхід 1, вихід 2 до циліндра.','Перевірте кожну кнопку окремо і обидві разом.'],
+ test:['Хибна схема: при одній кнопці тиск падає, повітря витікає через вихлоп другої, циліндр не висувається повністю (у стенді він стоїть).','Правильна схема: будь-яка кнопка висуває циліндр з повним тиском.','Кулька човникового клапана перекриває вхід ненатиснутої кнопки.'],
+ seq:[['Вихідне положення','Обидві кнопки відпущені, циліндр втягнутий.'],['Крок 1–2','Натиснули 1S1 або 1S2: човниковий клапан 1V1 пропускає сигнал на циліндр, шток висувається.'],['Крок 2–3','Кнопку відпустили: циліндр скидається через клапан і розподільник, пружина повертає шток.']],
+ qa:[['Чому запропоноване рішення не дає зусилля?','Частина повітря виходить через вихлопний порт ненатиснутого розподільника.'],['Що буде на виході човникового клапана, якщо сигнали на обох входах?','Сигнал проходить. Якщо тиски різні, на вихід потрапляє той, що прийшов раніше.']],
+ pit:['Входи човникового клапана з\'єднали з виходом 2, а вихід з входом: клапан не пропускає повітря.'],
+ circuit:[
+  {vname:'Правильно: з клапаном АБО',vb:[100,0,410,250],p0:3.5,comps:[CYL('1A1',240,30,{kind:'sa',a:'a'}),OR('1V1',222,120,'s1','s2','a'),V32('1S1',142,180,{p2:'s1',desc:'Завантаження'}),V32('1S2',342,180,{p2:'s2',desc:'Вивантаження'})],
+    wires:[['a','1A1.A','1V1.out'],['s1','1S1.2','1V1.i1'],['s2','1S2.2','1V1.i2']]},
+  {vname:'Хибно: трійник',vb:[100,0,410,250],p0:3.5,comps:[CYL('1A1',240,30,{kind:'sa',a:'a',thr:1.0}),{t:'leak',id:'X',x:222,y:120,i1:'s1',i2:'s2',out:'a'},V32('1S1',142,180,{p2:'s1',desc:'Завантаження'}),V32('1S2',342,180,{p2:'s2',desc:'Вивантаження'})],
+    wires:[['s1','1S1.2',[250,120],{pts:[[150,120]]}],['s2','1S2.2',[250,120],{pts:[[350,120]]}],['a',[250,120],'1A1.A']],dots:[[250,120,'a']]}
+ ]},
+
+/* 10 */ {n:10,title:'Затискання заготовки',en:'Clamping a workpiece',topic:'Функція І, роликовий датчик',
+ chips:['клапан подвійного тиску','І','роликовий 3/2','бістабільний 5/2'],theory:['t7','t9','t8'],
+ goals:['реалізувати функцію І','контроль кінцевого положення циліндра'],
+ task:'Поворотний стіл подає заготовки на обробку, і в кожному гнізді їх треба затиснути. Затискний пристрій відпрацьовують на випробувальному стенді.',
+ cond:['Затискання можна почати лише тоді, коли циліндр у задньому положенні.','Друга кнопка повертає циліндр і відпускає заготовку.','Між дроселями і портами циліндра стоять манометри.','Тиск не більше 3,5 bar.'],
+ proc:['Циліндр висувається лише при натиснутій кнопці І втягнутому штоку.','Циліндр тримає заготовку весь час обробки, тривалість якої різна.','Друга кнопка відпускає заготовку.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[2,'Манометр',FS.pg],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[1,'Клапан подвійного тиску (І)',FS.and],[1,'Роликовий 3/2-розподільник, нормально закритий',FS.roll],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],...BASE],
+ build:['Циліндр <span class="tag">1A1</span>, дроселі <span class="tag">1V3</span>/<span class="tag">1V4</span> на виході, манометри <span class="tag">1Z1</span>/<span class="tag">1Z2</span> між дроселями і циліндром.','Керувальний <b>5/2-way double pilot valve</b> <span class="tag">1V2</span>.','<b>Dual-pressure valve</b> <span class="tag">1V1</span>: входи від кнопки <span class="tag">1S1</span> і роликового <span class="tag">1B1</span>, вихід на 14.','Кнопка <span class="tag">1S2</span> на 12.','На циліндрі поставте мітку <span class="mono">1B1</span> у позиції 0 мм. У властивостях роликового розподільника вкажіть ту саму мітку.'],
+ test:['Після пуску ролик 1B1 натиснутий (шток втягнутий).','1S1 висуває циліндр. Після відпускання він лишається висунутим.','Повторне 1S1 при висунутому штоку нічого не дає: 1B1 не натиснутий.','1S2 повертає циліндр; манометри показують протитиск у порожнині, що скидається.'],
+ seq:[['Вихідне положення','Тиск є. Поршнева порожнина скинута, штокова під тиском, ролик 1B1 натиснутий, шток втягнутий.'],['Крок 1–2','Натиснули 1S1: тиск на обох входах клапана І 1V1, сигнал іде на 14, 1V2 перемикається, циліндр висувається. Ролик 1B1 звільняється, вихід 1V1 зникає, але бістабільний розподільник тримає положення.'],['Крок 2–3','Натиснули 1S2: сигнал на 12 перемикає 1V2, штокова порожнина під тиском, циліндр втягується і знову натискає 1B1.']],
+ qa:[['Як працює клапан подвійного тиску?','Вихід 2 є лише при тиску на обох входах. При різних моментах проходить пізніший сигнал, при різних тисках менший.'],['Що станеться, якщо роликовий розподільник переставити?','Якщо він стоїть перед кулачком або під ним і не натиснутий у задньому положенні, умова І не виконається, і схема не запуститься.']],
+ pit:['Мітка 1B1 на циліндрі не збігається з міткою в розподільнику.','Ролик змонтований так, що наїжджають фронтально.'],
+ circuit:{vb:[40,0,480,350],p0:3.5,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V3'],chB:['1V4']}),...daChainOut('1V3','1V4'),G('1Z1',205,66,[250,66],'ac'),G('1Z2',403,66,[358,66],'bc'),V52B('1V2',291,180,{p14:'and',p12:'s2',n4:'a',n2:'b'}),AND('1V1',130,240,'s1','b1','and'),V32('1S1',92,300,{p2:'s1',desc:'Затиснути'}),V32('1B1',212,300,{a:'roller',cyl:'1A1',at:0,p2:'b1'}),V32('1S2',442,300,{p2:'s2',desc:'Відпустити'})],
+   wires:[...daWires('1V3','1V4','1V2'),['and','1V1.out','1V2.14'],['s1','1S1.2','1V1.i1'],['b1','1B1.2','1V1.i2'],['s2','1S2.2','1V2.12']]}},
+
+/* 11 */ {n:11,title:'Завантаження дротяних кошиків',en:'Loading wire baskets',topic:'Схема самоутримання',
+ chips:['самоутримання','RS-тригер','НВ-кнопка «Стоп»'],theory:['t8','t7'],
+ goals:['будувати схему самоутримання з функцією АБО'],
+ task:'Пакунки з конвеєра падають у дротяні кошики у двох місцях. Коли один кошик повний, відхилювач спрямовує потік до другого місця, а повний кошик міняють.',
+ cond:['Дві кнопки: одна вмикає відхилення, друга вимикає.','Сигнали кнопок короткі, тому їх треба запам\'ятати пневматичною схемою (не бістабільним розподільником).'],
+ proc:['Кнопка «Пуск»: циліндр висувається і відхиляє потік.','Після відпускання кнопки циліндр лишається висунутим.','Кнопка «Стоп»: циліндр втягується, потік повертається.','Циліндр чекає наступного натискання.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з пневмокеруванням і пружиною',FS.p52],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'3/2-розподільник з кнопкою, нормально відкритий',FS.pbNO],[1,'3/2-розподільник з пневмокеруванням, нормально закритий',FS.p32NC],[1,'Човниковий клапан (АБО)',FS.or],...BASE],
+ build:['Силова частина: циліндр <span class="tag">1A1</span>, дроселі <span class="tag">1V4</span>/<span class="tag">1V5</span>, моностабільний <b>5/2-way valve, pneumatically actuated</b> <span class="tag">1V3</span>.','Пам\'ять: <b>3/2-way valve, pneumatically actuated, normally closed</b> <span class="tag">1V2</span>, порт 1 до джерела, вихід 2 на 14 розподільника 1V3.','Від виходу 1V2 зробіть відгалуження на правий вхід човникового клапана <span class="tag">1V1</span>.','Кнопка «Пуск» <span class="tag">1S1</span> (НЗ) на лівий вхід 1V1.','Вихід 1V1 на порт 1 кнопки «Стоп» <span class="tag">1S2</span> (НВ), а її вихід 2 на керування 12 розподільника 1V2.'],
+ test:['Коротке натискання 1S1: 1V2 вмикається і тримає себе через 1V1, циліндр висувається.','1S2 розриває петлю: 1V2 вимикається, циліндр втягується.','1S1 і 1S2 разом: виходу немає, домінує «Стоп».'],
+ seq:[['Вихідне положення','Петля самоутримання скинута, 1V3 у положенні пружини, циліндр втягнутий.'],['Пуск','1S1 подає тиск через 1V1 і нормально відкриту 1S2 на керування 12 розподільника 1V2. Його вихід перемикає 1V3, циліндр висувається. Одночасно вихід 1V2 через зворотну лінію і 1V1 тримає себе ввімкненим.'],['Стоп','1S2 перериває петлю: керування 1V2 скидається, вихід 1V2 і лінія 14 розподільника 1V3 без тиску, циліндр втягується.']],
+ qa:[['Для чого потрібна схема самоутримання?','Вона перетворює короткий сигнал кнопки на тривалий.'],['Як називають таку схему і що в ній домінує?','RS-тригер з домінуванням скидання: при одночасних «Пуск» і «Стоп» виходу немає.']],
+ pit:['Кнопку «Стоп» узяли нормально закриту: петля ніколи не замкнеться.','Зворотну лінію під\'єднали до виходу 1V3, а не 1V2.'],
+ circuit:{vb:[0,0,560,440],p0:3.5,comps:[CYL('1A1',290,30,{a:'a',b:'b',chA:['1V4'],chB:['1V5']}),FC('1V4',285,88,'a','ac','out'),FC('1V5',393,88,'b','bc','out'),V52('1V3',331,180,{a:'pilot',p14:'L',n4:'a',n2:'b'}),V32('1V2',200,230,{a:'pilot',pilot:'s2',p2:'L'}),V32('1S2',120,270,{no:true,p1:'o',p2:'s2',desc:'Стоп'}),OR('1V1',100,330,'s1','L','o'),V32('1S1',62,380,{p2:'s1',desc:'Пуск'})],
+   wires:[['ac','1A1.A','1V4.c'],['bc','1A1.B','1V5.c'],['a','1V4.v','1V3.4',{y:155}],['b','1V5.v','1V3.2',{y:165}],['L','1V2.2','1V3.14'],['L',[208,214],'1V1.i2',{pts:[[250,214],[250,339]]}],['o','1V1.out','1S2.1'],['s2','1S2.2','1V2.pl'],['s1','1S1.2','1V1.i1']],dots:[[208,214,'L']]}},
+
+/* 12 */ {n:12,title:'Розсувні двері',en:'Actuating a sliding door',topic:'Комбінація І/АБО, пневматичні датчики',
+ chips:['пневматичний магнітний датчик','І + АБО','3 bar'],theory:['t9','t7','t8'],
+ goals:['комбінувати логічні операції','будова і робота пневматичного датчика положення','обирати тип 5/2-розподільника за вимогами'],
+ task:'Розсувні двері між двома приміщеннями відкривають і закривають кнопкою. З кожного боку дверей лише одна кнопка, щоб в аварійній ситуації не помилитися.',
+ cond:['Рух можна почати лише тоді, коли двері в одному з кінцевих положень.','Тиск обмежено до 3 bar через небезпеку защемлення.'],
+ proc:['Двері в кінцевому положенні: натискання будь-якої кнопки переводить їх у протилежне.','Поки двері не в кінцевому положенні, рух не стартує.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[2,'Клапан подвійного тиску (І)',FS.and],[1,'Човниковий клапан (АБО)',FS.or],...BASE],
+ build:['Силова частина як у проєкті 10, керувальний <span class="tag">1V4</span> бістабільний.','На циліндр поставте мітки <span class="mono">1B1</span> (0 мм) і <span class="mono">1B2</span> (кінець ходу) і два <b>Pneumatic proximity switch</b> з цими мітками.','Кнопки <span class="tag">1S1</span>, <span class="tag">1S2</span> на човниковий клапан <span class="tag">1V1</span>.','Клапан І <span class="tag">1V2</span>: вихід 1V1 і датчик 1B1, вихід на 14. Клапан І <span class="tag">1V3</span>: вихід 1V1 і датчик 1B2, вихід на 12.','Тиск джерела 3 bar.'],
+ test:['Двері закриті (1B1): будь-яка кнопка відкриває їх.','Двері відкриті (1B2): будь-яка кнопка закриває.','Поставте симуляцію на паузу посеред ходу і зніміть тиск: після відновлення кнопки не діють, поки двері не в кінцевому положенні.'],
+ seq:[['Вихідне положення','Циліндр втягнутий, датчик 1B1 спрацював, сигнал на одному вході клапана І 1V2.'],['Крок 1–2','Будь-яка кнопка дає сигнал з 1V1. Умова 1V2 виконана, сигнал на 14, двері відкриваються. У кінці спрацьовує 1B2.'],['Крок 2–3','Будь-яка кнопка: умова 1V3 виконана, сигнал на 12, двері закриваються до 1B1.']],
+ qa:[['Як працює пневматичний датчик положення?','Це 3/2-клапан, який перемикає постійний магніт на поршні, коли він поруч. Датчик кріплять на гільзу циліндра.'],['Що станеться при зникненні тиску посеред ходу і як відновити роботу?','Двері зупиняться. Їх треба вручну довести до кінцевого положення, бо інакше умова старту не виконається.']],
+ pit:['Датчики переплутано місцями: двері лише «тремтять» біля кінцевих положень або не рушають.','Тиск джерела залишили 6 bar, хоча вимога 3 bar.'],
+ circuit:{vb:[40,0,500,420],p0:3,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V5'],chB:['1V6']}),...daChainOut('1V5','1V6'),V52B('1V4',291,180,{p14:'g1',p12:'g2',n4:'a',n2:'b'}),AND('1V2',130,240,'b1','o','g1'),AND('1V3',414,240,'o','b2','g2'),OR('1V1',272,300,'s1','s2','o'),V32('1B1',92,360,{a:'prox',cyl:'1A1',at:0,p2:'b1'}),V32('1S1',212,360,{p2:'s1',desc:'Кнопка зліва'}),V32('1S2',372,360,{p2:'s2',desc:'Кнопка справа'}),V32('1B2',492,360,{a:'prox',cyl:'1A1',at:1,p2:'b2'})],
+   wires:[...daWires('1V5','1V6','1V4'),['g1','1V2.out','1V4.14'],['g2','1V3.out','1V4.12'],['b1','1B1.2','1V2.i1'],['b2','1B2.2','1V3.i2'],['o','1V1.out','1V2.i2'],['o',[300,249],'1V3.i1'],['s1','1S1.2','1V1.i1'],['s2','1S2.2','1V1.i2']],dots:[[300,249,'o']]}},
+
+/* 13 */ {n:13,title:'Подавання дерев\'яних дощок',en:'Feeding wooden boards',topic:'Функція НЕ, автоматичне повернення',
+ chips:['НЕ','автоповернення','комбінація І'],theory:['t7','t9'],
+ goals:['функція НЕ','комбінування логічних операцій','розвиток наявних схем'],
+ task:'Дошки виштовхують з магазина на обробку. Якщо зона відбору зайнята, дошку виштовхувати не можна.',
+ cond:['Роликовий розподільник визначає, чи є дошка в зоні відбору.','Циліндр дроселюється при висуванні і втягуванні.'],
+ proc:['Кнопка запускає виштовхування, коли циліндр втягнутий і зона відбору НЕ зайнята.','Циліндр висувається з дроселюванням вихлопу, виштовхує дошку і одразу повертається.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Роликовий 3/2-розподільник (у стенді нормально відкритий як елемент НЕ)',FS.roll],[2,'Клапан подвійного тиску (І)',FS.and],...BASE],
+ build:['Візьміть силову частину проєкту 12 (керувальний розподільник тут <span class="tag">1V3</span>, дроселі <span class="tag">1V4</span>/<span class="tag">1V5</span>).','Датчик <span class="tag">1B2</span> (кінець ходу) під\'єднайте прямо на 12: так циліндр сам повертається.','Клапан І <span class="tag">1V1</span>: датчик <span class="tag">1B1</span> і сигнал зони <span class="tag">1S2</span>. Клапан І <span class="tag">1V2</span>: кнопка <span class="tag">1S1</span> і вихід 1V1, вихід на 14.','Щоб у FluidSIM імітувати дошку, зошит радить замість ролика поставити 3/2-розподільник з перемикачем. Для чистої функції НЕ візьміть нормально відкритий: дошка є → перемикач увімкнено → сигналу немає.'],
+ test:['Зона вільна: кнопка 1S1 запускає повний цикл висування–втягування.','Дошка в зоні: кнопка нічого не робить.','Під час руху повторне натискання не впливає: 1B1 не спрацював.'],
+ seq:[['Вихідне положення','Тиск є, циліндр втягнутий, 1B1 спрацював, штокова порожнина під тиском.'],['Крок 1–2','Зона зайнята: сигналу зони немає, 1V1 не дає виходу, розподільник не перемикається. Зона вільна: 1V1 дає сигнал, і при натиснутій 1S1 клапан 1V2 подає сигнал на 14. Циліндр висувається.'],['Крок 2–3','У кінці ходу спрацьовує 1B2 і подає сигнал на 12. 1V3 перемикається, циліндр втягується до 1B1.']],
+ qa:[['Як змінити схему, щоб старт був лише коли дошка є в магазині І зона відбору вільна?','Додати ще один датчик наявності заготовки (роликовий розподільник) і клапан І, який поєднає обидва датчики замість одного сигналу 1S2.'],['Яким елементом реалізують НЕ в пневматиці?','Нормально відкритим 3/2-розподільником: сигнал є, доки його не перемкнули.']],
+ pit:['Сигнал 1B2 під\'єднали через кнопку: циліндр не повернеться сам.'],
+ circuit:{vb:[40,0,500,420],p0:4,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V4'],chB:['1V5']}),...daChainOut('1V4','1V5'),V52B('1V3',291,180,{p14:'g1',p12:'b2',n4:'a',n2:'b'}),AND('1V2',130,240,'s1','g0','g1'),AND('1V1',272,300,'b1','z','g0'),V32('1S1',92,360,{p2:'s1',desc:'Виштовхнути'}),V32('1B1',212,360,{a:'prox',cyl:'1A1',at:0,p2:'b1'}),V32('1S2',372,360,{a:'roller',manual:true,no:true,p2:'z',desc:'Дошка в зоні відбору'}),V32('1B2',492,360,{a:'prox',cyl:'1A1',at:1,p2:'b2'})],
+   wires:[...daWires('1V4','1V5','1V3'),['g1','1V2.out','1V3.14'],['b2','1B2.2','1V3.12'],['s1','1S1.2','1V2.i1'],['g0','1V1.out','1V2.i2'],['b1','1B1.2','1V1.i1'],['z','1S2.2','1V1.i2']]}},
+
+/* 14 */ {n:14,title:'Пресування банок',en:'Compacting beverage cans',topic:'Клапан послідовності',
+ chips:['клапан послідовності','регулятор тиску','повернення АБО'],theory:['t10','t7'],
+ goals:['будова і робота клапана послідовності','керування залежно від тиску'],
+ task:'На переробному підприємстві банки пресують у брикети. Пресування запускає кнопка, повернення можна викликати іншою кнопкою. Пресувати можна лише при достатньому тиску.',
+ cond:['Вихідне положення циліндра втягнуте.','Схема не повинна працювати при тиску нижче 4,5 bar; у параметрах зошита вказано також бажаний тиск понад 6 bar.','Якщо банок забагато і циліндр не дійшов до кінця, повернення запускають вручну.'],
+ proc:['Клапан послідовності при досягненні заданого тиску подає повітря на сигнальні елементи.','Старт кнопкою лише з втягнутого положення; циліндр іде до кінця або доки дозволяють банки.','Повернення від кінцевого датчика АБО від кнопки.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Клапан подвійного тиску (І)',FS.and],[1,'Човниковий клапан (АБО)',FS.or],[1,'Клапан послідовності',FS.seq],[1,'Регулятор тиску з манометром',FS.reg],...BASE],
+ build:['Регулятор <span class="tag">1V1</span> після джерела: його вихід живить порт 1 розподільника <span class="tag">1V5</span> і клапан послідовності <span class="tag">1V2</span> (порт 1 і керування 12).','Вихід 2 клапана <span class="tag">1V2</span> зробіть спільною лінією живлення для 1B1, 1S1, 1S2, 1B2.','<span class="tag">1V3</span> (І): 1B1 і 1S1 → 14. <span class="tag">1V4</span> (АБО): 1S2 і 1B2 → 12.','Поріг 1V2 — 4,5 bar, регулятор 1V1 — 6 bar.','Щоб імітувати застряглі банки, у FluidSIM можна додати циліндру навантаження або зупинити симуляцію і перевірити кнопку 1S2 посеред ходу.'],
+ test:['Регулятор 6 bar: схема працює, цикл автоматично повертається від 1B2.','Регулятор нижче порогу (наприклад 4 bar): лінія сигналів скинута, кнопки не діють.','Увімкніть «багато банок»: циліндр зупиняється, 1S2 повертає його.'],
+ seq:[['Вихідне положення','Циліндр втягнутий, 1B1 спрацював, тиск є. На регуляторі встановлено тиск, на клапані послідовності — поріг.'],['Крок 1–2','Кнопка 1S1: умова І 1V3 виконана, 1V5 перемикається, циліндр висувається.'],['Крок 2–3','1B2 у кінці ходу через АБО 1V4 скидає 1V5. Або це робить кнопка 1S2. Циліндр повертається, цикл закінчено на 1B1.']],
+ qa:[['Як працює клапан послідовності?','Коли тиск на керуванні 12 перевищить налаштоване значення, вбудований 3/2-клапан перемикається і подає тиск на вихід 2. Коли тиск падає нижче, клапан повертається.'],['Навіщо тут АБО?','Щоб повернення викликав або кінцевий датчик, або кнопка, якщо циліндр не дійшов до кінця.']],
+ pit:['Клапан послідовності поставили в силову лінію: циліндр рухається з запізненням, але логіка не блокується.','Поріг вищий за тиск регулятора: схема ніколи не запуститься.'],
+ circuit:{vb:[40,0,520,575],p0:6,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V6'],chB:['1V7']}),...daChainOut('1V6','1V7'),V52B('1V5',291,180,{p1:'pr',p14:'g1',p12:'g2',n4:'a',n2:'b'}),AND('1V3',130,300,'b1','s1','g1'),OR('1V4',414,300,'s2','b2','g2'),V32('1B1',92,360,{a:'prox',cyl:'1A1',at:0,p1:'ctl',p2:'b1'}),V32('1S1',212,360,{p1:'ctl',p2:'s1',desc:'Пресувати'}),V32('1S2',372,360,{p1:'ctl',p2:'s2',desc:'Повернути'}),V32('1B2',492,360,{a:'prox',cyl:'1A1',at:1,p1:'ctl',p2:'b2'}),SEQ('1V2',170,430,{p1:'pr',p12:'pr',p2:'ctl',set:4.5}),REG('1V1',294,500,{p2:'pr',set:6})],
+   toggles:[{label:'Багато банок: циліндр упирається на 70 %',cyl:'1A1',max:0.7}],
+   wires:[...daWires('1V6','1V7','1V5'),['g1','1V3.out','1V5.14'],['g2','1V4.out','1V5.12'],['b1','1B1.2','1V3.i1'],['s1','1S1.2','1V3.i2'],['s2','1S2.2','1V4.i1'],['b2','1B2.2','1V4.i2'],
+    ['ctl','1B1.1',[100,405]],['ctl','1S1.1',[220,405]],['ctl','1S2.1',[380,405]],['ctl','1B2.1',[500,405]],['ctl',[100,405],[500,405]],['ctl','1V2.2',[210,405]],
+    ['pr','1V1.2','1V5.1'],['pr',[309,480],'1V2.1',{pts:[[210,480]]}],['pr',[210,480],'1V2.12',{pts:[[182,480]]}]],
+   dots:[[220,405,'ctl'],[380,405,'ctl'],[210,405,'ctl'],[309,480,'pr'],[210,480,'pr']]}},
+
+/* 15 */ {n:15,title:'Пакування брошур',en:'Packaging of brochures',topic:'Регулятор тиску в робочій лінії',
+ chips:['регулятор тиску','обхідний зворотний клапан','клапан послідовності'],theory:['t10'],
+ goals:['будова і робота регулятора тиску','керування залежно від тиску'],
+ task:'Пачки по 10 брошур обгортають плівкою. Щоб плівка запаялася, брошури затискають. Тиск затискання має бути не менше 4 bar і не більше 6 bar, інакше брошури пошкодяться.',
+ cond:['Старт лише з втягнутого положення.','Перед пуском робочий тиск має перевищувати 6 bar (на реальному стенді не перевищуйте 6 bar і зменште поріг відповідно).','Повернення вручну, бо тривалість пакування різна.'],
+ proc:['Клапан послідовності при досягненні тиску подає повітря в схему.','Затискання починається, якщо циліндр втягнутий і натиснута кнопка. Циліндр лишається висунутим.','Друга кнопка повертає циліндр.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[1,'Пневматичний датчик положення',FS.prox],[2,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Клапан подвійного тиску (І)',FS.and],[1,'Клапан послідовності',FS.seq],[2,'Регулятор тиску з манометром',FS.reg],...BASE],
+ build:['Регулятор <span class="tag">1V6</span> з манометром поставте в лінію поршневої порожнини між портом 4 і циліндром, налаштуйте 5 bar.','Паралельно до нього поставте дросель <span class="tag">1V5</span> повністю закритим: зворотний клапан пропускає повітря з циліндра назад, бо через регулятор воно не виходить.','У штоковій лінії дросель <span class="tag">1V7</span>.','Логіка: <span class="tag">1V3</span> (І) з 1B1 і 1S1 → 14; 1S2 → 12.','Живлення сигнальних елементів від клапана послідовності <span class="tag">1V2</span> (поріг 6 bar), а його і 1V4 живить регулятор <span class="tag">1V1</span> (6,5 bar).'],
+ test:['Манометр 1V6 під час затискання показує 5 bar, а не тиск мережі.','Змініть 1V6 на 3 bar і 7 bar: зусилля затискання змінюється, логіка ні.','Знизьте 1V1 до 5,5 bar: кнопки перестають діяти.','Втягування працює: повітря з поршневої порожнини виходить через обхідний клапан 1V5.'],
+ seq:[['Вихідне положення','Циліндр втягнутий, 1B1 спрацював, тиск понад поріг клапана послідовності.'],['Крок 1–2','1S1 і 1B1: клапан І перемикає 1V4, повітря через регулятор 1V6 іде в поршневу порожнину, циліндр затискає брошури зі зниженим тиском.'],['Крок 2–3','1S2 перемикає 1V4 назад. Штокова порожнина під тиском, поршнева скидається через обхідний зворотний клапан 1V5.']],
+ qa:[['Як працює регулятор тиску?','Вихідний тиск діє на мембрану проти пружини. Зростання тиску прикриває сідло і скидає надлишок, падіння тиску відкриває клапан. Вхідний тиск має бути вищим за вихідний.'],['Навіщо дросель паралельно регулятору?','Він працює як обхід: дросель закритий, а зворотний клапан випускає повітря з циліндра при втягуванні, бо через регулятор воно назад не проходить.']],
+ pit:['Без обхідного клапана циліндр не втягнеться або втягнеться дуже повільно.'],
+ circuit:{vb:[40,0,520,575],p0:7,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V6'],chB:['1V7']}),REGL('1V6',235,88,{v:'a',c:'ac',set:5}),FC('1V5',180,88,'a','ac','in',{deco:true}),FC('1V7',343,88,'b','bc','out'),V52B('1V4',291,180,{p1:'pr',p14:'g1',p12:'s2',n4:'a',n2:'b'}),AND('1V3',130,300,'b1','s1','g1'),V32('1B1',92,360,{a:'prox',cyl:'1A1',at:0,p1:'ctl',p2:'b1'}),V32('1S1',212,360,{p1:'ctl',p2:'s1',desc:'Затиснути'}),V32('1S2',442,360,{p1:'ctl',p2:'s2',desc:'Відпустити'}),SEQ('1V2',170,430,{p1:'pr',p12:'pr',p2:'ctl',set:6}),REG('1V1',294,500,{p2:'pr',set:6.5})],
+   wires:[['ac','1A1.A','1V6.c'],['ac',[250,74],'1V5.c',{pts:[[195,74]]}],['a','1V5.v',[250,140],{pts:[[195,140]]}],['a','1V6.v','1V4.4',{y:155}],['bc','1A1.B','1V7.c'],['b','1V7.v','1V4.2',{y:165}],
+    ['g1','1V3.out','1V4.14'],['s2','1S2.2','1V4.12'],['b1','1B1.2','1V3.i1'],['s1','1S1.2','1V3.i2'],
+    ['ctl','1B1.1',[100,405]],['ctl','1S1.1',[220,405]],['ctl','1S2.1',[450,405]],['ctl',[100,405],[450,405]],['ctl','1V2.2',[210,405]],
+    ['pr','1V1.2','1V4.1'],['pr',[309,480],'1V2.1',{pts:[[210,480]]}],['pr',[210,480],'1V2.12',{pts:[[182,480]]}]],
+   dots:[[250,74,'ac'],[250,140,'a'],[220,405,'ctl'],[210,405,'ctl'],[309,480,'pr'],[210,480,'pr']]}},
+
+/* 16 */ {n:16,title:'Монтаж фіксувальних штифтів',en:'Mounting locking pins',topic:'Верхня межа тиску (НЕ від клапана послідовності)',
+ chips:['клапан послідовності','3/2 НВ з пневмокеруванням','автоповернення'],theory:['t10','t7'],
+ goals:['керування залежно від тиску','аналіз і оптимізація наявних схем'],
+ task:'На автоматі збирання штифти запресовують у корпуси роз\'ємів. Тиск задавали регулятором, і це призводило до збоїв. Схему змінюють так, щоб вона працювала лише коли тиск не перевищує певного значення.',
+ cond:['Тиск на робочому порту не менше 3,5 bar, щоб штифти сіли надійно.','Старт неможливий, якщо тиск більший за 3,8 bar.','Повернення автоматичне в кінцевому положенні.'],
+ proc:['Старт кнопкою з втягнутого положення.','Циліндр висувається з мінімальним зусиллям.','У кінці натискає кінцевий датчик.','Швидко повертається.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[1,'3/2-розподільник з пневмокеруванням, нормально відкритий',FS.p32NO],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[2,'Клапан подвійного тиску (І)',FS.and],[1,'Клапан послідовності',FS.seq],[1,'Регулятор тиску з манометром',FS.reg],...BASE],
+ build:['Регулятор <span class="tag">1V1</span> живить порт 1 розподільника <span class="tag">1V6</span>, порт 1 розподільника <span class="tag">1V4</span> і клапан послідовності <span class="tag">1V2</span> (порт 1 і 12).','Клапан послідовності, поріг <b>3,8 bar</b>, керує розподільником <span class="tag">1V4</span> (3/2 НВ з пневмокеруванням). Коли тиск зависокий, 1V4 закривається: це функція НЕ.','<span class="tag">1V3</span> (І): 1B1 і 1S1. <span class="tag">1V5</span> (І): вихід 1V3 і вихід 1V4 → 14.','1B2 прямо на 12 для автоповернення.','Регулятор налаштуйте між 3,5 і 3,8 bar.'],
+ test:['Регулятор 3,6 bar: цикл запускається і повертається сам.','Регулятор 4 bar: клапан послідовності спрацював, 1V4 закритий, старт заблоковано.','Порівняйте з вихідною схемою зошита: вона працює, але неправильно налаштований регулятор може пошкодити штифти.'],
+ seq:[['Вихідне положення','Циліндр втягнутий, 1B1 спрацював, тиск є, регулятор і клапан послідовності налаштовано.'],['Крок 1–2','1S1 і 1B1: умова 1V3 виконана. Якщо тиск не перевищує порогу, 1V4 відкритий, умова 1V5 виконана, 1V6 перемикається, циліндр висувається.'],['Крок 2–3','1B2 перемикає 1V6 назад, циліндр повертається до 1B1.']],
+ qa:[['У чому недолік вихідної схеми?','Тиск у лінії живлення циліндра можна помилково налаштувати на регуляторі, і штифти пошкодяться. Ніщо не блокує роботу при надмірному тиску.'],['Яку логічну функцію виконує 1V4?','НЕ: нормально відкритий 3/2 пропускає сигнал, доки клапан послідовності його не перемкне.']],
+ pit:['Взяли нормально закритий 1V4: схема працюватиме лише при надмірному тиску, тобто навпаки.'],
+ circuit:{vb:[40,0,500,545],p0:6,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V7'],chB:['1V8']}),...daChainOut('1V7','1V8'),V52B('1V6',291,180,{p1:'pr',p14:'g2',p12:'b2',n4:'a',n2:'b'}),AND('1V3',130,300,'b1','s1','g1'),AND('1V5',180,240,'g1','nt','g2'),V32('1V4',341,270,{a:'pilot',pilot:'sq',no:true,mirror:true,p1:'pr',p2:'nt'}),SEQ('1V2',380,400,{p1:'pr',p12:'pr',p2:'sq',set:3.8}),REG('1V1',294,470,{p2:'pr',set:3.6}),V32('1B1',92,360,{a:'prox',cyl:'1A1',at:0,p2:'b1'}),V32('1S1',212,360,{p2:'s1',desc:'Пуск'}),V32('1B2',492,360,{a:'prox',cyl:'1A1',at:1,p2:'b2'})],
+   wires:[...daWires('1V7','1V8','1V6'),['g1','1V3.out','1V5.i1'],['g2','1V5.out','1V6.14'],['nt','1V4.2','1V5.i2'],['sq','1V2.2','1V4.pl'],['b1','1B1.2','1V3.i1'],['s1','1S1.2','1V3.i2'],['b2','1B2.2','1V6.12'],
+    ['pr','1V1.2','1V6.1'],['pr',[309,330],'1V4.1',{pts:[[349,330]]}],['pr',[309,450],'1V2.12',{pts:[[392,450]]}],['pr',[392,450],'1V2.1',{pts:[[420,450]]}]],
+   dots:[[309,330,'pr'],[309,450,'pr'],[392,450,'pr']]}},
+
+/* 17 */ {n:17,title:'Етикетування банок з фарбою',en:'Labelling paint pots',topic:'Клапан затримки часу',
+ chips:['клапан затримки','клапан швидкого вихлопу','регулятор тиску'],theory:['t11','t6','t10'],
+ goals:['будувати схеми з керуванням за часом','будова і робота клапана затримки'],
+ task:'На банки з фарбою клеять етикетки. Притискання запускає кнопка, клей схоплюється приблизно 10 с. Нового старту немає, доки циліндр не повернувся.',
+ cond:['Етикетку притискають малим тиском, робочий тиск регулюється від 3 до 7 bar.','Циліндр повертається якнайшвидше.','Тиск показує манометр перед циліндром.'],
+ proc:['Старт кнопкою з втягнутого положення.','Висування з малим зусиллям і швидкістю, витримка заданий час.','Швидке повернення.','Тиск під час прямого ходу видно на манометрі.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'Дросель зі зворотним клапаном',FS.fc],[1,'Клапан швидкого вихлопу',FS.qev],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Клапан затримки часу',FS.tmr],[1,'Клапан подвійного тиску (І)',FS.and],[1,'Регулятор тиску з манометром',FS.reg],[1,'Манометр',FS.pg],...BASE],
+ build:['Регулятор <span class="tag">1V1</span> (3 bar) живить порт 1 розподільника <span class="tag">1V4</span>.','Порт 4 → клапан швидкого вихлопу <span class="tag">1V6</span> на циліндрі, манометр <span class="tag">1Z1</span> між ними і циліндром.','Порт 2 → дросель <span class="tag">1V5</span>, що гальмує вихлоп зі штокової порожнини (повільне висування).','<span class="tag">1V2</span> (І): 1B1 і 1S1 → 14.','Датчик 1B2 живить вхід 1 клапана затримки <span class="tag">1V3</span>, його вихід 2 на 12. Час затримки 10 с.'],
+ test:['1S1: циліндр повільно висувається, манометр показує тиск регулятора.','У кінці 1B2 запускає таймер; через заданий час циліндр швидко повертається.','Відпустіть кнопку і натисніть знову під час витримки: нічого не змінюється.'],
+ seq:[['Вихідне положення','Циліндр втягнутий, 1B1 спрацював, тиск є, регулятор налаштовано.'],['Крок 1–2','1S1 і 1B1: умова І 1V2 виконана, 1V4 перемикається, циліндр висувається з малим тиском і дроселюванням.'],['Крок 2–3','1B2 подає тиск на клапан затримки 1V3. Через заданий час він перемикається, 1V4 повертається, циліндр швидко втягується: поршнева порожнина скидається через клапан швидкого вихлопу.']],
+ qa:[['Як працює клапан затримки?','Тиск на порту 1 через дросель наповнює ресивер. Коли досягнуто тиску перемикання, клапан з\'єднує 1 → 2. Без тиску на 1 вихід скидається, клапан скидається за 200 мс.'],['Від чого залежить час затримки у FluidSIM?','Від налаштування часу (відкриття дроселя таймера) і від тиску сигналу на вході.']],
+ pit:['Таймер живиться від мережі, а не від датчика 1B2: затримка відлічується з моменту пуску.'],
+ circuit:{vb:[40,0,500,490],p0:6,comps:[CYL('1A1',240,30,{a:'a',b:'b',chA:['1V6'],chB:['1V5']}),QEV('1V6',235,92,'a','ac'),G('1Z1',205,66,[250,66],'ac'),FC('1V5',343,88,'b','bc','out',{open:0.35}),V52B('1V4',291,180,{p1:'pr',p14:'g1',p12:'tm',n4:'a',n2:'b'}),AND('1V2',130,300,'b1','s1','g1'),TMR('1V3',462,260,{p1:'b2',p2:'tm',delay:10}),V32('1B1',92,360,{a:'prox',cyl:'1A1',at:0,p2:'b1'}),V32('1S1',212,360,{p2:'s1',desc:'Етикетувати'}),V32('1B2',462,360,{a:'prox',cyl:'1A1',at:1,p2:'b2'}),REG('1V1',294,430,{p2:'pr',set:3})],
+   wires:[['ac','1A1.A','1V6.c'],['a','1V6.v','1V4.4',{y:155}],['bc','1A1.B','1V5.c'],['b','1V5.v','1V4.2',{y:165}],['g1','1V2.out','1V4.14'],['tm','1V3.2','1V4.12'],['b2','1B2.2','1V3.1'],['b1','1B1.2','1V2.i1'],['s1','1S1.2','1V2.i2'],['pr','1V1.2','1V4.1']]}},
+
+/* 18 */ {n:18,title:'Очищення заготовок',en:'Cleaning workpieces',topic:'Коливальний рух, обмеження часу',
+ chips:['коливальний рух','3/2 пам\'ять','таймер 20 с','5/2 → 3/2'],theory:['t12','t11','t9'],
+ goals:['будувати схеми з коливальним рухом','застосовувати клапан затримки за умовами'],
+ task:'Кошик із заготовками рухають вгору-вниз у ванні очищення. Процес запускають кнопкою.',
+ cond:['Задне положення визначає роликовий розподільник.','Очищення триває 20 с.'],
+ proc:['Старт кнопкою, коли підйомний циліндр втягнутий.','Циліндр висувається до кінця, повертається до середини і знову висувається. Так до спрацювання таймера.','Після цього циліндр повертається у вихідне положення.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[1,'3/2-розподільник з двобічним пневмокеруванням (5/2 з заглушкою на порту 4)',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[1,'Роликовий 3/2-розподільник, нормально закритий',FS.roll],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Клапан затримки часу',FS.tmr],[1,'Човниковий клапан (АБО)',FS.or],...BASE],
+ build:['Пам\'ять <span class="tag">1V2</span>: візьміть 5/2-way double pilot valve і закрийте порт 4 заглушкою, вихід — порт 2. Або налаштовуваний 3/n з пневмокеруванням з обох боків.','Кнопка <span class="tag">1S1</span> вмикає 1V2. Вихід 1V2 живить роликовий <span class="tag">1B1</span> (0 мм), датчик <span class="tag">1B3</span> (середина ходу) і вхід таймера <span class="tag">1V1</span>.','Вихід таймера (20 с) вимикає 1V2.','<span class="tag">1V3</span> (АБО): 1B1 і 1B3 → 14 розподільника <span class="tag">1V4</span>. Датчик <span class="tag">1B2</span> (кінець ходу) живиться від мережі → 12.','Два дроселі <span class="tag">1V5</span>, <span class="tag">1V6</span> послідовно в штоковій лінії регулюють обидві швидкості.'],
+ test:['1S1: циліндр висувається, потім коливається між 1B3 і 1B2.','Через 20 с пам\'ять скидається, 1B1 і 1B3 без живлення, циліндр доходить до 1B2 і повертається в 0.','Зменште затримку до 5 с, щоб перевіряти швидше.'],
+ seq:[['Вихідне положення','Циліндр втягнутий і натискає ролик 1B1. 1V4 і пам\'ять 1V2 у правому положенні, тиск налаштовано.'],['Крок 1–2','1S1 вмикає 1V2: тиск іде на таймер і датчики. 1B1 через АБО 1V3 перемикає 1V4, циліндр висувається. Проходження 1B3 нічого не змінює, бо діє той самий вхід.'],['Крок 2–3','1B2 у кінці перемикає 1V4, циліндр втягується і досягає 1B3 посередині.'],['Крок 3–4','1B3 знову перемикає 1V4: реверс триває мілісекунди, кулачок не проходить датчик.'],['Коливання','Циліндр ходить між 1B3 і 1B2, доки не вийде час таймера.'],['Кінець','Таймер перемикає 1V2, датчики 1B1 і 1B3 без живлення, циліндр повертається у вихідне положення до 1B1.']],
+ qa:[['Як перетворити 5/2 бістабільний на 3/2?','Закрити вихід 4 заглушкою.'],['Чому датчик 1B2 живиться від мережі, а 1B1 і 1B3 від пам\'яті?','Після закінчення часу циліндр має обов\'язково повернутися, а повторне висування від 1B1 і 1B3 має бути заблоковане.']],
+ pit:['Мітку 1B3 поставили надто близько до кінця ходу: коливання ледь помітні.','Датчики 1B1 і 1B3 живляться від мережі: циліндр ніколи не зупиниться.'],
+ circuit:{vb:[0,0,540,520],p0:5,comps:[CYL('1A1',240,30,{a:'a',b:'b',chB:['1V5','1V6'],tA:1,tR:1}),FC('1V6',343,64,'bm','bc','out',{open:0.8}),FC('1V5',343,112,'b','bm','in',{open:0.8}),V52B('1V4',291,180,{p14:'o',p12:'b2',n4:'a',n2:'b'}),OR('1V3',130,240,'b1','b3','o'),V32('1B1',92,300,{a:'roller',cyl:'1A1',at:0,p1:'L',p2:'b1'}),V32('1B3',212,300,{a:'prox',cyl:'1A1',at:0.5,p1:'L',p2:'b3'}),V32('1B2',492,300,{a:'prox',cyl:'1A1',at:1,p2:'b2'}),V32B('1V2',152,390,{set:'s1',rst:'tq',p2:'L'}),V32('1S1',52,450,{p2:'s1',desc:'Старт очищення'}),TMR('1V1',262,450,{p1:'L',p2:'tq',delay:20})],
+   wires:[['a','1A1.A','1V4.4',{y:150}],['bc','1A1.B','1V6.c'],['bm','1V6.v','1V5.c'],['b','1V5.v','1V4.2',{y:166}],['o','1V3.out','1V4.14'],['b2','1B2.2','1V4.12'],['b1','1B1.2','1V3.i1'],['b3','1B3.2','1V3.i2'],
+    ['L','1V2.2',[160,345]],['L','1B1.1',[100,345]],['L','1B3.1',[220,345]],['L',[100,345],[320,345]],['L',[320,345],'1V1.1',{pts:[[320,495],[270,495]]}],['s1','1S1.2','1V2.pl'],['tq','1V1.2','1V2.pr']],
+   dots:[[160,345,'L'],[220,345,'L']]}},
+
+/* 19 */ {n:19,title:'Запресовування табличок',en:'Pressing labels into place',topic:'Два циліндри, перекриття сигналів',
+ chips:['два циліндри','3/2 пам\'ять','перекриття сигналів'],theory:['t12','t8'],
+ goals:['аналізувати і будувати схеми з двома циліндрами'],
+ task:'На робочому місці в корпуси клапанів запресовують заводські таблички. Табличку кладуть у виїмку, корпус затискають кнопкою, після затискання прес вдавлює табличку. Коли прес дійшов до кінця, обидва циліндри повертаються.',
+ cond:['Затискний циліндр однобічної дії.','Його кінцеве положення контролює роликовий розподільник.','Прес — циліндр двобічної дії.','Швидкості обох циліндрів регулюються.'],
+ proc:['Пресування запускає кнопка.','Кінцевий вимикач контролює, що затискач дійшов.','Прес не висувається, доки затискач не в кінцевому положенні.','Після запресовування обидва циліндри повертаються.'],
+ equip:[[1,'Циліндр двобічної дії',FS.da],[1,'Циліндр однобічної дії',FS.sa],[2,'Дросель зі зворотним клапаном',FS.fc],[1,'5/2-розподільник з двобічним пневмокеруванням',FS.dp52],[1,'3/2-розподільник з двобічним пневмокеруванням (5/2 з заглушкою)',FS.dp52],[2,'Пневматичний датчик положення',FS.prox],[1,'Роликовий 3/2-розподільник, нормально закритий',FS.roll],[1,'3/2-розподільник з кнопкою, нормально закритий',FS.pbNC],[1,'Клапан подвійного тиску (І)',FS.and],...BASE],
+ build:['Затискач <span class="tag">1A1</span> (однобічної дії) живиться від 3/2-пам\'яті <span class="tag">1V2</span> через дросель <span class="tag">1V3</span> на вході.','Мітка <span class="mono">1B2</span> на кінці ходу 1A1, роликовий розподільник 1B2 → 14 розподільника <span class="tag">2V1</span>.','Прес <span class="tag">2A1</span> з датчиками <span class="mono">2B1</span> (0 мм) і <span class="mono">2B2</span> (кінець), дросель <span class="tag">2V2</span> у поршневій лінії.','<span class="tag">1V1</span> (І): 1S1 і 2B1 → вмикання 1V2.','2B2 → 12 розподільника 2V1 і вимикання (10) пам\'яті 1V2.','Додайте обидва циліндри на діаграму станів і порівняйте з діаграмою шлях–крок у теорії.'],
+ test:['1S1: спершу висувається 1A1, після 1B2 висувається 2A1.','На 2B2 спочатку втягується 1A1, і лише коли ролик 1B2 звільнено, втягується 2A1.','Перемістіть мітку 2B2 так, щоб датчик не спрацьовував: циліндри не повертаються, новий старт неможливий.'],
+ seq:[['Вихідне положення','Тиск є, обидва циліндри втягнуті, 2B1 спрацював, 1V2 і 2V1 у правому положенні.'],['Крок 1–2','1S1 і 2B1: умова І 1V1 виконана, 1V2 вмикається, 1A1 висувається з дроселюванням на вході.'],['Крок 2–3','У кінці 1A1 натискає ролик 1B2, той перемикає 2V1. 2A1 висувається до 2B2.'],['Крок 3–4','2B2 скидає 1V2 і подає сигнал на 12 розподільника 2V1. 1A1 втягується першим. 2V1 перемикається лише тоді, коли 1B2 звільнився. Цикл закінчується на 2B1.']],
+ qa:[['Чому 1A1 втягується трохи раніше за 2A1?','На 2V1 перекриваються сигнали 14 (від 1B2) і 12 (від 2B2). 2V1 перемкнеться лише після того, як 1A1 зійде з ролика 1B2.'],['Що буде, якщо датчик 2B2 зсунути вздовж циліндра?','Він не спрацює, 2V1 і 1V2 не скинуться, циліндри не повернуться, 2B1 не спрацює і схема не запуститься знову.']],
+ pit:['Сигнал 2B2 подано лише на 2V1: затискач не відпустить корпус.','Роликовий 1B2 змонтовано не в кінці ходу: прес не стартує.'],
+ circuit:{vb:[-20,0,700,400],p0:5,comps:[CYL('1A1',160,30,{kind:'sa',a:'n1',chA:['1V3'],tA:1,tR:0.8}),FC('1V3',155,88,'n1','n1c','in',{open:0.6}),V32B('1V2',162,180,{set:'g',rst:'b22',p2:'n1'}),CYL('2A1',420,30,{a:'a',b:'b',chA:['2V2']}),FC('2V2',415,88,'a','ac','in',{open:0.6}),V52B('2V1',471,180,{p14:'r1',p12:'b22',n4:'a',n2:'b'}),AND('1V1',66,260,'s1','b21','g'),V32('1S1',32,330,{p2:'s1',desc:'Пуск'}),V32('2B1',152,330,{a:'prox',cyl:'2A1',at:0,p2:'b21'}),V32('1B2',292,330,{a:'roller',cyl:'1A1',at:1,p2:'r1'}),V32('2B2',572,330,{a:'prox',cyl:'2A1',at:1,p2:'b22'})],
+   wires:[['n1c','1A1.A','1V3.c'],['n1','1V3.v','1V2.2'],['ac','2A1.A','2V2.c'],['a','2V2.v','2V1.4',{y:150}],['b','2A1.B','2V1.2',{y:162}],['g','1V1.out','1V2.pl'],['s1','1S1.2','1V1.i1'],['b21','2B1.2','1V1.i2'],['r1','1B2.2','2V1.14'],['b22','2B2.2','2V1.12'],['b22',[580,290],'1V2.pr',{pts:[[240,290],[240,194]]}]],
+   dots:[[580,290,'b22']]}},
+];
+
+/* ===== theory demos ===== */
+const DEMOS={
+  hero: PROJECTS[7].circuit,
+  valves:{vb:[0,0,470,150],p0:6,aria:'Розподільники 3/2 НЗ, 3/2 НВ і 5/2 з манометрами на виходах',comps:[
+    V32('НЗ',60,90,{p2:'x1',desc:'3/2 НЗ'}),G('Z1',68,30,[68,58],'x1'),
+    V32('НВ',200,90,{no:true,p2:'x2',desc:'3/2 НВ'}),G('Z2',208,30,[208,58],'x2'),
+    V52('5/2',360,90,{a:'sel',n4:'x4',n2:'x5',desc:'5/2 перемикач'}),G('Z4',369,30,[369,58],'x4'),G('Z5',430,30,[430,58],'x5')],
+    wires:[['x1','НЗ.2',[68,58]],['x2','НВ.2',[208,58]],['x4','5/2.4',[369,58]],['x5','5/2.2',[430,58],{pts:[[387,72],[430,72]]}]]},
+  logic:{vb:[0,0,500,175],p0:6,aria:'Клапани АБО та І з двома кнопками кожен',comps:[
+    V32('A1',40,120,{p2:'a1',desc:'вхід 1 (АБО)'}),V32('A2',170,120,{p2:'a2',desc:'вхід 2 (АБО)'}),OR('АБО',90,70,'a1','a2','ao'),G('Zo',118,22,[118,46],'ao'),
+    V32('B1',290,120,{p2:'b1',desc:'вхід 1 (І)'}),V32('B2',420,120,{p2:'b2',desc:'вхід 2 (І)'}),AND('І',340,70,'b1','b2','bo'),G('Zi',368,22,[368,46],'bo')],
+    wires:[['a1','A1.2','АБО.i1'],['a2','A2.2','АБО.i2'],['ao','АБО.out',[118,46]],['b1','B1.2','І.i1'],['b2','B2.2','І.i2'],['bo','І.out',[368,46]]]},
+  timer:{vb:[0,0,320,215],p0:6,aria:'Клапан затримки часу з перемикачем на вході',comps:[
+    V32('1S1',60,170,{a:'sel',p2:'x',desc:'подати сигнал'}),G('Z1',130,190,[130,155],'x'),TMR('1V1',200,110,{p1:'x',p2:'y',delay:4}),G('Z2',260,40,[208,60],'y')],
+    wires:[['x','1S1.2','1V1.1',{y:155}],['y','1V1.2',[208,60]]]},
+  seq:{vb:[0,0,320,210],p0:6,aria:'Клапан послідовності з регульованим тиском',comps:[
+    REG('1V1',60,140,{p2:'pr',set:3}),SEQ('1V2',150,60,{p1:'pr',p12:'pr',p2:'o',set:4}),G('Z1',240,40,[190,40],'o')],
+    wires:[['pr','1V1.2','1V2.12',{y:115}],['pr',[162,115],'1V2.1',{pts:[[190,115]]}],['o','1V2.2',[190,40]]],dots:[[162,115,'pr']]},
+};
+
+/* ================= APP ================= */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+
+/* theme */
+(function(){
+  const btn=document.getElementById('themeBtn');
+  const saved=store.get('tp101-theme',null);
+  if(saved) document.documentElement.setAttribute('data-theme',saved);
+  btn.addEventListener('click',()=>{
+    const cur=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    const nx=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nx); store.set('tp101-theme',nx);
+  });
+})();
+
+/* force calculator */
+(function(){
+  const ids=['cD','cd','cp','cF','cR'], res=document.getElementById('calcRes');
+  function calc(){
+    const [D,d,p,F,R]=ids.map(i=>parseFloat(document.getElementById(i).value)||0);
+    const A=Math.PI*(D/1000)**2/4, Ar=Math.PI*((D/1000)**2-(d/1000)**2)/4, P=p*1e5, k=1-R/100;
+    const Fth=A*P, sa=k*Fth-F, adv=k*Fth, ret=k*Ar*P;
+    const row=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+    res.innerHTML=row('Площа поршня A',(A*1e6).toFixed(1)+' мм²')+row('Кільцева площа A′',(Ar*1e6).toFixed(1)+' мм²')+row('Теоретична сила F_th',Fth.toFixed(1)+' Н')
+      +row('Однобічна дія, висування',Math.max(0,sa).toFixed(1)+' Н')+row('Двобічна дія, висування',adv.toFixed(1)+' Н')+row('Двобічна дія, втягування',Math.max(0,ret).toFixed(1)+' Н');
+  }
+  ids.forEach(i=>document.getElementById(i).addEventListener('input',calc)); calc();
+})();
+
+/* demos */
+document.querySelectorAll('.stand-mount[data-demo]').forEach(el=>{
+  const k=el.dataset.demo;
+  const titles={hero:'Стенд · проєкт 8',valves:'Стенд · розподільники',logic:'Стенд · І та АБО',timer:'Стенд · клапан затримки',seq:'Стенд · клапан послідовності'};
+  mountStand(el,DEMOS[k],{title:titles[k]});
+});
+
+/* projects */
+let done=new Set(store.get('tp101-done',[]));
+const picker=document.getElementById('picker'), proj=document.getElementById('proj'), tocP=document.getElementById('tocProjects');
+function renderPicker(cur){
+  picker.innerHTML=''; tocP.innerHTML='';
+  PROJECTS.forEach(p=>{
+    const b=document.createElement('button'); b.type='button'; b.className='pick'+(done.has(p.n)?' done':''); b.setAttribute('role','listitem');
+    b.setAttribute('aria-current',p.n===cur?'true':'false');
+    b.innerHTML=`<span class="no"><span>Проєкт ${p.n}</span></span><span class="nm">${esc(p.title)}</span>`;
+    b.onclick=()=>{ openProject(p.n,true); };
+    picker.appendChild(b);
+    const a=document.createElement('a'); a.href='#p'+p.n; a.textContent=p.n+'. '+p.title; if(done.has(p.n)) a.className='done';
+    a.onclick=e=>{e.preventDefault(); openProject(p.n,true);};
+    tocP.appendChild(a);
+  });
+}
+const TNAMES={t1:'Стиснене повітря',t2:'Позначення',t3:'Циліндри',t4:'Розподільники',t5:'Пряме і непряме керування',t6:'Керування швидкістю',t7:'І, АБО, НЕ',t8:'Пам\'ять сигналу',t9:'Датчики положення',t10:'Керування за тиском',t11:'Керування за часом',t12:'Послідовності'};
+function openProject(n,scroll){
+  const p=PROJECTS.find(x=>x.n===n)||PROJECTS[0];
+  renderPicker(p.n);
+  const li=a=>a.map(x=>`<li>${x}</li>`).join('');
+  proj.innerHTML=`
+  <div class="proj-head" id="p${p.n}">
+    <span class="eyebrow">Проєкт ${p.n} з 19 · ${esc(p.en)}</span>
+    <h3>${esc(p.title)}</h3>
+    <div class="chips">${p.chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('')}</div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h4>Виробнича задача</h4><p>${p.task}</p><h4>Після проєкту ви вмітимете</h4><ul>${li(p.goals)}</ul></div>
+    <div class="box"><h4>Умови</h4><ul>${li(p.cond)}</ul><h4>Перебіг процесу</h4><ol>${li(p.proc)}</ol>
+      <p style="font-size:.88rem;color:var(--muted)">Теорія: ${p.theory.map(t=>`<a href="#${t}">${TNAMES[t]}</a>`).join(', ')}</p></div>
+  </div>
+  <div class="stand-mount" id="projStand"></div>
+  <div class="grid2">
+    <div class="box"><h4>Збірка у FluidSIM</h4><ol class="steps">${li(p.build)}</ol></div>
+    <div class="box"><h4>Сценарій перевірки</h4><ul class="checklist">${p.test.map((t,i)=>`<li><input type="checkbox" id="ck${p.n}_${i}"><label for="ck${p.n}_${i}">${t}</label></li>`).join('')}</ul>
+      <h4>Типові помилки</h4><ul>${li(p.pit)}</ul></div>
+  </div>
+  <div class="box"><h4>Перелік обладнання</h4><div class="tbl-wrap"><table><thead><tr><th>К-сть</th><th>Компонент</th><th>У бібліотеці FluidSIM</th></tr></thead><tbody>${p.equip.map(e=>`<tr><td class="n">${e[0]}</td><td>${esc(e[1])}</td><td class="mono" style="font-size:.82rem">${esc(e[2])}</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="box"><h4>Опис послідовності роботи</h4><div class="seq">${p.seq.map(s=>`<div><b>${esc(s[0])}</b><span>${s[1]}</span></div>`).join('')}</div></div>
+  <div style="display:flex;flex-direction:column;gap:8px"><h4>Контрольні питання</h4>${p.qa.map(q=>`<details><summary>${q[0]}</summary><div class="d-body"><p>${q[1]}</p></div></details>`).join('')}</div>
+  <div class="done-row"><label class="chk" for="doneChk"><input type="checkbox" id="doneChk" ${done.has(p.n)?'checked':''}> Проєкт виконано у FluidSIM</label>
+   ${p.n>1?`<button class="sbtn" type="button" id="prevP">← Проєкт ${p.n-1}</button>`:''}${p.n<19?`<button class="sbtn" type="button" id="nextP">Проєкт ${p.n+1} →</button>`:''}</div>`;
+  mountStand(document.getElementById('projStand'),p.circuit,{title:'Віртуальний стенд · проєкт '+p.n});
+  document.getElementById('doneChk').addEventListener('change',e=>{ if(e.target.checked) done.add(p.n); else done.delete(p.n); store.set('tp101-done',[...done]); renderPicker(p.n); });
+  const pv=document.getElementById('prevP'), nx=document.getElementById('nextP');
+  if(pv) pv.onclick=()=>openProject(p.n-1,true);
+  if(nx) nx.onclick=()=>openProject(p.n+1,true);
+  if(scroll){ try{ history.replaceState(null,'','#p'+p.n); }catch(e){} }
+  if(scroll) document.getElementById('p'+p.n).scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+}
+const hm=location.hash.match(/^#p(\d+)$/);
+openProject(hm?Math.min(19,Math.max(1,+hm[1])):1,!!hm);
+
+/* quiz */
+const QUIZ=[
+ ['Що означає позначення «5/2» розподільника?',['5 положень і 2 порти','5 портів і 2 положення','5 bar і 2 л/хв'],1,'Перша цифра — кількість керованих портів, друга — кількість положень.'],
+ ['Який порт розподільника є живленням?',['1','2','3'],0,'1 — живлення, 2 і 4 — робочі, 3 і 5 — вихлоп.'],
+ ['Сигнал на вході 14 бістабільного 5/2-розподільника з\'єднує…',['1 → 2','1 → 4','4 → 5'],1,'Число керування називає з\'єднання: 14 означає 1 → 4.'],
+ ['Чому для циліндра двобічної дії рекомендують дроселювання на виході?',['Менше витрачається повітря','Поршень затиснутий між повітряними подушками, рух рівномірний','Так простіше монтувати'],1,'Протитиск у порожнині вихлопу стабілізує швидкість незалежно від навантаження.'],
+ ['Що станеться, якщо дві кнопки з\'єднати трійником без клапана АБО?',['Нічого, все працює','Повітря витікає через вихлоп ненатиснутої кнопки, тиск падає','Спрацює функція І'],1,'Це помилка, яку аналізує проєкт 9.'],
+ ['Клапан подвійного тиску при різних тисках на входах пропускає…',['більший тиск','менший тиск','суму тисків'],1,'На вихід потрапляє сигнал з меншим тиском (і той, що прийшов пізніше).'],
+ ['Яким елементом реалізують функцію НЕ?',['3/2 нормально відкритий','3/2 нормально закритий','човниковий клапан'],0,'Нормально відкритий розподільник знімає сигнал, коли його перемикають.'],
+ ['Що домінує в схемі самоутримання з проєкту 11 при одночасному натисканні «Пуск» і «Стоп»?',['Пуск','Стоп','Той, що натиснули першим'],1,'Кнопка «Стоп» розриває петлю, тому виходу немає.'],
+ ['Клапан послідовності перемикається, коли…',['тиск на 12 перевищує налаштований поріг','минає заданий час','циліндр доходить до кінця'],0,'Це клапан тиску, поєднаний з 3/2-розподільником.'],
+ ['Мінімальний тиск увімкнення клапана затримки TP101?',['0,5 bar','понад 1,6 bar','6 bar'],1,'Згідно з технічними даними: тиск увімкнення понад 1,6 bar.'],
+ ['Як перетворити 5/2 бістабільний розподільник на 3/2?',['Закрити вихід 4 заглушкою','З\'єднати 3 і 5','Прибрати керування 12'],0,'Так роблять у проєктах 18 і 19.'],
+ ['Яке зусилля висування циліндра двобічної дії D = 20 мм при 6 bar з урахуванням 10 % тертя?',['≈ 142 Н','≈ 170 Н','≈ 188 Н'],1,'0,9 · 0,000314 м² · 600 000 Па ≈ 169,6 Н.'],
+];
+(function(){
+  const box=document.getElementById('quizBox'), sc=document.getElementById('quizScore'); let right=0, answered=0;
+  QUIZ.forEach((q,i)=>{
+    const d=document.createElement('div'); d.className='q';
+    d.innerHTML=`<b>${i+1}. ${esc(q[0])}</b><div class="opts">${q[1].map((o,j)=>`<button type="button" class="opt" data-j="${j}">${esc(o)}</button>`).join('')}</div><p class="fb" hidden></p>`;
+    d.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+      if(d.dataset.done) return; d.dataset.done=1; answered++;
+      const j=+b.dataset.j; const ok=j===q[2]; if(ok) right++;
+      b.classList.add(ok?'ok':'bad'); d.querySelectorAll('.opt')[q[2]].classList.add('ok');
+      const fb=d.querySelector('.fb'); fb.hidden=false; fb.textContent=(ok?'Правильно. ':'Неправильно. ')+q[3];
+      sc.textContent=`Результат: ${right} з ${answered} (усього ${QUIZ.length})`;
+    }));
+    box.appendChild(d);
+  });
+})();
+startLoop();
+</script>
+
+</body></html>

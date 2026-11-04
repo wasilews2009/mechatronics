@@ -1,0 +1,891 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Вступ до мехатроніки</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tektur:wght@500;700&family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: креслярський аркуш — ліва колонка-зміст (desktop), основний текст ~68ch, ілюстрації-«креслення» на всю ширину колонки */
+:root{
+  --paper:#F2F4F3; --sheet:#FFFFFF; --ink:#16232E; --ink-2:#4A5A66; --rule:#CBD3D6;
+  --accent:#0A6E6A; --accent-soft:#D5EBE8; --signal:#C2560E; --signal-soft:#F8E4D4;
+  --grid:rgba(10,110,106,.07); --ok:#1F7A3A; --bad:#B3261E;
+  --f-display:"Tektur","Bahnschrift","Arial Narrow",sans-serif;
+  --f-body:"Golos Text","Segoe UI",Roboto,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0F171C; --sheet:#152129; --ink:#E3ECEE; --ink-2:#9DB0B8; --rule:#2B3B44;
+  --accent:#4FC2B9; --accent-soft:#163A39; --signal:#F0904A; --signal-soft:#3A2717;
+  --grid:rgba(79,194,185,.06); --ok:#5BC77C; --bad:#F2867E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F171C; --sheet:#152129; --ink:#E3ECEE; --ink-2:#9DB0B8; --rule:#2B3B44;
+  --accent:#4FC2B9; --accent-soft:#163A39; --signal:#F0904A; --signal-soft:#3A2717;
+  --grid:rgba(79,194,185,.06); --ok:#5BC77C; --bad:#F2867E; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.62 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+a{color:var(--accent);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:3px}
+
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--sheet);border-bottom:1px solid var(--rule);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;
+  display:flex;align-items:center;gap:14px}
+.topbar .code{font:600 12px/1 var(--f-mono);letter-spacing:.08em;color:var(--accent);white-space:nowrap}
+.topbar .ttl{font:500 14px/1.2 var(--f-body);color:var(--ink-2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress{position:absolute;left:0;bottom:-1px;height:3px;background:var(--signal);width:0}
+.tocbtn{display:none;font:600 13px var(--f-body);background:var(--accent-soft);color:var(--accent);border:0;border-radius:var(--r);padding:7px 12px;cursor:pointer}
+
+.wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:40px;max-width:1220px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 80px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);align-self:start;max-height:calc(100vh - 100px);overflow:auto;font-size:14px}
+nav.toc h2{font:600 11px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0 0 12px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+nav.toc a{display:flex;gap:10px;padding:6px 10px;border-radius:var(--r);color:var(--ink-2);text-decoration:none;line-height:1.3}
+nav.toc a span{font:600 12px/1.5 var(--f-mono);color:var(--accent);min-width:22px}
+nav.toc a:hover{background:var(--accent-soft);color:var(--ink)}
+nav.toc a.on{background:var(--ink);color:var(--paper)}
+nav.toc a.on span{color:var(--paper)}
+
+main{min-width:0}
+.hero{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:clamp(22px,4vw,44px);position:relative;overflow:hidden}
+.hero .stamp{position:absolute;right:18px;top:18px;font:600 11px/1.4 var(--f-mono);color:var(--ink-2);text-align:right;border:1px solid var(--rule);padding:6px 9px;border-radius:4px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font:700 clamp(32px,5.4vw,58px)/1.02 var(--f-display);margin:0 0 18px;text-wrap:balance;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--signal)}
+.lede{font-size:19px;max-width:62ch;color:var(--ink-2);margin:0}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:22px;font:500 13px var(--f-mono);color:var(--ink-2)}
+.meta-row b{color:var(--ink);font-weight:600}
+.howto{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:14px;color:var(--ink-2)}
+
+section.ch{margin-top:56px;scroll-margin-top:80px}
+.chhead{display:flex;gap:16px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.chhead .n{font:700 15px var(--f-mono);color:var(--paper);background:var(--ink);padding:3px 8px;border-radius:3px}
+h2{font:700 clamp(24px,3.2vw,34px)/1.15 var(--f-display);margin:0;text-wrap:balance}
+h3{font:600 21px/1.3 var(--f-body);margin:34px 0 10px;text-wrap:balance}
+h4{font:600 13px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:22px 0 8px}
+p,ul,ol{max-width:68ch}
+p{margin:0 0 14px}
+ul,ol{padding-left:22px;margin:0 0 14px}
+li{margin-bottom:6px}
+strong{font-weight:600}
+
+/* Терміни */
+.t{border:0;border-bottom:1.5px dotted var(--accent);border-radius:0;cursor:help;color:inherit;background:none;padding:0;margin:0;font:inherit;line-height:inherit;display:inline}
+.t:hover{background:var(--accent-soft)}
+#pop{position:absolute;z-index:50;max-width:min(340px,calc(100vw - 32px));background:var(--ink);color:var(--paper);border-radius:var(--r);
+  padding:12px 14px 13px;font-size:14px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#pop b{display:block;font:700 15px var(--f-display);margin-bottom:4px;color:var(--paper)}
+#pop .en{font:500 11px var(--f-mono);opacity:.7;margin-bottom:6px;display:block}
+#pop::after{content:"";position:absolute;left:var(--ax,20px);width:10px;height:10px;background:var(--ink);transform:rotate(45deg)}
+#pop.below::after{top:-5px} #pop.above::after{bottom:-5px}
+.cite{font:600 11px var(--f-mono);vertical-align:super;line-height:0;text-decoration:none;color:var(--signal);padding:0 1px}
+
+/* Блоки */
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:20px 22px;margin:20px 0}
+.fig{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);margin:24px 0;overflow:hidden}
+.fig .bar{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--rule);font:600 12px var(--f-mono);letter-spacing:.06em;color:var(--ink-2);text-transform:uppercase}
+.fig .body{padding:18px}
+.fig figcaption{padding:10px 16px 14px;font-size:14px;color:var(--ink-2);border-top:1px dashed var(--rule)}
+.svgwrap{overflow-x:auto}
+.svgwrap svg{display:block;min-width:620px;width:100%;height:auto}
+.def{border-left:4px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 var(--r) var(--r) 0;margin:18px 0;max-width:72ch}
+.def .lbl{font:600 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:4px}
+.note{border:1px dashed var(--signal);background:var(--signal-soft);padding:12px 16px;border-radius:var(--r);margin:16px 0;font-size:15px;max-width:72ch}
+.note .lbl{font:600 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--signal);display:block;margin-bottom:3px}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:18px 0}
+.cols2 > *{min-width:0}
+.pill{display:inline-block;font:600 11px var(--f-mono);letter-spacing:.06em;padding:3px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.pill.s{background:var(--signal-soft);color:var(--signal)}
+
+button.btn{font:600 14px var(--f-body);border:1.5px solid var(--ink);background:var(--sheet);color:var(--ink);border-radius:var(--r);padding:8px 14px;cursor:pointer}
+button.btn[aria-pressed="true"],button.btn.on{background:var(--ink);color:var(--paper)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+
+/* Gantt */
+.gantt{display:grid;gap:12px}
+.grow{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;font-size:14px}
+.track{position:relative;height:26px;background:repeating-linear-gradient(90deg,transparent 0 calc(100%/14 - 1px),var(--rule) calc(100%/14 - 1px) calc(100%/14));border-radius:3px}
+.gbar{position:absolute;top:3px;height:20px;border-radius:3px;transition:left .7s cubic-bezier(.4,.1,.2,1),width .7s cubic-bezier(.4,.1,.2,1);font:600 11px/20px var(--f-mono);color:#fff;padding-left:6px;white-space:nowrap;overflow:hidden}
+.gtotal{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:14px;font:600 14px var(--f-mono)}
+.gtotal .big{font:700 26px var(--f-display);color:var(--signal)}
+.axis{display:grid;grid-template-columns:150px 1fr;gap:12px;font:500 11px var(--f-mono);color:var(--ink-2)}
+.axis div:last-child{display:flex;justify-content:space-between}
+
+/* Таймлайн */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chip{font:600 13px var(--f-body);border:1px solid var(--rule);background:var(--sheet);color:var(--ink-2);border-radius:99px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.tl{list-style:none;padding:0;margin:0;max-width:none;position:relative}
+.tl::before{content:"";position:absolute;left:86px;top:6px;bottom:6px;width:2px;background:var(--rule)}
+.tl li{display:grid;grid-template-columns:72px 1fr;gap:28px;margin:0 0 18px;position:relative}
+.tl li::before{content:"";position:absolute;left:81px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--sheet);border:2.5px solid var(--accent)}
+.tl li.key::before{background:var(--signal);border-color:var(--signal)}
+.tl .yr{font:700 15px/1.6 var(--f-mono);text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.tl .ev{min-width:0;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:12px 16px}
+.tl .ev h5{font:600 16px/1.35 var(--f-body);margin:0 0 4px}
+.tl .ev p{font-size:15px;margin:0;color:var(--ink-2);max-width:none}
+.tl .ev .tag{font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.tl .ev details{margin-top:6px;font-size:15px}
+.tl .ev summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px}
+
+/* Venn */
+.venn-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:center}
+.venn-grid svg{width:100%;height:auto;max-width:440px;display:block;margin:auto}
+.venn-grid .zone{cursor:pointer;transition:fill-opacity .2s}
+.vpanel{min-width:0}
+.vpanel h5{font:700 20px var(--f-display);margin:0 0 6px}
+
+/* Структура */
+#struct .iface{cursor:pointer}
+#struct .iface circle{transition:all .3s}
+#struct .iface.gone circle{fill:var(--sheet);stroke:var(--rule);stroke-dasharray:3 3}
+#struct .iface.gone text{fill:var(--rule)}
+#struct .iface.hl circle{fill:var(--signal);stroke:var(--signal)}
+#struct .iface.hl text{fill:#fff}
+#struct .link{transition:stroke .3s,stroke-width .3s}
+#struct .link.gone{stroke:var(--rule);stroke-dasharray:5 5}
+.iinfo{min-height:48px;font-size:15px;margin-top:12px;padding:10px 14px;background:var(--paper);border-radius:var(--r)}
+table.mt{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+table.mt th{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--ink-2);border-bottom:2px solid var(--ink);padding:8px 10px}
+table.mt td{border-bottom:1px solid var(--rule);padding:10px;vertical-align:top}
+table.mt tbody tr{cursor:pointer}
+table.mt tbody tr:hover,table.mt tbody tr.on{background:var(--signal-soft)}
+table.mt td:first-child{font-weight:600}
+.tscroll{overflow-x:auto}
+
+/* Покоління */
+.gen-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.gen-body{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px;align-items:start}
+.gen-body svg{width:100%;height:auto;max-width:220px}
+
+/* PID */
+.pid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px}
+.pid canvas{width:100%;height:260px;display:block;background:var(--paper);border-radius:var(--r)}
+.sl{display:grid;gap:4px;margin-bottom:14px;font-size:14px}
+.sl label{display:flex;justify-content:space-between;font-weight:600}
+.sl output{font:600 13px var(--f-mono);color:var(--signal)}
+.sl input{width:100%;accent-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font:500 12px var(--f-mono);color:var(--ink-2);margin-top:8px}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+.kpi{font:500 13px var(--f-mono);color:var(--ink-2);display:grid;gap:3px;margin-top:8px}
+.kpi b{color:var(--ink)}
+
+/* Приклади */
+.examples{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:16px 0;max-width:none;padding:0;list-style:none}
+.examples li{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:14px;margin:0;font-size:15px}
+.examples li b{display:block;font:700 15px var(--f-display);margin-bottom:4px}
+
+/* Quiz */
+.q{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.q .qn{font:600 12px var(--f-mono);color:var(--accent)}
+.q p{font-weight:600;margin:4px 0 10px}
+.q .opts{display:grid;gap:6px}
+.q .opt{text-align:left;font:400 15px var(--f-body);padding:9px 12px;border:1px solid var(--rule);border-radius:var(--r);background:var(--paper);color:var(--ink);cursor:pointer}
+.q .opt:hover{border-color:var(--accent)}
+.q .opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--sheet))}
+.q .opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--sheet))}
+.q .fb{font-size:14px;margin-top:8px;color:var(--ink-2)}
+.score{position:sticky;bottom:12px;display:inline-flex;gap:12px;align-items:center;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:99px;font:600 14px var(--f-mono)}
+
+/* Глосарій */
+.gsearch{width:100%;max-width:420px;font:400 16px var(--f-body);padding:10px 14px;border:1.5px solid var(--rule);border-radius:var(--r);background:var(--sheet);color:var(--ink);margin-bottom:16px}
+dl.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin:0}
+dl.gl > div{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:12px 14px;min-width:0}
+dl.gl dt{font:700 15px var(--f-display)}
+dl.gl dt small{font:500 11px var(--f-mono);color:var(--ink-2);display:block;margin-top:2px}
+dl.gl dd{margin:6px 0 0;font-size:14px;color:var(--ink-2)}
+
+/* Джерела */
+ol.refs{max-width:none;padding-left:0;list-style:none;counter-reset:r;display:grid;gap:8px}
+ol.refs li{display:grid;grid-template-columns:40px 1fr;gap:10px;font-size:15px;margin:0;padding:8px 10px;border-radius:var(--r)}
+ol.refs li:target{background:var(--signal-soft)}
+ol.refs li > span{font:700 13px var(--f-mono);color:var(--signal)}
+ol.refs li > div{min-width:0;overflow-wrap:anywhere}
+.reftype{font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-left:6px}
+
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-2)}
+
+@media (max-width:980px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  nav.toc{display:none;position:fixed;top:calc(env(safe-area-inset-top,0px) + 54px);left:0;right:0;max-height:70vh;background:var(--sheet);border-bottom:1px solid var(--rule);
+    padding:14px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));z-index:8;box-shadow:0 10px 20px rgba(0,0,0,.12)}
+  nav.toc.open{display:block}
+  .tocbtn{display:inline-block}
+  .venn-grid,.gen-body,.pid{grid-template-columns:minmax(0,1fr)}
+  .hero .stamp{position:static;display:inline-block;margin-bottom:14px}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .grow,.axis{grid-template-columns:96px 1fr}
+  .tl::before{left:54px}.tl li{grid-template-columns:44px 1fr;gap:22px}.tl li::before{left:49px}
+  .tl .yr{font-size:13px}
+}
+</style>
+
+<header class="topbar" id="top">
+  <span class="code">ОМР·Л1</span>
+  <span class="ttl">Основи мехатроніки та робототехніки, промислові роботи</span>
+  <button class="tocbtn" id="tocbtn" aria-expanded="false" aria-controls="toc">Зміст</button>
+  <div class="progress" id="prog"></div>
+</header>
+
+<div class="wrap">
+<nav class="toc" id="toc" aria-label="Зміст лекції">
+  <h2>Зміст лекції</h2>
+  <ol>
+    <li><a href="#s1"><span>1</span>Понятійний апарат</a></li>
+    <li><a href="#s2"><span>2</span>Історія терміну і концепції</a></li>
+    <li><a href="#s2b"><span>2.1</span>Стрічка часу</a></li>
+    <li><a href="#s2c"><span>2.2</span>Мехатроніка як наука</a></li>
+    <li><a href="#s3"><span>3</span>Ключові визначення</a></li>
+    <li><a href="#s4"><span>4</span>Архітектура систем</a></li>
+    <li><a href="#s5"><span>5</span>Рівні інтеграції</a></li>
+    <li><a href="#s6"><span>6</span>Переваги й проблеми</a></li>
+    <li><a href="#quiz"><span>✓</span>Самоперевірка</a></li>
+    <li><a href="#glossary"><span>А–Я</span>Глосарій</a></li>
+    <li><a href="#refs"><span>[ ]</span>Джерела</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="hero">
+  <div class="stamp">ЛЕКЦІЯ 1<br>ДИСТАНЦІЙНИЙ КУРС</div>
+  <p class="eyebrow">Основи мехатроніки та робототехніки, промислові роботи</p>
+  <h1>Мехатроніка: <em>МЕХА</em>ніка + елек<em>ТРОНІКА</em></h1>
+  <p class="lede">Звідки взявся термін, як автомати перетворилися на промислових роботів і чому мехатронна система є чимось більшим за механізм із двигуном та платою керування.</p>
+  <div class="meta-row">
+    <span><b>6</b> розділів</span><span><b>40+</b> термінів з поясненнями</span><span><b>4</b> інтерактивні схеми</span><span><b>10</b> питань самоперевірки</span>
+  </div>
+  <div class="howto">Підкреслені пунктиром слова, як-от <button class="t" data-t="мехатроніка">мехатроніка</button>, відкривають визначення. Помаранчеві номери <a class="cite" href="#r1">[1]</a> ведуть до списку джерел.</div>
+</div>
+
+<!-- ============ 1 ============ -->
+<section class="ch" id="s1">
+  <div class="chhead"><span class="n">1</span><h2>Вступна частина та понятійний апарат</h2></div>
+  <p>Стрімкий розвиток техніки наприкінці XX — на початку XXI століття привів до появи нового міждисциплінарного науково-технічного напряму, який назвали <button class="t" data-t="мехатроніка">мехатронікою</button>. Назва поєднує дві фундаментальні технічні галузі: <strong>«МЕХАніка»</strong> та <strong>«елекТРОНІКА»</strong>.</p>
+  <p>Мехатроніка не зводиться до механічної конструкції, до якої додали електродвигун і плату керування. Це нова <strong>філософія та методологія проєктування</strong>, що спирається на синергетичну інтеграцію знань <a class="cite" href="#r1">[1]</a><a class="cite" href="#r3">[3]</a>.</p>
+
+  <h3>Суть синергетичного ефекту</h3>
+  <p>Термін <button class="t" data-t="синергія">«синергія»</button> (від грец. <em>synergia</em> — спільна дія, співпраця) є ключовим для розуміння мехатроніки. Об'єднання точної механіки, мікроелектроніки, комп'ютерного керування та інформаційних технологій дає системі <strong>якісно нові властивості</strong>, яких не має жоден з її елементів окремо.</p>
+  <p>У традиційному машинобудуванні складові частини системи працювали автономно, а їхню взаємодію забезпечували складні інтерфейсні блоки. У мехатроніці всі енергетичні та інформаційні потоки від початку спрямовані на одну мету: оптимальний, адаптивний і точний <button class="t" data-t="функціональний рух">функціональний рух</button>.</p>
+
+  <h3>Традиційне проєктування проти мехатронного</h3>
+  <p>Головна методологічна відмінність полягає в переході від <strong>послідовного</strong> проєктування до <strong>паралельного (сумісного)</strong> — <button class="t" data-t="concurrent engineering"><em>Concurrent Engineering</em></button>.</p>
+  <div class="cols2">
+    <div class="card" style="margin:0"><span class="pill s">Послідовний підхід</span>
+      <p style="margin-top:10px">Спочатку розробляють механіку (<button class="t" data-t="кінематичний ланцюг">кінематичні ланцюги</button>, <button class="t" data-t="редуктор">редуктори</button>, раму). Під готову механіку підбирають електропривод, далі створюють електронну систему зчитування даних, і лише наприкінці програміст пише алгоритм керування.</p>
+      <p style="margin:0;color:var(--ink-2);font-size:15px">Наслідки: тривалий цикл, накопичення похибок, конструктивна надлишковість, дорогі інтерфейси.</p></div>
+    <div class="card" style="margin:0"><span class="pill">Мехатронний підхід</span>
+      <p style="margin-top:10px">Механічну, електронну, сенсорну та комп'ютерну частини синтезують одночасно вже на першому етапі. Інженери різних профілів працюють спільно, тому зайві ланки зникають, а частину функцій металомістких вузлів переносять на програмні алгоритми.</p>
+      <p style="margin:0;color:var(--ink-2);font-size:15px">Результат: компактна, надійна та енергоефективна система.</p></div>
+  </div>
+
+  <figure class="fig" id="gantt-fig">
+    <div class="bar"><span>Схема 1 · Цикл розробки</span>
+      <span class="seg" role="group" aria-label="Підхід до проєктування">
+        <button class="btn on" data-mode="seq" aria-pressed="true">Послідовно</button>
+        <button class="btn" data-mode="par" aria-pressed="false">Паралельно</button>
+      </span></div>
+    <div class="body">
+      <div class="gantt" id="gantt"></div>
+      <div class="axis" style="margin-top:6px"><div></div><div><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span>12</span><span>14 міс.</span></div></div>
+      <div class="gtotal"><span id="gnote">Кожен етап чекає на попередній; помилки механіки виявляються лише на етапі налагодження.</span><span>Разом: <span class="big" id="gsum">14</span> міс.</span></div>
+    </div>
+    <figcaption>Умовний приклад, тривалість етапів наведено для ілюстрації. Перемкніть підхід, щоб побачити, як перекриття етапів скорочує цикл і прибирає етап переробки.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="ch" id="s2">
+  <div class="chhead"><span class="n">2</span><h2>Історія становлення терміну та концепції</h2></div>
+  <p>Мехатронні системи сьогодні є майже в кожному пристрої: від вібромотора смартфона до складних промислових роботів. За оцінкою Global Market Insights, ринок роботів у 2025 році становив <strong>53,1 млрд дол. США</strong>, а до 2035 року може зрости до <strong>257,5 млрд дол.</strong> із середньорічним темпом <strong>17,6 %</strong> <a class="cite" href="#r11">[11]</a>. Щорічну статистику встановлень промислових роботів публікує Міжнародна федерація робототехніки (IFR) <a class="cite" href="#r12">[12]</a>.</p>
+  <p>Історія мехатроніки має особливість: її становлення зумовили не теоретичні відкриття, а практична потреба інженерів на виробництві.</p>
+
+  <h3>Японське походження терміну</h3>
+  <div class="def"><span class="lbl">1969 · Yaskawa Electric</span>Термін <strong>Mechatronics</strong> запровадив старший інженер японської корпорації <strong>Yaskawa Electric Тецуро Морі</strong> (Tetsuro Mori). Компанії потрібне було ємне слово для нового класу продукції: механічних пристроїв із вбудованим електронним керуванням, наприклад приводів для верстатів та автоматизованих ліній <a class="cite" href="#r2">[2]</a><a class="cite" href="#r13">[13]</a>.</div>
+  <p>На початку 1970-х (у лекції — 1972 р.) Yaskawa Electric зареєструвала «Mechatronics» як торговельну марку. Наприкінці 1970-х, коли поняття широко поширилося у світовій технічній літературі, компанія <strong>добровільно відмовилася від прав на марку</strong>, і термін став загальнодоступним <a class="cite" href="#r2">[2]</a>.</p>
+</section>
+
+<section class="ch" id="s2b">
+  <div class="chhead"><span class="n">2.1</span><h2>Від автоматонів до роботів: стрічка часу</h2></div>
+  <p>Людина завжди прагнула відтворити живе за допомогою штучного. Стрічка нижче проводить через п'ять етапів. Оберіть етап, щоб звузити список; помаранчеві точки позначають ключові події.</p>
+  <div class="chips" id="chips" role="group" aria-label="Фільтр етапів"></div>
+  <ol class="tl" id="tl"></ol>
+
+  <div class="note"><span class="lbl">Уточнення до дат</span>Жаккар продемонстрував верстат 1801 р., патент отримав 1804 р. Аварія на АЕС Три-Майл-Айленд сталася 1979 р.; роботів застосовували під час ліквідації її наслідків на початку 1980-х. Патентну заявку Девол подав 1954 р., патент видано 1961 р. Тип SCARA запропонував 1978 р. проф. Хіросі Макіно (Університет Яманасі); Adept 1984 р. вивела на ринок SCARA з прямим приводом.</div>
+</section>
+
+<section class="ch" id="s2c">
+  <div class="chhead"><span class="n">2.2</span><h2>Розвиток мехатроніки як науки</h2></div>
+  <p>З 1980-х років термін «мехатроніка» стає загальноприйнятим у світовій технічній літературі. Спершу мехатронними вважали лише регульовані електроприводи, згодом до цього класу віднесли автоматичні двері, верстати з <button class="t" data-t="чпк">ЧПК</button>, промислових роботів та інші інтелектуальні машини. 1996 р. виходить перший номер журналу <em>IEEE/ASME Transactions on Mechatronics</em>, у якому визначення галузі обговорюють провідні дослідники <a class="cite" href="#r1">[1]</a><a class="cite" href="#r2">[2]</a>.</p>
+
+  <h3>Еволюція мехатронних модулів</h3>
+  <ol>
+    <li><strong>Модулі першого рівня (1960–1970-ті)</strong> — поєднання двигуна та механічного редуктора (<button class="t" data-t="мотор-редуктор">мотор-редуктор</button>). Це спростило розробку машин і підвищило їхню надійність.</li>
+    <li><strong>Модулі другого рівня (1980-ті)</strong> — інтеграція мініатюрних датчиків та електронних блоків обробки сигналів. З'явилися керовані енергетичні машини, верстати з ЧПК, промислові роботи.</li>
+    <li><strong>Модулі третього рівня (1990-ті — сьогодення)</strong> — повна інтеграція механічних, електричних, електронних та інформаційних компонентів в одне конструктивне ціле з інтелектуальним керуванням.</li>
+  </ol>
+
+  <h3>Сучасні методи керування</h3>
+  <p>Для високоякісного виконання складних і точних рухів сучасні системи застосовують методи <strong>інтелектуального керування</strong> (advanced intelligent control) <a class="cite" href="#r3">[3]</a>. Вони спираються на:</p>
+  <ul>
+    <li>теорію <button class="t" data-t="нечітка логіка">нечіткої логіки</button> (fuzzy logic);</li>
+    <li><button class="t" data-t="нейронна мережа">нейронні мережі</button>;</li>
+    <li><button class="t" data-t="генетичний алгоритм">генетичні алгоритми</button>;</li>
+    <li><button class="t" data-t="адаптивне керування">адаптивне</button> та оптимальне керування.</li>
+  </ul>
+
+  <figure class="fig">
+    <div class="bar"><span>Симулятор · ПІД-авторульовий за Мінорським</span><span class="pill">інтерактив</span></div>
+    <div class="body">
+      <div class="pid">
+        <div style="min-width:0">
+          <canvas id="pidc" aria-label="Графік курсу судна та положення керма"></canvas>
+          <div class="legend"><span><i style="background:var(--ink-2)"></i>заданий курс</span><span><i style="background:var(--accent)"></i>фактичний курс</span><span><i style="background:var(--signal)"></i>кут керма</span><span><i style="background:var(--rule)"></i>течія з t = 40 с</span></div>
+        </div>
+        <div>
+          <div class="sl"><label for="kp">K<sub>p</sub> — пропорційна <output id="okp"></output></label><input type="range" id="kp" min="0" max="6" step="0.1" value="2"></div>
+          <div class="sl"><label for="ki">K<sub>i</sub> — інтегральна <output id="oki"></output></label><input type="range" id="ki" min="0" max="0.6" step="0.01" value="0.15"></div>
+          <div class="sl"><label for="kd">K<sub>d</sub> — диференціальна <output id="okd"></output></label><input type="range" id="kd" min="0" max="12" step="0.1" value="8"></div>
+          <div class="seg"><button class="btn" id="pidP">Лише P</button><button class="btn" id="pidReset">Типові</button></div>
+          <div class="kpi" id="pidk"></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Модель Номото першого порядку: судно повертає з курсу 0° на 30°, з 40-ї секунди на судно діє постійна течія. Сама лише складова <button class="t" data-t="пропорційна складова">P</button> дає коливання й залишкову похибку після збурення; <button class="t" data-t="інтегральна складова">I</button> прибирає похибку; <button class="t" data-t="диференціальна складова">D</button> гасить коливання. Саме цей закон Мінорський обґрунтував 1922 р. <a class="cite" href="#r7">[7]</a></figcaption>
+  </figure>
+
+  <h3>Вітчизняні історичні паралелі</h3>
+  <p>У радянській та українській наукових школах аналогічні інтеграційні ідеї розвивалися ще до появи японського терміну.</p>
+  <ol>
+    <li><strong>Теорія автоматизованого електропривода.</strong> З 1930-х років електропривод розглядали як цілісну систему, що об'єднує механічний рух робочого органу, перетворення електричної енергії та керування електричними машинами. Це підґрунтя для переходу до електромехатроніки.</li>
+    <li><strong>Механотрони (1950-ті).</strong> Так називали <button class="t" data-t="механотрон">електровакуумні прилади з рухомими електродами</button>. Вони працювали як високочутливі датчики мікропереміщень, прискорень, сил і вібрацій, перетворюючи механічний рух на електричний сигнал всередині колби лампи. Це один із перших прикладів апаратної інтеграції механіки та електроніки на фізичному рівні.</li>
+  </ol>
+  <p>У 1980-х клас мехатронних систем остаточно закріпився у світовій практиці з масовим впровадженням промислових роботів, <button class="t" data-t="гвс">гнучких виробничих систем (ГВС)</button> і верстатів із ЧПК.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="ch" id="s3">
+  <div class="chhead"><span class="n">3</span><h2>Понятійний апарат та ключові визначення</h2></div>
+  <p>Мехатроніка — динамічний науковий напрям, тому існує кілька підходів до її визначення: від широких філософських до вузькоспеціалізованих <a class="cite" href="#r1">[1]</a><a class="cite" href="#r4">[4]</a><a class="cite" href="#r5">[5]</a>.</p>
+  <div class="def"><span class="lbl">Загальне визначення</span><strong>Мехатроніка</strong> — міждисциплінарна галузь науки і техніки, присвячена створенню та експлуатації машин і систем з комп'ютерним керуванням рухом, що базується на глибокому взаємозв'язку та синергетичній інтеграції знань у галузі точної механіки, електроніки, мікропроцесорної техніки, інформатики та комп'ютерного керування.</div>
+
+  <figure class="fig">
+    <div class="bar"><span>Схема 2 · Діаграма RPI</span><span class="pill">натисніть на область</span></div>
+    <div class="body venn-grid">
+      <svg viewBox="0 0 440 420" id="venn" role="img" aria-label="Діаграма перетину механіки, електроніки та комп'ютерного керування">
+        <rect x="6" y="6" width="428" height="408" rx="8" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="6 5"/>
+        <text x="20" y="28" font-family="var(--f-mono)" font-size="11" fill="var(--ink-2)" class="zone" data-z="env">РИНОК · МЕНЕДЖМЕНТ · ВИРОБНИЦТВО</text>
+        <circle class="zone" data-z="mech" cx="160" cy="165" r="110" fill="var(--accent)" fill-opacity=".18" stroke="var(--accent)" stroke-width="2"/>
+        <circle class="zone" data-z="el" cx="280" cy="165" r="110" fill="var(--signal)" fill-opacity=".16" stroke="var(--signal)" stroke-width="2"/>
+        <circle class="zone" data-z="comp" cx="220" cy="270" r="110" fill="var(--ink-2)" fill-opacity=".14" stroke="var(--ink-2)" stroke-width="2"/>
+        <text x="100" y="130" font-family="var(--f-display)" font-size="16" font-weight="700" fill="var(--ink)" pointer-events="none">Механіка</text>
+        <text x="262" y="130" font-family="var(--f-display)" font-size="16" font-weight="700" fill="var(--ink)" pointer-events="none">Електроніка</text>
+        <text x="220" y="345" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="700" fill="var(--ink)" pointer-events="none">Комп'ютерне</text>
+        <text x="220" y="364" text-anchor="middle" font-family="var(--f-display)" font-size="15" font-weight="700" fill="var(--ink)" pointer-events="none">керування</text>
+        <text x="220" y="100" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">електро-</text>
+        <text x="220" y="113" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">механіка</text>
+        <text x="138" y="262" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">CAD/CAE,</text>
+        <text x="138" y="275" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">моделювання</text>
+        <text x="302" y="262" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">вбудовані</text>
+        <text x="302" y="275" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)" pointer-events="none">системи</text>
+        <circle class="zone" data-z="core" cx="220" cy="200" r="34" fill="var(--ink)" stroke="var(--sheet)" stroke-width="3"/>
+        <text x="220" y="197" text-anchor="middle" font-family="var(--f-mono)" font-size="9.5" font-weight="600" fill="var(--sheet)" pointer-events="none">МЕХА-</text>
+        <text x="220" y="210" text-anchor="middle" font-family="var(--f-mono)" font-size="9.5" font-weight="600" fill="var(--sheet)" pointer-events="none">ТРОНІКА</text>
+      </svg>
+      <div class="vpanel" id="vpanel" aria-live="polite"></div>
+    </div>
+    <figcaption>Діаграма Rensselaer Polytechnic Institute (США): мехатроніка як ядро перетину трьох кіл у зовнішньому середовищі ринкових вимог, менеджменту та виробництва.</figcaption>
+  </figure>
+
+  <div class="def"><span class="lbl">Спеціальне (науково-технічне) визначення</span><strong>Предмет мехатроніки</strong> — вивчення закономірностей синергетичного об'єднання вузлів точної механіки з електронними, електротехнічними та комп'ютерними компонентами з метою проєктування і виробництва якісно нових модулів, систем, машин та їх комплексів з інтелектуальним керуванням їх функціональними рухами.</div>
+
+  <h3>Характерні особливості мехатронних систем</h3>
+  <ol>
+    <li><strong>Універсальність методології.</strong> Мехатронний підхід концептуальний і застосовний до машин будь-якого призначення: від пральної машини до космічного апарата.</li>
+    <li><strong>Проєктування «з нуля».</strong> Інтегровані компоненти конструктор вибирає і розраховує спільно на ранній стадії, тоді як за традиційного підходу користувач сам поєднував різнорідні пристрої різних брендів.</li>
+    <li><strong>Орієнтація на функціональний рух.</strong> Кінцева мета будь-якої мехатронної системи — заданий рух у просторі. Це не просто кінематичне переміщення, а складно координований процес, що взаємодіє з силовим, тепловим чи інформаційним середовищем.</li>
+    <li><strong>Інтелектуалізація керування.</strong> Адаптивне, нейромережеве, нечітке (<em>Fuzzy Logic</em>) керування та елементи штучного інтелекту компенсують нелінійності, <button class="t" data-t="люфт">люфти</button> і пружні деформації механіки.</li>
+  </ol>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="ch" id="s4">
+  <div class="chhead"><span class="n">4</span><h2>Мехатроніка поруч і архітектура систем</h2></div>
+  <h3>Приклади в повсякденному житті</h3>
+  <ul class="examples">
+    <li><b>Вібромотор смартфона</b>мініатюрний електропривод із точним електронним керуванням імпульсами.</li>
+    <li><b>Висувні камери</b>мехатронний модуль із позиціонуванням і датчиком кінцевого положення.</li>
+    <li><b>Дисководи та принтери</b>точні приводи позиціонування головки та паперу.</li>
+    <li><b>Банкомати</b>механізми видачі та прийому купюр із сенсорним контролем.</li>
+    <li><b>ABS та ESP в автомобілях</b>мехатронні системи безпеки: датчики коліс, контролер, гідромодулятор.</li>
+  </ul>
+
+  <h3>Узагальнена структура (за академіком Є. П. Поповим)</h3>
+  <p>Будь-яка комп'ютеризована машина складається з чотирьох базових частин <a class="cite" href="#r6">[6]</a>:</p>
+  <ol>
+    <li><strong>Механічний пристрій</strong> — кінематичні ланцюги, напрямні, <button class="t" data-t="робочий орган">робочий орган</button> (інструмент, захват робота).</li>
+    <li><strong>Блок приводів</strong> — виконавчі двигуни (електричні, <button class="t" data-t="гідропривод">гідравлічні</button>, пневматичні) і силові перетворювачі.</li>
+    <li><strong>Пристрій комп'ютерного керування (ПКК)</strong> — контролери руху, мікропроцесори, комп'ютери верхнього рівня, <button class="t" data-t="hmi">людино-машинний інтерфейс (HMI)</button>.</li>
+    <li><strong>Сенсорна система</strong> — датчики зворотного зв'язку внутрішнього стану (положення, швидкості, струму) і зовнішнього середовища (силомоментні, тактильні, технічний зір).</li>
+  </ol>
+
+  <figure class="fig" id="struct">
+    <div class="bar"><span>Схема 3 · Інтерфейси І1–І7</span>
+      <span class="seg" role="group" aria-label="Тип машини">
+        <button class="btn on" id="stTrad" aria-pressed="true">Традиційна машина</button>
+        <button class="btn" id="stMech" aria-pressed="false">Мехатронна інтеграція</button>
+      </span></div>
+    <div class="body">
+      <div class="svgwrap">
+      <svg viewBox="0 0 760 410" role="img" aria-label="Структура машини: чотири блоки й сім інтерфейсів">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink-2)"/></marker></defs>
+        <g font-family="var(--f-body)" font-size="14">
+          <rect x="14" y="160" width="100" height="70" rx="6" fill="var(--paper)" stroke="var(--ink-2)" stroke-width="1.5"/>
+          <text x="64" y="190" text-anchor="middle" font-weight="600" fill="var(--ink)">Оператор</text>
+          <text x="64" y="208" text-anchor="middle" font-size="12" fill="var(--ink-2)">/ мережа</text>
+
+          <rect x="170" y="36" width="210" height="96" rx="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="275" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)">ПКК</text>
+          <text x="275" y="92" text-anchor="middle" font-size="12" fill="var(--ink-2)">контролер руху,</text>
+          <text x="275" y="108" text-anchor="middle" font-size="12" fill="var(--ink-2)">мікропроцесор, ПЗ</text>
+
+          <rect x="490" y="36" width="230" height="96" rx="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="605" y="72" text-anchor="middle" font-weight="700" fill="var(--ink)">Блок приводів</text>
+          <text x="605" y="92" text-anchor="middle" font-size="12" fill="var(--ink-2)">двигун + силовий</text>
+          <text x="605" y="108" text-anchor="middle" font-size="12" fill="var(--ink-2)">перетворювач</text>
+
+          <rect x="490" y="262" width="230" height="132" rx="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="605" y="290" text-anchor="middle" font-weight="700" fill="var(--ink)">Механічний пристрій</text>
+          <rect x="510" y="312" width="190" height="30" rx="4" fill="var(--paper)" stroke="var(--rule)"/>
+          <text x="605" y="332" text-anchor="middle" font-size="12" fill="var(--ink)">редуктор / передачі</text>
+          <rect x="510" y="352" width="190" height="30" rx="4" fill="var(--paper)" stroke="var(--rule)"/>
+          <text x="605" y="372" text-anchor="middle" font-size="12" fill="var(--ink)">робочий орган</text>
+
+          <rect x="170" y="280" width="210" height="110" rx="6" fill="var(--sheet)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="275" y="318" text-anchor="middle" font-weight="700" fill="var(--ink)">Сенсорна система</text>
+          <text x="275" y="338" text-anchor="middle" font-size="12" fill="var(--ink-2)">положення, швидкість,</text>
+          <text x="275" y="354" text-anchor="middle" font-size="12" fill="var(--ink-2)">струм, сила, зір</text>
+        </g>
+        <g fill="none" stroke="var(--ink-2)" stroke-width="2">
+          <path class="link" data-i="1" d="M114 195 H140 V84 H168" marker-end="url(#ar)"/>
+          <path class="link" data-i="2" d="M380 84 H488" marker-end="url(#ar)"/>
+          <path class="link" data-i="3" d="M605 132 V260" marker-end="url(#ar)"/>
+          <path class="link" data-i="4" d="M275 280 V134" marker-end="url(#ar)"/>
+          <path class="link" data-i="5" d="M380 296 H450 V118 H488"/>
+          <path class="link" data-i="7" d="M380 327 H508"/>
+          <path class="link" data-i="6" d="M380 367 H508"/>
+        </g>
+        <g font-family="var(--f-mono)" font-size="12" font-weight="600" text-anchor="middle">
+          <g class="iface" data-i="1" tabindex="0" role="button" aria-label="Інтерфейс І1"><circle cx="140" cy="140" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="140" y="144" fill="var(--signal)">І1</text></g>
+          <g class="iface" data-i="2" tabindex="0" role="button" aria-label="Інтерфейс І2"><circle cx="434" cy="84" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="434" y="88" fill="var(--signal)">І2</text></g>
+          <g class="iface" data-i="3" tabindex="0" role="button" aria-label="Інтерфейс І3"><circle cx="605" cy="196" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="605" y="200" fill="var(--signal)">І3</text></g>
+          <g class="iface" data-i="4" tabindex="0" role="button" aria-label="Інтерфейс І4"><circle cx="275" cy="206" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="275" y="210" fill="var(--signal)">І4</text></g>
+          <g class="iface" data-i="5" tabindex="0" role="button" aria-label="Інтерфейс І5"><circle cx="450" cy="206" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="450" y="210" fill="var(--signal)">І5</text></g>
+          <g class="iface" data-i="7" tabindex="0" role="button" aria-label="Інтерфейс І7"><circle cx="440" cy="327" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="440" y="331" fill="var(--signal)">І7</text></g>
+          <g class="iface" data-i="6" tabindex="0" role="button" aria-label="Інтерфейс І6"><circle cx="440" cy="367" r="16" fill="var(--sheet)" stroke="var(--signal)" stroke-width="2"/><text x="440" y="371" fill="var(--signal)">І6</text></g>
+        </g>
+      </svg>
+      </div>
+      <div class="iinfo" id="iinfo" aria-live="polite">Натисніть на кружечок І1–І7, щоб побачити, що це за інтерфейс, або на рядок таблиці нижче, щоб побачити, які інтерфейси виключає модуль.</div>
+    </div>
+    <figcaption>Кожен окремий інтерфейс додає люфти, масу, вартість і знижує надійність. Режим «Мехатронна інтеграція» показує, які інтерфейси зникають після об'єднання елементів у модулі.</figcaption>
+  </figure>
+
+  <div class="def" style="border-color:var(--signal);background:var(--signal-soft)"><span class="lbl" style="color:var(--signal)">Ключова ідея</span>Суть мехатронного підходу — мінімізувати або повністю виключити сепаратні інтерфейси, інтегруючи елементи різної фізичної природи в єдині конструктивні модулі.</div>
+
+  <h4>Інтегровані модулі та виключені інтерфейси</h4>
+  <div class="tscroll">
+  <table class="mt" id="mt">
+    <thead><tr><th>Модуль</th><th>Базовий елемент</th><th>Додатковий елемент</th><th>Виключений інтерфейс</th></tr></thead>
+    <tbody>
+      <tr data-x="2"><td>Інтелектуальний силовий перетворювач</td><td>Силовий напівпровідниковий пристрій</td><td>Вбудований мікропроцесор</td><td><b>І2</b> (сепаратний <button class="t" data-t="цап">ЦАП</button>)</td></tr>
+      <tr data-x="3"><td>Приводний модуль</td><td>Виконавчий двигун</td><td>Механічний редуктор</td><td><b>І3</b> (муфти, довгі вали)</td></tr>
+      <tr data-x="4"><td>Інтелектуальний сенсор</td><td>Чутливий елемент (датчик)</td><td>Вбудований мікропроцесор</td><td><b>І4</b> (сепаратний <button class="t" data-t="ацп">АЦП</button> і підсилювач)</td></tr>
+      <tr data-x="3,5"><td>Мехатронний модуль руху (ММР)</td><td>Приводний модуль (двигун)</td><td>Вбудований датчик зворотного зв'язку</td><td><b>І3, І5</b> (передачі та з'єднання датчика)</td></tr>
+      <tr data-x="6"><td>Чутливий робочий орган</td><td>Робочий орган інструменту</td><td>Вбудований датчик (напр., динамометр)</td><td><b>І6</b> (сепаратний кронштейн датчика)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="ch" id="s5">
+  <div class="chhead"><span class="n">5</span><h2>Класифікація за рівнями інтеграції</h2></div>
+  <p>Еволюція мехатроніки йшла паралельно з розвитком мікроелектроніки та комп'ютерних технологій, тому системи класифікують за поколіннями <a class="cite" href="#r6">[6]</a><a class="cite" href="#r3">[3]</a>.</p>
+  <figure class="fig">
+    <div class="bar"><span>Схема 4 · Три покоління</span>
+      <span class="gen-tabs" role="tablist" id="gtabs" style="margin:0">
+        <button class="btn on" role="tab" aria-selected="true" data-g="0">1-ше · 1970-ті</button>
+        <button class="btn" role="tab" aria-selected="false" data-g="1">2-ге · 1980-ті</button>
+        <button class="btn" role="tab" aria-selected="false" data-g="2">3-тє · з 1990-х</button>
+      </span></div>
+    <div class="body gen-body" id="gbody" role="tabpanel"></div>
+  </figure>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="ch" id="s6">
+  <div class="chhead"><span class="n">6</span><h2>Переваги та проблеми впровадження</h2></div>
+  <div class="cols2">
+    <div class="card" style="margin:0">
+      <h4 style="margin-top:0">Ключові переваги</h4>
+      <ol style="margin:0">
+        <li><strong>Економічна ефективність:</strong> модуль дешевший за сукупність розрізнених вузлів завдяки стандартизації інтерфейсів і глибокій інтеграції.</li>
+        <li><strong>Кращі масогабаритні показники:</strong> простіші кінематичні ланцюги дають легкі, компактні й динамічні машини.</li>
+        <li><strong>Надійність і довговічність:</strong> менше механічних з'єднань, муфт і кабелів — менше відмов.</li>
+        <li><strong>Адаптивність і швидке переналагодження:</strong> параметри змінюються програмно, а не заміною шестерень чи кулачків.</li>
+      </ol>
+    </div>
+    <div class="card" style="margin:0">
+      <h4 style="margin-top:0;color:var(--signal)">Організаційно-економічні бар'єри</h4>
+      <ul style="margin:0">
+        <li><strong>Організаційні бар'єри:</strong> механіки, електронники й програмісти традиційно працювали в ізольованих відділах. Мехатроніка вимагає <strong>інтегрованих мультидисциплінарних команд</strong>, які розробляють систему як ціле з першого дня.</li>
+        <li><strong>Кадри:</strong> потрібні «мехатронно орієнтовані» інженери широкого профілю, здатні говорити однією мовою з вузькими фахівцями і виконувати системну інтеграцію.</li>
+        <li><strong>Сприйнятливість до змін:</strong> малі й середні підприємства адаптуються до мехатроніки швидше, ніж гіганти зі сталими бюрократичними структурами.</li>
+      </ul>
+    </div>
+  </div>
+  <p>Цей понятійний апарат є фундаментом для подальшого вивчення архітектури промислових роботів, їх кінематики, сенсорики та алгоритмів керування в межах курсу.</p>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="ch" id="quiz">
+  <div class="chhead"><span class="n">✓</span><h2>Самоперевірка</h2></div>
+  <p>Оберіть відповідь: правильна підсвітиться зеленим, а під питанням з'явиться пояснення.</p>
+  <div id="qz"></div>
+  <div class="score" id="score" aria-live="polite">Бали: 0 / 10</div>
+  <button class="btn" id="qreset" style="margin-left:10px">Почати знову</button>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="ch" id="glossary">
+  <div class="chhead"><span class="n">А–Я</span><h2>Глосарій</h2></div>
+  <label for="gq" class="eyebrow" style="display:block">Пошук терміна</label>
+  <input id="gq" class="gsearch" type="search" placeholder="Наприклад: енкодер">
+  <dl class="gl" id="gl"></dl>
+</section>
+
+<!-- ============ REFS ============ -->
+<section class="ch" id="refs">
+  <div class="chhead"><span class="n">[ ]</span><h2>Джерела та рекомендована література</h2></div>
+  <h4>Наукові публікації та монографії</h4>
+  <ol class="refs">
+    <li id="r1"><span>[1]</span><div>Harashima F., Tomizuka M., Fukuda T. Mechatronics — “What is it, why, and how?” An editorial // <em>IEEE/ASME Transactions on Mechatronics</em>. 1996. Vol. 1, No. 1. P. 1–4. <a href="https://doi.org/10.1109/3516.491404" target="_blank" rel="noopener">doi:10.1109/3516.491404</a><span class="reftype">стаття</span></div></li>
+    <li id="r2"><span>[2]</span><div>Kyura N., Oho H. Mechatronics — an industrial perspective // <em>IEEE/ASME Transactions on Mechatronics</em>. 1996. Vol. 1, No. 1. P. 10–15. (Історія терміну від інженерів Yaskawa.) <a href="https://doi.org/10.1109/3516.491405" target="_blank" rel="noopener">doi:10.1109/3516.491405</a><span class="reftype">стаття</span></div></li>
+    <li id="r3"><span>[3]</span><div>Isermann R. Mechatronic Systems — Innovative Products with Embedded Control // 16th IFAC World Congress, Prague, 2005; розширена версія: <em>Control Engineering Practice</em>. 2008. Vol. 16, No. 1. P. 14–29. <a href="https://skoge.folk.ntnu.no/prost/proceedings/ifac2005/Papers/Paper5172.html" target="_blank" rel="noopener">IFAC 2005 Proceedings</a><span class="reftype">стаття</span></div></li>
+    <li id="r4"><span>[4]</span><div>Isermann R. <em>Mechatronic Systems: Fundamentals</em>. London : Springer, 2005. 624 p. ISBN 978-1-85233-930-2.<span class="reftype">монографія</span></div></li>
+    <li id="r5"><span>[5]</span><div>Bolton W. <em>Mechatronics: Electronic Control Systems in Mechanical and Electrical Engineering</em>. 7th ed. Harlow : Pearson, 2019.; Bishop R. H. (ed.) <em>The Mechatronics Handbook</em>. Boca Raton : CRC Press, 2002.<span class="reftype">підручники</span></div></li>
+    <li id="r6"><span>[6]</span><div>Подураев Ю. В. <em>Мехатроника: основы, методы, применение</em>. 2-е изд. Москва : Машиностроение, 2007. 256 с. (Структура машини, інтерфейси І1–І7, рівні інтеграції.)<span class="reftype">підручник</span></div></li>
+    <li id="r7"><span>[7]</span><div>Minorsky N. Directional stability of automatically steered bodies // <em>Journal of the American Society of Naval Engineers</em>. 1922. Vol. 34, No. 2. P. 280–309. <a href="https://doi.org/10.1111/j.1559-3584.1922.tb04958.x" target="_blank" rel="noopener">doi:10.1111/j.1559-3584.1922.tb04958.x</a><span class="reftype">стаття</span></div></li>
+    <li id="r8"><span>[8]</span><div>Wiener N. <em>Cybernetics, or Control and Communication in the Animal and the Machine</em>. Cambridge, MA : MIT Press, 1948; перевидання 2019, ISBN 978-0-262-53784-1.<span class="reftype">монографія</span></div></li>
+    <li id="r9"><span>[9]</span><div>Walter W. G. An Imitation of Life // <em>Scientific American</em>. 1950. Vol. 182, No. 5. P. 42–45.; Holland O. The first biologically inspired robots // <em>Robotica</em>. 2003. Vol. 21, No. 4. P. 351–363. <a href="https://cse-robotics.engr.tamu.edu/dshell/cs689/papers/holland02first.pdf" target="_blank" rel="noopener">PDF</a><span class="reftype">статті</span></div></li>
+    <li id="r10"><span>[10]</span><div>Nilsson N. J. Shakey the Robot. SRI International Technical Note 323. Menlo Park, 1984. Огляд проєкту: <a href="https://www.sri.com/hoi/shakey-the-robot" target="_blank" rel="noopener">SRI — Shakey the Robot</a><span class="reftype">звіт</span></div></li>
+  </ol>
+  <h4>Вебресурси</h4>
+  <ol class="refs">
+    <li id="r11"><span>[11]</span><div>Global Market Insights. Robot Market — Opportunity, Growth Drivers, Industry Trend Analysis and Forecast 2025–2035. <a href="https://www.giiresearch.com/report/gmi2027586-robot-market-opportunity-growth-drivers-industry.html" target="_blank" rel="noopener">giiresearch.com</a><span class="reftype">аналітика</span></div></li>
+    <li id="r12"><span>[12]</span><div>International Federation of Robotics. World Robotics — статистика промислових і сервісних роботів. <a href="https://ifr.org/" target="_blank" rel="noopener">ifr.org</a><span class="reftype">статистика</span></div></li>
+    <li id="r13"><span>[13]</span><div>Yaskawa Europe. The History of Yaskawa. <a href="https://www.yaskawa.eu.com/about-yaskawa/About-Yaskawa/History" target="_blank" rel="noopener">yaskawa.eu.com</a><span class="reftype">сайт компанії</span></div></li>
+    <li id="r14"><span>[14]</span><div>KUKA. 50 years of robotics: від FAMULUS (1973) до сьогодення. <a href="https://www.kuka.com/en-us/company/iimagazine/2023/11/homeofrobotik_50years-robotics" target="_blank" rel="noopener">kuka.com</a><span class="reftype">сайт компанії</span></div></li>
+    <li id="r15"><span>[15]</span><div>Computer History Museum. Revolution: Artificial Intelligence &amp; Robotics. <a href="https://www.computerhistory.org/revolution/artificial-intelligence-robotics/13/289" target="_blank" rel="noopener">computerhistory.org</a>; IEEE Spectrum. SRI's Pioneering Mobile Robot Shakey Honored as IEEE Milestone. <a href="https://spectrum.ieee.org/sri-shakey-robot-honored-as-ieee-milestone" target="_blank" rel="noopener">spectrum.ieee.org</a><span class="reftype">музей · журнал</span></div></li>
+    <li id="r16"><span>[16]</span><div>Автомати Жаке-Дро в Музеї мистецтва та історії Невшателя. <a href="https://www.j3l.ch/en/P34111" target="_blank" rel="noopener">j3l.ch</a>; Communications of the ACM. Superb Historical Robots. <a href="https://cacm.acm.org/blogcacm/superb-historical-robots" target="_blank" rel="noopener">cacm.acm.org</a><span class="reftype">музей · журнал</span></div></li>
+    <li id="r17"><span>[17]</span><div>NASA JPL. Viking Lander 1 Surface Sampler Arm (PIA00398). <a href="https://www.jpl.nasa.gov/images/pia00398-surface-sampler-arm/" target="_blank" rel="noopener">jpl.nasa.gov</a><span class="reftype">NASA</span></div></li>
+    <li id="r18"><span>[18]</span><div>Space.com. Lunokhod 1: 1st Successful Lunar Rover. <a href="https://www.space.com/35090-lunokhod-1.html" target="_blank" rel="noopener">space.com</a><span class="reftype">науково-популярне</span></div></li>
+    <li id="r19"><span>[19]</span><div>Unimate — перший промисловий робот (довідкова стаття з посиланнями на першоджерела). <a href="https://en.wikipedia.org/wiki/Unimate" target="_blank" rel="noopener">en.wikipedia.org/wiki/Unimate</a><span class="reftype">довідка</span></div></li>
+    <li id="r20"><span>[20]</span><div>Čapek K. <em>R.U.R. (Rossum's Universal Robots)</em>. 1920. Текст англійського перекладу: <a href="https://www.gutenberg.org/ebooks/59112" target="_blank" rel="noopener">Project Gutenberg</a>; Asimov I. Runaround // <em>Astounding Science Fiction</em>. 1942, March.<span class="reftype">першоджерела</span></div></li>
+  </ol>
+</section>
+
+<footer>Інтерактивний посібник до лекції 1 курсу «Основи мехатроніки та робототехніки, промислові роботи» · ПУЕТ, ННЦ «STEAM-Хаб». Схеми та симулятор — навчальні ілюстрації; кількісні дані наведено за джерелами в списку.</footer>
+</main>
+</div>
+
+<div id="pop" role="tooltip" hidden></div>
+
+<script>
+(function(){
+/* ---------- Глосарій ---------- */
+const G={
+ "мехатроніка":["Мехатроніка","mechatronics","Міждисциплінарна галузь науки і техніки про машини й системи з комп'ютерним керуванням рухом, що поєднує точну механіку, електроніку, мікропроцесорну техніку та інформатику."],
+ "синергія":["Синергія","synergy","Ефект спільної дії: система загалом набуває властивостей, яких немає в жодної з її частин окремо."],
+ "функціональний рух":["Функціональний рух","functional motion","Заданий рух робочого органу в просторі, узгоджений із силовою, тепловою чи інформаційною взаємодією з середовищем (наприклад, різання із заданим зусиллям)."],
+ "concurrent engineering":["Паралельне проєктування","concurrent engineering","Метод розробки, за якого механічну, електронну та програмну частини проєктують одночасно і спільно, а не послідовно."],
+ "кінематичний ланцюг":["Кінематичний ланцюг","kinematic chain","Система ланок, з'єднаних рухомими зʼєднаннями (кінематичними парами), що передає й перетворює рух."],
+ "редуктор":["Редуктор","gearbox, reducer","Механічна передача, що зменшує частоту обертання двигуна і збільшує крутний момент на вихідному валу."],
+ "клепсидра":["Клепсидра","clepsydra","Водяний годинник: час вимірюють за рівнем води, що витікає або натікає з посудини."],
+ "поплавковий регулятор":["Поплавковий регулятор","float regulator","Пристрій, у якому поплавок відстежує рівень рідини й сам відкриває або закриває подачу. Найдавніший приклад автоматичного регулювання зі зворотним зв'язком."],
+ "автоматон":["Автоматон","automaton","Механічний пристрій, що самостійно виконує заздалегідь задану послідовність рухів, часто імітуючи людину чи тварину."],
+ "кулачковий вал":["Кулачковий вал","camshaft","Вал із профільованими виступами (кулачками), які під час обертання задають рух штовхачів. У ранніх автоматах — механічна «програма»."],
+ "андроїд":["Андроїд","android","Робот або автомат, що зовнішньо і рухами імітує людину."],
+ "перфокарта":["Перфокарта","punched card","Картка з отворами, розташування яких кодує дані або команди. У верстаті Жаккара отвори визначали, які нитки піднімати."],
+ "апаратне програмування":["Апаратне програмування","hardware programming","Задання послідовності дій фізичною конструкцією (профілем кулачків, штифтами, перемичками), а не програмним кодом."],
+ "кібернетика":["Кібернетика","cybernetics","Наука про загальні закони керування та передачі інформації в машинах, живих організмах і суспільстві (Н. Вінер, 1948)."],
+ "зворотний зв'язок":["Зворотний зв'язок","feedback","Передача інформації про результат дії назад на вхід системи керування, щоб скоригувати наступні дії."],
+ "під-регулятор":["ПІД-регулятор","PID controller","Регулятор, що формує керування як суму трьох складових: пропорційної похибці (P), її інтегралу (I) і похідної (D)."],
+ "пропорційна складова":["Пропорційна складова (P)","proportional term","Керування, пропорційне поточній похибці. Що більший коефіцієнт Kp, то швидша реакція, але й більші коливання."],
+ "інтегральна складова":["Інтегральна складова (I)","integral term","Накопичує похибку в часі й усуває залишкове відхилення від заданого значення."],
+ "диференціальна складова":["Диференціальна складова (D)","derivative term","Реагує на швидкість зміни похибки, «передбачає» перерегулювання і гасить коливання."],
+ "гомеостат":["Гомеостат","homeostat","Електромеханічний пристрій Р. Ешбі (1948), що самостійно відновлював рівновагу після збурень — модель адаптивності живих систем."],
+ "телеманіпулятор":["Телеманіпулятор","telemanipulator","Маніпулятор, яким оператор керує дистанційно, повторюючи рухи «майстер-руки». Застосовують для роботи з небезпечними матеріалами."],
+ "маніпулятор":["Маніпулятор","manipulator","Керований механізм, подібний до руки, що переміщує об'єкти або інструмент у просторі."],
+ "промисловий робот":["Промисловий робот","industrial robot","Автоматично керований, перепрограмовуваний багатоцільовий маніпулятор із трьома або більше програмованими осями (за ISO 8373)."],
+ "полярна система координат":["Полярна (сферична) система координат","polar coordinates","Робот задає положення захвату кутом повороту, кутом нахилу та вильотом руки. Так був побудований Unimate."],
+ "циліндрична система координат":["Циліндрична система координат","cylindrical coordinates","Положення задається кутом повороту колони, висотою та вильотом руки (робот Versatran)."],
+ "шестиосьовий робот":["Шестиосьовий робот","6-axis robot","Маніпулятор із шістьма незалежними обертальними осями: три задають положення інструмента, три — його орієнтацію."],
+ "scara":["SCARA","Selective Compliance Assembly Robot Arm","Робот зі складальною рукою, податливою у горизонтальній площині й жорсткою у вертикальній. Швидкий і точний для складання та pick-and-place."],
+ "чпк":["ЧПК (ЧПУ)","CNC — computer numerical control","Числове програмне керування: верстат виконує рухи за програмою з координатами та режимами обробки."],
+ "гвс":["Гнучка виробнича система","FMS — flexible manufacturing system","Комплекс верстатів із ЧПК, роботів і транспортних засобів під єдиним комп'ютерним керуванням, що швидко переналаштовується на інший виріб."],
+ "механотрон":["Механотрон","mechanotron","Електровакуумний прилад із рухомим електродом: механічне переміщення змінює анодний струм. Використовувався як надчутливий датчик."],
+ "мотор-редуктор":["Мотор-редуктор","gear motor","Двигун і редуктор в одному корпусі — модуль першого рівня інтеграції."],
+ "енкодер":["Енкодер","encoder","Датчик кута або положення, що перетворює обертання вала на цифровий сигнал (оптичний, магнітний)."],
+ "тахогенератор":["Тахогенератор","tachogenerator","Невеликий генератор на валу двигуна, напруга якого пропорційна швидкості обертання."],
+ "вентильний двигун":["Вентильний (безколекторний) двигун","BLDC / PMSM","Двигун без щіток, у якому обмотки перемикає електронний комутатор за сигналом датчика положення ротора."],
+ "dsp":["Сигнальний процесор","DSP — digital signal processor","Мікропроцесор, оптимізований для швидкої математичної обробки сигналів у реальному часі."],
+ "ipm":["Інтелектуальний силовий модуль","IPM — intelligent power module","Силові транзистори (IGBT/MOSFET) разом із драйверами та захистом в одному корпусі."],
+ "can":["CAN","Controller Area Network","Надійна послідовна шина для обміну між контролерами; широко застосовується в автомобілях і промисловості."],
+ "ethercat":["EtherCAT","Ethernet for Control Automation Technology","Промисловий Ethernet реального часу з циклом обміну в мікросекунди, популярний у керуванні рухом."],
+ "мотор-колесо":["Мотор-колесо","in-wheel motor","Колесо з вбудованим двигуном, ротор якого безпосередньо обертає обід, без трансмісії."],
+ "мотор-шпиндель":["Мотор-шпиндель","motor spindle","Шпиндель верстата, який сам є ротором вбудованого двигуна."],
+ "емо":["Електромагнітні опори","active magnetic bearings","Підшипники, у яких ротор «висить» у магнітному полі, а положення утримує система керування за датчиками зміщення."],
+ "цап":["ЦАП","DAC — digital-to-analog converter","Цифро-аналоговий перетворювач: перетворює цифровий код на напругу або струм."],
+ "ацп":["АЦП","ADC — analog-to-digital converter","Аналого-цифровий перетворювач: перетворює аналоговий сигнал датчика на цифровий код."],
+ "hmi":["Людино-машинний інтерфейс","HMI — human-machine interface","Засоби взаємодії оператора з машиною: панелі, сенсорні екрани, джойстики, програмні пульти."],
+ "робочий орган":["Робочий орган","end effector","Частина машини, що безпосередньо виконує технологічну операцію: захват, інструмент, зварювальний пальник."],
+ "гідропривод":["Гідропривод","hydraulic drive","Привод, що передає енергію рідиною під тиском. Розвиває великі зусилля, але потребує насосної станції та обслуговування."],
+ "нечітка логіка":["Нечітка логіка","fuzzy logic","Логіка, де змінні мають ступінь істинності від 0 до 1 («трохи гаряче»). Дає змогу описувати керування лінгвістичними правилами."],
+ "нейронна мережа":["Штучна нейронна мережа","artificial neural network","Модель з багатьох пов'язаних обчислювальних вузлів, що навчається на даних апроксимувати складні залежності."],
+ "генетичний алгоритм":["Генетичний алгоритм","genetic algorithm","Метод оптимізації, що імітує природний добір: схрещування, мутацію та відбір кращих рішень."],
+ "адаптивне керування":["Адаптивне керування","adaptive control","Керування, яке під час роботи автоматично підлаштовує свої параметри до змін об'єкта чи середовища."],
+ "люфт":["Люфт","backlash","Зазор між деталями передачі, через який вихідний вал якийсь час не рухається при зміні напрямку обертання. Знижує точність."],
+ "радіоізотопне джерело тепла":["Радіоізотопне джерело тепла","radioisotope heater unit","Капсула з радіоактивним ізотопом (на Луноході — полоній-210), що виділяє тепло і обігріває апаратуру."],
+ "машина speculatrix":["Machina speculatrix","«машина, що досліджує»","Назва, яку Грей Уолтер дав своїм роботам-черепахам: вони досліджували середовище, реагуючи на світло і дотик."]
+};
+
+const pop=document.getElementById('pop');let popFor=null;
+function showPop(el){
+  const k=el.dataset.t, d=G[k]; if(!d) return;
+  pop.innerHTML='<b></b><span class="en"></span><span class="tx"></span>';
+  pop.querySelector('b').textContent=d[0];pop.querySelector('.en').textContent=d[1];pop.querySelector('.tx').textContent=d[2];
+  pop.hidden=false;popFor=el;el.setAttribute('aria-describedby','pop');
+  const r=el.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight;
+  let left=r.left+window.scrollX+r.width/2-pw/2; left=Math.max(window.scrollX+12,Math.min(left,window.scrollX+document.documentElement.clientWidth-pw-12));
+  let top, below = r.top>ph+20 ? false : true;
+  top = below ? r.bottom+window.scrollY+10 : r.top+window.scrollY-ph-10;
+  pop.className=below?'below':'above';
+  pop.style.left=left+'px';pop.style.top=top+'px';
+  pop.style.setProperty('--ax',Math.max(12,Math.min(pw-22,r.left+window.scrollX+r.width/2-left-5))+'px');
+}
+function hidePop(){pop.hidden=true;if(popFor)popFor.removeAttribute('aria-describedby');popFor=null}
+const fine=matchMedia('(hover:hover)').matches;
+document.addEventListener('click',e=>{const t=e.target.closest('.t');if(t){e.preventDefault();if(popFor===t)hidePop();else showPop(t);}else if(!e.target.closest('#pop'))hidePop()});
+if(fine){document.addEventListener('mouseover',e=>{const t=e.target.closest('.t');if(t&&popFor!==t)showPop(t)});
+document.addEventListener('mouseout',e=>{const t=e.target.closest('.t');if(t&&!t.contains(e.relatedTarget))hidePop()});}
+document.addEventListener('focusin',e=>{const t=e.target.closest('.t');if(t)showPop(t)});
+document.addEventListener('focusout',e=>{if(e.target.closest('.t'))hidePop()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hidePop()});
+window.addEventListener('resize',hidePop);
+document.querySelectorAll('.t').forEach(b=>b.type='button');
+
+/* ---------- Глосарій-список ---------- */
+const gl=document.getElementById('gl');
+const keys=Object.keys(G).sort((a,b)=>G[a][0].localeCompare(G[b][0],'uk'));
+gl.innerHTML=keys.map(k=>`<div data-k="${k}"><dt>${G[k][0]}<small>${G[k][1]}</small></dt><dd>${G[k][2]}</dd></div>`).join('');
+document.getElementById('gq').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();
+  gl.querySelectorAll(':scope > div').forEach(d=>{d.hidden=q&&!d.textContent.toLowerCase().includes(q)})});
+
+/* ---------- Gantt ---------- */
+const stages=[
+ {n:"Механіка",c:"var(--ink-2)",seq:[0,4],par:[0,5]},
+ {n:"Електропривод",c:"var(--accent)",seq:[4,3],par:[1,4.5]},
+ {n:"Електроніка, датчики",c:"var(--accent)",seq:[7,2.5],par:[1,5]},
+ {n:"Програма керування",c:"var(--signal)",seq:[9.5,2],par:[1.5,5]},
+ {n:"Переробка, узгодження",c:"var(--bad)",seq:[11.5,2.5],par:[6.5,1]}
+];
+const gantt=document.getElementById('gantt');
+gantt.innerHTML=stages.map((s,i)=>`<div class="grow"><span>${s.n}</span><div class="track"><div class="gbar" id="gb${i}" style="background:${s.c}"></div></div></div>`).join('');
+function setG(mode){stages.forEach((s,i)=>{const [a,w]=s[mode];const b=document.getElementById('gb'+i);b.style.left=(a/14*100)+'%';b.style.width=(w/14*100)+'%';b.textContent=w+' міс.'});
+  document.getElementById('gsum').textContent=mode==='seq'?'14':'7,5';
+  document.getElementById('gnote').textContent=mode==='seq'?'Кожен етап чекає на попередній; помилки механіки виявляються лише на етапі налагодження.':'Команди працюють одночасно з першого дня; невідповідності знаходять одразу, переробка мінімальна.';
+  document.querySelectorAll('#gantt-fig [data-mode]').forEach(b=>{const on=b.dataset.mode===mode;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}
+document.querySelectorAll('#gantt-fig [data-mode]').forEach(b=>b.addEventListener('click',()=>setG(b.dataset.mode)));setG('seq');
+
+/* ---------- Таймлайн ---------- */
+const ERAS=[["all","Усі етапи"],["e1","Античність і Середньовіччя"],["e2","Новий час"],["e3","1920–1950: кібернетика"],["e4","1950–1980-ті: промислові роботи"],["e5","Космос і екстремальні умови"]];
+const T=[
+ ["e1","міф","Талос і золоті служниці Гефеста","Бронзовий велетень-охоронець Криту — перший міфічний опис автономного антропоморфного «робота». Гомер в «Іліаді» описує золотих служниць Гефеста, наділених розумом, голосом і силою. Єврейська міфологія знає <b>Голема</b> — глиняну істоту, оживлену словами.",0],
+ ["e1","дав.","Рухомі статуї Єгипту, Вавилону, Китаю","Статуї богів із прихованими важелями рухали руками й головою — зародження примітивних приводних механізмів.",0],
+ ["e1","III ст. до н.е.","Ктесібій: клепсидра з поплавковим регулятором","Сконструював водяний годинник — <button class='t' data-t='клепсидра'>клепсидру</button>, а для стабільного тиску води застосував <button class='t' data-t='поплавковий регулятор'>поплавковий регулятор</button>, перший відомий приклад автоматичного регулювання рівня. Йому також приписують перший опис зубчастої передачі.",1],
+ ["e1","III ст. до н.е.","Архімед: «небесний глобус»","Скляна сфера з водяним приводом демонструвала рух Сонця, Місяця та п'яти відомих тоді планет.",0],
+ ["e1","I ст. н.е.","Херон Олександрійський: «Пневматика» і «Театр автоматів»","Перші у світі посібники з автоматизації. Херон створив автоматичні двері храму (вогонь розширював повітря, вода витіснялася у відро-противагу) та автомат продажу свяченої води, що спрацьовував від ваги монети.",1],
+ ["e1","XII–XIII ст.","Аль-Джазарі: програмований механічний оркестр","Арабського інженера вважають одним із батьків інженерної справи. Чотири фігурки музикантів у човні рухав <button class='t' data-t='кулачковий вал'>кулачковий вал</button> від водяного колеса. Перестановка штифтів змінювала ритм — перший в історії <b>програмований автомат</b>. Створив також годинники з рухомими фігурками.",1],
+ ["e1","XIII ст.","Альберт Великий: залізний воротар","За легендою, автомат відчиняв двері й вітав гостей голосом; учень Тома Аквінський розбив «диявольське творіння».",0],
+ ["e1","1495","Леонардо да Вінчі: механічний лицар","Креслення <button class='t' data-t='андроїд'>андроїда</button> в латах: система блоків, тросів і шестерень дозволяла сидіти, вставати, рухати руками, повертати голову. 1515 р. — механічний лев для короля Франції, що робив кілька кроків і відкривав груди з ліліями.",0],
+ ["e2","1642","Блез Паскаль: механічний суматор","Машина для додавання й віднімання — одна з передумов обчислювальної техніки.",0],
+ ["e2","1694","Г. В. Лейбніц: множення і ділення","Арифмометр Лейбніца додав множення та ділення.",0],
+ ["e2","1738–1739","Жак де Вокансон: флейтист і механічна качка","Флейтист у повний зріст грав, вдуваючи повітря зі штучних легень (міхів) через рухомі губи. <i>Canard digérateur</i> з понад 400 деталей ходила, махала крилами, пила воду, дзьобала зерно й імітувала травлення.",0],
+ ["e2","1768–1774","Жаке-Дро: «Каліграф», «Художник», «Музикантка»","«Каліграф» із ~6000 деталей пише текст до 40 символів; його «мозок» — кулачковий диск-програматор, перестановка клинів на якому змінює текст. Це приклад <button class='t' data-t='апаратне програмування'>апаратного програмування</button>. Автомати працюють досі в музеї Невшателя <a class='cite' href='#r16'>[16]</a>.",1],
+ ["e2","1801","Жаккар: верстат на перфокартах","Ткацький верстат, керований <button class='t' data-t='перфокарта'>перфокартами</button>, — перший масовий промисловий пристрій, що працював за змінною програмою. Ідею згодом використали Беббідж і Голлеріт.",1],
+ ["e2","1822 / 1833","Чарльз Беббідж: різницева й аналітична машини","Аналітична машина — механічний прототип комп'ютера з пам'яттю, арифметичним пристроєм і керуванням від перфокарт.",0],
+ ["e2","1847","Джордж Буль: алгебра логіки","Булева алгебра стала фундаментом логічних операцій сучасних ЕОМ і контролерів.",0],
+ ["e3","1920","Карел Чапек: слово «робот»","У п'єсі <i>R.U.R.</i> вперше вжито слово «робот» (чеськ. <i>robota</i> — примусова праця). Слово запропонував брат письменника, художник Йозеф Чапек, замість «лабори» <a class='cite' href='#r20'>[20]</a>.",1],
+ ["e3","1922","Микола Мінорський: ПІД-регулювання","Американський інженер українського походження математично обґрунтував закон <button class='t' data-t='під-регулятор'>ПІД-регулювання</button> й випробував авторульовий на лінкорі <i>USS New Mexico</i> <a class='cite' href='#r7'>[7]</a>. Спробуйте симулятор у розділі 2.2.",1],
+ ["e3","1942","Айзек Азімов: «robotics» і три закони","В оповіданні «Runaround» уперше вжито термін «робототехніка» та сформульовано три закони робототехніки.",0],
+ ["e3","1948","Норберт Вінер: «Кібернетика»","Книга «Кібернетика, або керування і зв'язок у тварині і машині» ввела поняття <button class='t' data-t=\"зворотний зв'язок\">зворотного зв'язку</button>, цілеспрямованості поведінки систем та інформації як міри організації <a class='cite' href='#r8'>[8]</a>.",1],
+ ["e3","1948","Росс Ешбі: гомеостат","<button class='t' data-t='гомеостат'>Гомеостат</button> із чотирьох магнітних систем зі зворотним зв'язком автоматично повертався до рівноваги після збурень.",0],
+ ["e3","1948–1951","Грей Уолтер: черепахи Елмер і Елсі","Триколісні візки <button class='t' data-t='машина speculatrix'><i>Machina speculatrix</i></button> мали дві електронні лампи, фотоелемент і датчик дотику. Шукали помірне світло, обходили перешкоди і самі поверталися на зарядку — перші автономні роботи <a class='cite' href='#r9'>[9]</a>.",0],
+ ["e3","1950","Клод Шеннон: миша «Тесей»","Магнітна миша на релейній схемі під лабіринтом знаходила вихід методом спроб і помилок, запам'ятовувала шлях і вдруге проходила без помилок.",0],
+ ["e3","1951","Реймонд Гьортц: телеманіпулятор","Raymond Goertz запатентував дистанційну «руку» для роботи з радіоактивними матеріалами — перший практичний <button class='t' data-t='телеманіпулятор'>телеманіпулятор</button>.",0],
+ ["e4","1954","Джордж Девол: Programmed Article Transfer","Заявка на перший цифровий <button class='t' data-t='маніпулятор'>маніпулятор</button> з програмним керуванням: координати точок записувалися на магнітний барабан.",1],
+ ["e4","1955–1958","Planet Corp: Planobot","Один із перших механізованих маніпуляторів для завантаження та розвантаження верстатів.",0],
+ ["e4","1956","Заснування Unimation","Девол і Джозеф Енгельбергер, натхненні ідеями Азімова, створили першу робототехнічну компанію (Universal Automation).",0],
+ ["e4","1959","Прототип Unimate","Робот вагою близько двох тонн, програма на магнітному барабані, гідравлічні приводи, точність 0,254 мм.",0],
+ ["e4","1961","Unimate на заводі General Motors","Перший <button class='t' data-t='промисловий робот'>промисловий робот</button> на лінії лиття під тиском у Трентоні виймав розпечені деталі з прес-форм і занурював їх в охолоджувальну рідину. Працював у <button class='t' data-t='полярна система координат'>полярних координатах</button>. Подію вважають народженням промислової робототехніки <a class='cite' href='#r19'>[19]</a>.",1],
+ ["e4","1962","AMF Versatran","Робот у <button class='t' data-t='циліндрична система координат'>циліндричній системі координат</button>, головний конкурент Unimate.",0],
+ ["e4","1966–1972","SRI: мобільний робот Shakey","Телекамера, далекомір і датчики удару. Shakey будував карту кімнати, планував шлях і пересував предмети — перший інтелектуальний мобільний робот <a class='cite' href='#r10'>[10]</a><a class='cite' href='#r15'>[15]</a>.",1],
+ ["e4","1969","Тецуро Морі (Yaskawa): термін «Mechatronics»","Народження назви нашої дисципліни <a class='cite' href='#r2'>[2]</a>.",1],
+ ["e4","1970","Hitachi: технічний зір","Робот уперше визначав габарити виробів і місце їх розташування.",0],
+ ["e4","1971","Daimler-Benz і KUKA","На заводі в Штутгарті запущено першу в Європі роботизовану лінію; KUKA поставила зварювальних роботів.",0],
+ ["e4","1973","KUKA FAMULUS","Перший у світі <button class='t' data-t='шестиосьовий робот'>шестиосьовий</button> промисловий робот з електроприводом усіх осей замість гідравліки <a class='cite' href='#r14'>[14]</a>.",1],
+ ["e4","1984","Adept: SCARA з прямим приводом","Роботи <button class='t' data-t='scara'>SCARA</button> на електродвигунах стали простішими, надійнішими й швидшими.",0],
+ ["e4","1985","Fanuc: роботи будують роботів","Fanuc застосувала власних роботів для виробництва роботів — «роботизована фабрика роботів».",0],
+ ["e5","1970","«Луноход-1»: перший планетохід","Пропрацював на Місяці 11 місяців замість 3 і подолав понад 10 км. Вісім <button class='t' data-t='мотор-колесо'>мотор-коліс</button>, керування із Землі із затримкою ~2,6 с, обігрів <button class='t' data-t='радіоізотопне джерело тепла'>радіоізотопним джерелом</button> у місячну ніч (−150 °C) <a class='cite' href='#r18'>[18]</a>.",1],
+ ["e5","1976","Viking-1 і Viking-2 на Марсі","Триметровий висувний маніпулятор-ґрунтозабірник копав ґрунт і завантажував зразки в автоматичну лабораторію. Через затримку зв'язку до 20 хв усе виконувалося автономно <a class='cite' href='#r17'>[17]</a>.",0],
+ ["e5","1977","Voyager-1 і Voyager-2","Три резервовані пари комп'ютерів; прилади на рухомій платформі автоматично наводяться на планети під час прольоту.",0],
+ ["e5","1979 / 1983","Три-Майл-Айленд (США)","Під час ліквідації наслідків аварії 1979 р. використовували мобільних роботів-ремонтників, оскільки радіація не дозволяла працювати людям.",0],
+ ["e5","1986","Чорнобильська АЕС","На даху 4-го енергоблоку рівні радіації сягали тисяч рентген на годину. Працювали КП-1, УПК-1, СТР-1 (на базі шасі Лунохода, ВНДІТрансмаш), німецький Joker. Іноземні роботи виходили з ладу за хвилини через руйнування мікросхем; СТР-1 із радіаційно-стійкою елементною базою та екранами розчищав завали графіту. Досвід заклав основи радіаційно-стійкої робототехніки.",1]
+];
+const chips=document.getElementById('chips'), tl=document.getElementById('tl');
+chips.innerHTML=ERAS.map(([k,n],i)=>`<button class="chip" data-e="${k}" aria-pressed="${i===0}">${n}</button>`).join('');
+tl.innerHTML=T.map(([e,y,h,p,key])=>{const short=p.length>240;return `<li data-e="${e}" class="${key?'key':''}"><span class="yr">${y}</span><div class="ev"><span class="tag">${ERAS.find(x=>x[0]===e)[1]}</span><h5>${h}</h5><p>${p}</p></div></li>`}).join('');
+tl.querySelectorAll('.t').forEach(b=>b.type='button');
+chips.addEventListener('click',ev=>{const c=ev.target.closest('.chip');if(!c)return;const e=c.dataset.e;
+  chips.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===c));
+  tl.querySelectorAll('li').forEach(li=>li.hidden=e!=='all'&&li.dataset.e!==e)});
+
+/* ---------- Venn ---------- */
+const V={
+ core:["Мехатроніка","Ядро перетину: машина, у якій механіка, електроніка та керування спроєктовані разом і дають синергетичний ефект. Приклад — сервопривод робота з вбудованим енкодером і контролером."],
+ mech:["Механіка","Точна механіка: кінематика, динаміка, міцність, передачі, напрямні, конструкційні матеріали. Відповідає за те, ЯК рухається система."],
+ el:["Електроніка","Силова електроніка, датчики, підсилювачі, мікроконтролери. Перетворює енергію й інформацію: живить двигуни і «відчуває» стан системи."],
+ comp:["Комп'ютерне керування / інформатика","Алгоритми керування, програмне забезпечення, обробка даних, теорія автоматичного керування. Визначає, ЩО і КОЛИ робить система."],
+ env:["Зовнішнє середовище","Ринкові вимоги, менеджмент і виробництво: мехатронна система має бути не лише технічно досконалою, а й конкурентною, технологічною у виготовленні та економічно доцільною."]
+};
+const vp=document.getElementById('vpanel');
+function setV(z){vp.innerHTML=`<span class="pill">${z==='core'?'ядро':'область'}</span><h5 style="margin-top:8px">${V[z][0]}</h5><p style="margin:0">${V[z][1]}</p>`;
+  document.querySelectorAll('#venn circle.zone').forEach(c=>{if(c.dataset.z!=='core')c.setAttribute('fill-opacity',c.dataset.z===z?'.38':'.15')})}
+document.querySelectorAll('#venn .zone').forEach(c=>{c.addEventListener('click',()=>setV(c.dataset.z))});setV('core');
+
+/* ---------- Структура ---------- */
+const IF={
+ 1:["І1 · Людино-машинний інтерфейс","Пульти, клавіатури, джойстики, сенсорні екрани або мережеві карти між оператором (мережею) та ПКК."],
+ 2:["І2 · ЦАП і підсилювачі","Цифро-аналогові перетворювачі та підсилювачі, що перетворюють команду контролера на сигнал керування двигуном."],
+ 3:["І3 · Механічні передачі","Редуктори, муфти, вали, які узгоджують швидкість двигуна з вимогами робочого органу."],
+ 4:["І4 · АЦП","Аналого-цифрові перетворювачі для зчитування сигналів аналогових датчиків контролером."],
+ 5:["І5 · Приєднання датчика до двигуна","Механічне та електричне кріплення датчика положення/швидкості до вала двигуна."],
+ 6:["І6 · Приєднання датчика до робочого органу","Окремий кронштейн і кабель датчика (наприклад, сили) біля інструмента."],
+ 7:["І7 · Приєднання датчика до редуктора","Механічне та електричне з'єднання датчика з вихідним валом передачі."]
+};
+const info=document.getElementById('iinfo'), struct=document.getElementById('struct');
+function hl(list){struct.querySelectorAll('.iface').forEach(g=>g.classList.toggle('hl',list.includes(+g.dataset.i)))}
+struct.querySelectorAll('.iface').forEach(g=>{const f=()=>{const i=+g.dataset.i;hl([i]);info.innerHTML=`<b>${IF[i][0]}.</b> ${IF[i][1]}`;document.querySelectorAll('#mt tr').forEach(r=>r.classList.remove('on'))};
+  g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})});
+document.querySelectorAll('#mt tbody tr').forEach(r=>r.addEventListener('click',e=>{if(e.target.closest('.t'))return;const xs=r.dataset.x.split(',').map(Number);
+  document.querySelectorAll('#mt tr').forEach(x=>x.classList.toggle('on',x===r));hl(xs);
+  info.innerHTML=`<b>${r.cells[0].textContent}</b> виключає ${xs.map(x=>'І'+x).join(', ')}: ${xs.map(x=>IF[x][1].toLowerCase()).join(' ')}`;
+  struct.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'center'})}));
+function stMode(m){const gone=m?[2,3,4,5,6]:[];
+  struct.querySelectorAll('.iface').forEach(g=>g.classList.toggle('gone',gone.includes(+g.dataset.i)));
+  struct.querySelectorAll('.link').forEach(l=>l.classList.toggle('gone',gone.includes(+l.dataset.i)));
+  [['stTrad',!m],['stMech',m]].forEach(([id,on])=>{const b=document.getElementById(id);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  info.innerHTML=m?'<b>Мехатронна інтеграція.</b> Інтерфейси І2–І6 зникають всередині модулів: інтелектуального силового перетворювача, ММР, інтелектуального сенсора, чутливого робочого органу. Залишаються І1 (зв\'язок з оператором) та І7.':'<b>Традиційна машина.</b> Сім окремих інтерфейсів, кожен — окремий пристрій зі своїми похибками, масою та вартістю.'}
+document.getElementById('stTrad').onclick=()=>stMode(false);document.getElementById('stMech').onclick=()=>stMode(true);
+
+/* ---------- Покоління ---------- */
+const GEN=[
+ {t:"Перший рівень інтеграції · 1-ше покоління (1970-ті)",
+  svg:`<svg viewBox="0 0 220 150"><rect x="20" y="45" width="100" height="60" rx="6" fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="2"/><text x="70" y="80" text-anchor="middle" font-family="var(--f-mono)" font-size="12" fill="var(--ink)">двигун</text><rect x="120" y="55" width="60" height="40" rx="4" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="2"/><text x="150" y="80" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink)">редуктор</text><rect x="180" y="70" width="30" height="10" fill="var(--ink)"/><rect x="12" y="37" width="176" height="76" rx="8" fill="none" stroke="var(--signal)" stroke-width="2" stroke-dasharray="5 4"/><text x="100" y="134" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--signal)">єдиний корпус</text></svg>`,
+  html:`<p>Просте апаратне об'єднання двох суміжних елементів без складного комп'ютерного керування. Типовий приклад — <button class="t" data-t="мотор-редуктор">мотор-редуктор</button>: електродвигун і механічний редуктор в одному корпусі.</p><p>Результат: менші габарити, простіший монтаж, захист вузла від пилу й вологи. Застосування: прості конвеєри, транспортери, поворотні столи.</p>`},
+ {t:"Другий рівень інтеграції · 2-ге покоління (1980-ті)",
+  svg:`<svg viewBox="0 0 220 150"><rect x="30" y="40" width="120" height="70" rx="6" fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="2"/><text x="90" y="72" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink)">вентильний</text><text x="90" y="87" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink)">двигун</text><circle cx="172" cy="75" r="20" fill="var(--signal)" fill-opacity=".2" stroke="var(--signal)" stroke-width="2"/><text x="172" y="79" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">енк.</text><rect x="150" y="72" width="2" height="6" fill="var(--ink)"/><text x="110" y="134" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--ink-2)">без редуктора · прямий привід</text></svg>`,
+  html:`<p>Поява мініатюрних напівпровідникових датчиків і електронних схем обробки сигналів. Приклад — <strong>мехатронний модуль обертального руху</strong> на базі високомоментного <button class="t" data-t="вентильний двигун">вентильного двигуна</button>.</p><p>Оптичний датчик положення (<button class="t" data-t="енкодер">енкодер</button>) і <button class="t" data-t="тахогенератор">тахогенератор</button> вбудовано безпосередньо на вал, тож у координатах верстатів з ЧПК і роботів можна відмовитися від редуктора. Зникли люфти, зросли точність позиціонування та жорсткість привода.</p>`},
+ {t:"Третій рівень інтеграції · 3-тє покоління (з 1990-х)",
+  svg:`<svg viewBox="0 0 220 150"><rect x="14" y="30" width="192" height="90" rx="8" fill="none" stroke="var(--signal)" stroke-width="2" stroke-dasharray="5 4"/><rect x="24" y="44" width="56" height="62" rx="4" fill="var(--ink-2)" fill-opacity=".2" stroke="var(--ink-2)" stroke-width="1.5"/><text x="52" y="72" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">MCU</text><text x="52" y="86" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">DSP</text><rect x="86" y="44" width="48" height="62" rx="4" fill="var(--signal)" fill-opacity=".2" stroke="var(--signal)" stroke-width="1.5"/><text x="110" y="79" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">IPM</text><rect x="140" y="44" width="56" height="62" rx="4" fill="var(--accent)" fill-opacity=".2" stroke="var(--accent)" stroke-width="1.5"/><text x="168" y="72" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">мотор</text><text x="168" y="86" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink)">+датч.</text><path d="M14 18 H206" stroke="var(--ink)" stroke-width="3"/><path d="M52 18 V44" stroke="var(--ink)" stroke-width="1.5"/><text x="110" y="12" text-anchor="middle" font-family="var(--f-mono)" font-size="10" fill="var(--ink-2)">шина CAN / EtherCAT</text><text x="110" y="138" text-anchor="middle" font-family="var(--f-mono)" font-size="11" fill="var(--signal)">ІММР в одному корпусі</text></svg>`,
+  html:`<p>Дешеві високопродуктивні мікроконтролери, сигнальні процесори (<button class="t" data-t="dsp">DSP</button>) та інтелектуальні силові модулі (<button class="t" data-t="ipm">IPM</button>) дозволили повністю інтегрувати електромеханічне, силове електронне та локальне комп'ютерне середовища в одному корпусі.</p><ul><li><strong>Інтелектуальні мехатронні модулі руху (ІММР)</strong> отримують цифровою шиною (<button class="t" data-t="can">CAN</button>, <button class="t" data-t="ethercat">EtherCAT</button>) команду «переміститися в точку X з прискоренням Y», самі розраховують траєкторію, керують ключами інвертора і контролюють струм, швидкість і положення.</li><li><strong><button class="t" data-t="мотор-шпиндель">Мотори-шпинделі</button> та <button class="t" data-t="мотор-колесо">мотор-колеса</button></strong>: шпиндель верстата або колесо є ротором двигуна. Шпинделі на <button class="t" data-t="емо">електромагнітних опорах</button> обертаються до 200 000 об/хв, а положення ротора стабілізує комп'ютерна система за датчиками радіального та осьового зміщення.</li></ul>`}
+];
+const gb=document.getElementById('gbody'), gt=document.getElementById('gtabs');
+function setGen(i){const g=GEN[i];gb.innerHTML=`<div>${g.svg}</div><div style="min-width:0"><h4 style="margin-top:0">${g.t}</h4>${g.html}</div>`;gb.querySelectorAll('.t').forEach(b=>b.type='button');
+  gt.querySelectorAll('button').forEach(b=>{const on=+b.dataset.g===i;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)})}
+gt.addEventListener('click',e=>{const b=e.target.closest('button');if(b)setGen(+b.dataset.g)});setGen(0);
+
+/* ---------- PID ---------- */
+const cv=document.getElementById('pidc'), ctx=cv.getContext('2d');
+const S={kp:document.getElementById('kp'),ki:document.getElementById('ki'),kd:document.getElementById('kd')};
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function sim(kp,ki,kd){const K=0.12,Tn=8,dt=0.05,N=1600;let psi=0,r=0,I=0,prevE=null;const out=[];
+  for(let n=0;n<=N;n++){const t=n*dt, sp=t<2?0:30; const e=sp-psi; if(Math.abs(e)<8)I+=e*dt;
+    let d=kp*e+ki*I+kd*(-r); d=Math.max(-35,Math.min(35,d));
+    const dist=t>40?-0.6:0; r+=dt*(K*d-r+dist)/Tn; psi+=r*dt; out.push([t,sp,psi,d])}
+  return out}
+function draw(){const kp=+S.kp.value,ki=+S.ki.value,kd=+S.kd.value;
+  document.getElementById('okp').textContent=kp.toFixed(1);document.getElementById('oki').textContent=ki.toFixed(2);document.getElementById('okd').textContent=kd.toFixed(1);
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const d=sim(kp,ki,kd), L=40,R=12,Tp=14,B=28, x=t=>L+(W-L-R)*t/80, y=v=>Tp+(H-Tp-B)*(1-(v+40)/100);
+  ctx.font='11px "JetBrains Mono", monospace';ctx.lineWidth=1;
+  ctx.fillStyle=css('--rule');ctx.globalAlpha=.35;ctx.fillRect(x(40),Tp,x(80)-x(40),H-Tp-B);ctx.globalAlpha=1;
+  for(let v=-40;v<=60;v+=20){ctx.strokeStyle=css('--rule');ctx.beginPath();ctx.moveTo(L,y(v));ctx.lineTo(W-R,y(v));ctx.stroke();ctx.fillStyle=css('--ink-2');ctx.textAlign='right';ctx.fillText(v+'°',L-6,y(v)+4)}
+  ctx.textAlign='center';for(let t=0;t<=80;t+=20){ctx.fillText(t+' с',x(t),H-8)}
+  const line=(i,c,w,dash)=>{ctx.strokeStyle=c;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();d.forEach((p,j)=>{const X=x(p[0]),Y=y(p[i]);j?ctx.lineTo(X,Y):ctx.moveTo(X,Y)});ctx.stroke();ctx.setLineDash([])};
+  line(3,css('--signal'),1.5);line(1,css('--ink-2'),1.5,[5,4]);line(2,css('--accent'),2.5);
+  let mx=-1e9;d.forEach(p=>{if(p[0]<40)mx=Math.max(mx,p[2])});const os=Math.max(0,(mx-30)/30*100);
+  let ts=null;for(let j=d.length-1;j>=0;j--){if(d[j][0]>=40)continue;if(Math.abs(d[j][2]-30)>1.5){ts=d[j][0];break}}
+  const last=d[d.length-1][2];
+  document.getElementById('pidk').innerHTML=`<span>Перерегулювання: <b>${os.toFixed(0)} %</b></span><span>Час встановлення (±1,5°): <b>${ts===null?'—':(ts>=39?'не встановився':(ts-2).toFixed(1)+' с')}</b></span><span>Похибка наприкінці: <b>${(30-last).toFixed(1)}°</b></span>`}
+Object.values(S).forEach(s=>s.addEventListener('input',draw));
+document.getElementById('pidP').onclick=()=>{S.ki.value=0;S.kd.value=0;draw()};
+document.getElementById('pidReset').onclick=()=>{S.kp.value=2;S.ki.value=0.15;S.kd.value=8;draw()};
+window.addEventListener('resize',draw);matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+draw();
+
+/* ---------- Quiz ---------- */
+const Q=[
+ ["Від злиття яких двох слів походить термін «мехатроніка»?",["Механізм + автоматика","Механіка + електроніка","Механіка + кібернетика","Метал + електротехніка"],1,"Mecha(nics) + (elec)tronics — назва, запропонована 1969 р. у Yaskawa Electric."],
+ ["Хто і в якій компанії вперше ввів термін «Mechatronics»?",["Джозеф Енгельбергер, Unimation","Норберт Вінер, MIT","Тецуро Морі, Yaskawa Electric","Хіросі Макіно, Університет Яманасі"],2,"Старший інженер Yaskawa Тецуро Морі, 1969 р. Пізніше компанія відмовилася від прав на торговельну марку."],
+ ["Що є головною методологічною відмінністю мехатронного проєктування?",["Використання лише електроприводів","Перехід від послідовного до паралельного (сумісного) проєктування","Відмова від механічних вузлів","Програмування на мовах високого рівня"],1,"Concurrent Engineering: механіку, електроніку, сенсорику та керування синтезують одночасно."],
+ ["Який пристрій вважають першим в історії програмованим автоматом?",["Клепсидра Ктесібія","Механічний оркестр Аль-Джазарі","Механічна качка Вокансона","Машина Паскаля"],1,"Перестановка штифтів на кулачковому валу змінювала ритм гри фігурок."],
+ ["Хто математично обґрунтував закон ПІД-регулювання (1922)?",["Клод Шеннон","Микола Мінорський","Росс Ешбі","Грей Уолтер"],1,"Мінорський, інженер українського походження, на прикладі авторульового лінкора USS New Mexico."],
+ ["Де і коли вперше встановили промисловий робот Unimate?",["KUKA, Аугсбург, 1973","General Motors, Трентон, 1961","Fanuc, Японія, 1985","Daimler-Benz, Штутгарт, 1971"],1,"Unimate працював на лінії лиття під тиском. Цю подію вважають народженням промислової робототехніки."],
+ ["Чим відомий робот KUKA FAMULUS (1973)?",["Перший мобільний робот із камерою","Перший шестиосьовий робот з електроприводом усіх осей","Перший робот у циліндричних координатах","Перший телеманіпулятор"],1,"До нього більшість роботів мала гідравлічні приводи."],
+ ["Які чотири частини виділяє узагальнена структура машини за Є. П. Поповим?",["Корпус, двигун, плата, програма","Механічний пристрій, блок приводів, ПКК, сенсорна система","Датчик, АЦП, ЦАП, двигун","Оператор, HMI, мережа, контролер"],1,"Між цими блоками в класичній машині — до семи окремих інтерфейсів І1–І7."],
+ ["Який інтерфейс виключає «інтелектуальний сенсор»?",["І2 — сепаратний ЦАП","І3 — муфти й вали","І4 — сепаратний АЦП і підсилювач","І6 — кронштейн датчика"],2,"Мікропроцесор, вбудований у датчик, оцифровує сигнал на місці."],
+ ["Що характерно для мехатронних модулів другого покоління?",["Двигун і редуктор в одному корпусі","Вбудовані енкодер і тахогенератор, відмова від редуктора","Команди через EtherCAT і розрахунок траєкторії","Гідравлічні приводи"],1,"Прямий привід на вентильних двигунах прибрав люфти й підвищив точність."]
+];
+const qz=document.getElementById('qz');let score=0,answered=0;
+function buildQ(){score=0;answered=0;qz.innerHTML=Q.map((q,i)=>`<div class="q" data-i="${i}"><span class="qn">ПИТАННЯ ${i+1} / ${Q.length}</span><p>${q[0]}</p><div class="opts">${q[1].map((o,j)=>`<button class="opt" data-j="${j}">${o}</button>`).join('')}</div><div class="fb" hidden></div></div>`).join('');upd()}
+function upd(){document.getElementById('score').textContent=`Бали: ${score} / ${Q.length}`+(answered===Q.length?(score>=8?' · відмінно':score>=6?' · добре':' · перечитайте розділи'):'')}
+qz.addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;const box=b.closest('.q');if(box.dataset.done)return;box.dataset.done=1;
+  const q=Q[+box.dataset.i],j=+b.dataset.j;box.querySelectorAll('.opt').forEach((o,k)=>{if(k===q[2])o.classList.add('ok');else if(k===j)o.classList.add('bad');o.disabled=true});
+  answered++;if(j===q[2])score++;const fb=box.querySelector('.fb');fb.hidden=false;fb.textContent=(j===q[2]?'Правильно. ':'Неправильно. ')+q[3];upd()});
+document.getElementById('qreset').onclick=buildQ;buildQ();
+
+/* ---------- TOC / progress ---------- */
+const links=[...document.querySelectorAll('nav.toc a')], secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+const prog=document.getElementById('prog');
+function onScroll(){const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  let cur=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<140)cur=i});links.forEach((a,i)=>a.classList.toggle('on',i===cur))}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+const toc=document.getElementById('toc'),tb=document.getElementById('tocbtn');
+tb.onclick=()=>{const o=toc.classList.toggle('open');tb.setAttribute('aria-expanded',o)};
+links.forEach(a=>a.addEventListener('click',()=>{toc.classList.remove('open');tb.setAttribute('aria-expanded','false')}));
+})();
+</script>
+
+</body></html>

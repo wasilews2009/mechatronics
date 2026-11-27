@@ -1,0 +1,1186 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Архітектура мехатронних систем</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: технічний паспорт лекції (серія STEAM-HUB) — бічний зміст + колонка читання; схеми на «міліметрівці»; синій = сигнал/енергія, бурштиновий = зворотний зв'язок */
+:root{
+  --bg:#eef2f4; --surface:#ffffff; --surface-2:#e4eaee; --ink:#14202a; --muted:#566573; --line:#cdd6dd;
+  --air:#0a7fc0; --air-soft:#d5ebf7; --idle:#9fb3c2; --warn:#b86e00; --warn-soft:#fbefd9; --ok:#1f8a4c; --ok-soft:#dcf1e4; --bad:#c23a2b; --bad-soft:#f8dfdb;
+  --c1:#0a7fc0; --c2:#1f8a4c; --c3:#b86e00; --c4:#8a4fbf;
+  --grid:rgba(10,127,192,.07);
+  --f-display:"Unbounded","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e151b; --surface:#151f28; --surface-2:#1c2833; --ink:#e3ebf1; --muted:#93a3b1; --line:#2a3a47;
+  --air:#3db2f0; --air-soft:#123349; --idle:#4c6273; --warn:#f0a63a; --warn-soft:#3a2a10; --ok:#4cc583; --ok-soft:#123222; --bad:#ff6d5c; --bad-soft:#3d1a16;
+  --c1:#3db2f0; --c2:#4cc583; --c3:#f0a63a; --c4:#b78af0;
+  --grid:rgba(61,178,240,.06); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e151b; --surface:#151f28; --surface-2:#1c2833; --ink:#e3ebf1; --muted:#93a3b1; --line:#2a3a47;
+  --air:#3db2f0; --air-soft:#123349; --idle:#4c6273; --warn:#f0a63a; --warn-soft:#3a2a10; --ok:#4cc583; --ok-soft:#123222; --bad:#ff6d5c; --bad-soft:#3d1a16;
+  --c1:#3db2f0; --c2:#4cc583; --c3:#f0a63a; --c4:#b78af0;
+  --grid:rgba(61,178,240,.06); color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.62 var(--f-body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:var(--air)}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.45rem;margin:0 0 .9rem}
+h3{font-size:1.1rem;margin:1.8rem 0 .55rem;font-weight:600}
+h4{margin:0 0 4px;font-size:1rem}
+p{margin:.55rem 0}
+code,.mono{font-family:var(--f-mono);font-size:.9em}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.readbar{position:fixed;left:0;top:env(safe-area-inset-top,0px);height:3px;width:0;background:var(--air);z-index:20}
+
+/* hero */
+.hero{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px;border-bottom:1px solid var(--line)}
+.hero .wrap{padding-block:40px 30px}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--air)}
+.hero h1{font-size:clamp(1.8rem,4.6vw,3rem);margin:.6rem 0 .5rem;max-width:22ch}
+.hero .lead{font-size:1.1rem;color:var(--muted);max-width:64ch}
+.spec{display:flex;flex-wrap:wrap;margin-top:22px;border:1px solid var(--line);background:var(--surface);border-radius:4px;overflow:hidden}
+.spec div{flex:1 1 150px;padding:10px 14px;border-right:1px solid var(--line)}
+.spec div:last-child{border-right:0}
+.spec dt{font:600 .68rem/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.spec dd{margin:4px 0 0;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* layout */
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px;padding-block:32px 80px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:.88rem;max-height:calc(100vh - 32px);overflow:auto}
+.toc ol{list-style:none;padding:0;margin:0;border-left:2px solid var(--line)}
+.toc a{display:block;padding:5px 0 5px 14px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent;line-height:1.35}
+.toc a b{font:600 .72rem var(--f-mono);color:var(--idle);margin-right:6px}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--air)}
+.toc-mobile{display:none}
+main{min-width:0}
+section.sec{padding-block:8px 34px;border-bottom:1px solid var(--line);margin-bottom:34px;scroll-margin-top:20px}
+section.sec:last-child{border-bottom:0}
+.secnum{font:600 .74rem var(--f-mono);color:var(--air);letter-spacing:.1em}
+.prose{max-width:72ch}
+@media (max-width:960px){.layout{grid-template-columns:minmax(0,1fr)}.toc{display:none}.toc-mobile{display:block;margin-bottom:24px}}
+
+/* blocks */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+.note{border-left:3px solid var(--air);background:var(--air-soft);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0;max-width:72ch}
+.warn{border-left:3px solid var(--warn);background:var(--warn-soft);padding:12px 16px;border-radius:0 6px 6px 0;margin:14px 0;max-width:72ch}
+.note b.t,.warn b.t{display:block;margin-bottom:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:14px 0}
+.cols>*{min-width:0}
+.cols3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.cols3>*{min-width:0}
+.tablewrap{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:.94rem;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:.85rem}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.svgbox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:20px 20px}
+.svgbox svg{display:block;width:100%;height:auto;min-width:520px}
+.svgbox.fit svg{min-width:0}
+.cap{font-size:.84rem;color:var(--muted);margin:6px 0 0}
+.tag{display:inline-block;font:600 .7rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:3px;background:var(--surface-2);color:var(--muted)}
+
+/* figures from lecture */
+figure.fig{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+figure.fig button{display:block;width:100%;padding:0;border:0;background:#fff;cursor:zoom-in}
+figure.fig img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:#fff}
+figure.fig figcaption{padding:8px 12px;font-size:.84rem;color:var(--muted);display:flex;gap:8px;align-items:baseline;border-top:1px solid var(--line)}
+figure.fig figcaption b{font:600 .72rem var(--f-mono);color:var(--air);white-space:nowrap}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.gallery figure.fig{margin:0}
+.gallery figure.fig img{height:240px;object-fit:cover}
+.gallery figure.fig.tall img{object-position:top}
+.lightbox{position:fixed;inset:0;z-index:50;background:rgba(5,10,15,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));gap:10px}
+.lightbox img{max-width:100%;max-height:82vh;object-fit:contain;background:#fff;border-radius:4px}
+.lightbox p{color:#e3ebf1;font-size:.9rem;margin:0;text-align:center;max-width:70ch}
+.lightbox button{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);font:600 1rem var(--f-body);background:#fff;color:#14202a;border:0;border-radius:50%;width:40px;height:40px;cursor:pointer}
+
+/* controls */
+.btn{font:600 .92rem var(--f-body);border:1.5px solid var(--air);background:var(--surface);color:var(--air);padding:8px 14px;border-radius:5px;cursor:pointer}
+.btn:hover{background:var(--air-soft)}
+.btn.solid{background:var(--air);color:var(--surface)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--air);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--air);border-radius:5px;overflow:hidden}
+.seg button{border:0;background:var(--surface);color:var(--air);font:600 .86rem var(--f-body);padding:8px 13px;cursor:pointer}
+.seg button.on{background:var(--air);color:var(--surface)}
+label.field{display:grid;gap:4px;font-size:.85rem;color:var(--muted);min-width:0}
+label.field b{color:var(--ink);font-family:var(--f-mono)}
+input[type=range]{width:100%;min-width:0;margin:0;accent-color:var(--air)}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:12px 0}
+.chk{display:flex;gap:8px;align-items:center;font-size:.92rem}
+.chk input{width:18px;height:18px;accent-color:var(--air)}
+canvas{display:block;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}
+.readout div{background:var(--surface-2);border-radius:5px;padding:8px 10px}
+.readout dt{font:600 .66rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.readout dd{margin:2px 0 0;font:600 1.05rem var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.tabs button{font:600 .88rem var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:8px 12px;border-radius:5px;cursor:pointer}
+.tabs button.on{border-color:var(--air);color:var(--air);background:var(--air-soft)}
+.tabpane{display:grid;grid-template-columns:minmax(180px,260px) minmax(0,1fr);gap:18px;align-items:center}
+@media (max-width:640px){.tabpane{grid-template-columns:minmax(0,1fr)}}
+.tabpane svg{width:100%;max-width:260px;height:auto}
+
+/* stat tiles */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.stat .v{font:700 1.5rem/1.1 var(--f-display);color:var(--air);font-variant-numeric:tabular-nums}
+.stat .l{font-size:.85rem;color:var(--muted);margin-top:4px}
+
+/* accordion */
+details.acc{background:var(--surface);border:1px solid var(--line);border-radius:6px;margin:8px 0}
+details.acc summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:center}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary::before{content:"+";font:700 1rem var(--f-mono);color:var(--air);width:16px}
+details.acc[open] summary::before{content:"−"}
+details.acc .in{padding:0 16px 14px 42px}
+details.acc.pro summary::before{color:var(--ok)}
+details.acc.con summary::before{color:var(--bad)}
+
+/* timeline */
+.tl{position:relative;margin:16px 0}
+.tl-track{display:flex;gap:0;overflow-x:auto;padding:6px 2px 10px}
+.tl-track button{flex:1 0 120px;border:0;background:none;cursor:pointer;text-align:left;padding:28px 10px 6px;position:relative;color:var(--muted);font:500 .85rem var(--f-body)}
+.tl-track button::before{content:"";position:absolute;top:10px;left:0;right:0;height:3px;background:var(--line)}
+.tl-track button::after{content:"";position:absolute;top:4px;left:10px;width:15px;height:15px;border-radius:50%;background:var(--surface);border:3px solid var(--idle)}
+.tl-track button b{display:block;font:700 .95rem var(--f-mono);color:var(--ink)}
+.tl-track button.on{color:var(--ink)}
+.tl-track button.on::after{border-color:var(--air);background:var(--air)}
+.tl-track button.on::before{background:var(--air)}
+.tl-body{min-height:96px}
+
+/* flow chips */
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+.flow span{background:var(--surface);border:1px solid var(--line);padding:6px 10px;border-radius:4px;font-size:.88rem}
+.flow i{font-style:normal;color:var(--air);font-weight:700}
+
+/* quiz */
+.q{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin-bottom:12px}
+.q p.qt{font-weight:600;margin-top:0}
+.q label{display:flex;gap:10px;align-items:flex-start;padding:6px 8px;border-radius:5px;cursor:pointer}
+.q label:hover{background:var(--surface-2)}
+.q input{margin-top:5px;accent-color:var(--air)}
+.q label.r{background:var(--ok-soft)}
+.q label.x{background:var(--bad-soft)}
+.q .fb{font-size:.92rem;color:var(--muted);margin-top:6px}
+.score{font:700 1.1rem var(--f-display)}
+
+/* flashcards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:14px 0}
+.card{perspective:900px;height:150px;border:0;padding:0;background:none;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.card .inner{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.flip .inner{transform:rotateY(180deg)}
+.card .f,.card .b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;justify-content:center}
+.card .f{background:var(--surface)}
+.card .f b{font:700 1rem var(--f-display);color:var(--air)}
+.card .f small{color:var(--muted);font-size:.75rem;margin-top:6px}
+.card .b{background:var(--air-soft);transform:rotateY(180deg);font-size:.86rem;line-height:1.45;overflow:auto}
+@media (prefers-reduced-motion:reduce){.card .inner{transition:none}}
+
+/* svg primitives */
+.sx{stroke:var(--ink);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sf{fill:var(--ink)}
+.bx{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}
+.bx.hl{fill:var(--air-soft);stroke:var(--air);stroke-width:2.4}
+.tx{fill:var(--ink);font:600 13px var(--f-body)}
+.tx-s{fill:var(--muted);font:500 11px var(--f-mono)}
+.tx-c{text-anchor:middle;dominant-baseline:central}
+.clk{cursor:pointer}
+.clk:hover .bx{stroke:var(--air)}
+.wire{stroke:var(--idle);stroke-width:2.2;fill:none}
+.wire.fb{stroke:var(--warn)}
+.flowdash{stroke-dasharray:7 6;animation:dash .8s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-13}}
+@media (prefers-reduced-motion:reduce){.flowdash{animation:none}}
+footer{color:var(--muted);font-size:.85rem;padding-block:24px 40px;border-top:1px solid var(--line)}
+</style>
+
+<div class="readbar" id="readbar"></div>
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Мехатроніка і робототехніка · Тема 2 · Лекційний посібник</div>
+    <h1>Архітектура мехатронних систем</h1>
+    <p class="lead">Сучасні напрямки й ринок робототехніки, структура мехатронної системи, ієрархія керування, концепція паралельного проєктування, мехатронні модулі та принципи інтеграції. З інтерактивними моделями: замкнений контур із ПІД-регулятором, енкодер, V-модель, електронний кулачок.</p>
+    <dl class="spec">
+      <div><dt>Розділів</dt><dd>9</dd></div>
+      <div><dt>Ілюстрацій лекції</dt><dd>15</dd></div>
+      <div><dt>Інтерактивних моделей</dt><dd>12</dd></div>
+      <div><dt>Самоперевірка</dt><dd>14 питань + картки</dd></div>
+      <div><dt>Орієнтовний час</dt><dd>2 академ. години</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="Зміст">
+    <ol id="toc">
+      <li><a href="#s1"><b>01</b>Напрямки робототехніки</a></li>
+      <li><a href="#s2"><b>02</b>Ринок: статистика і тренди</a></li>
+      <li><a href="#s3"><b>03</b>Кейси галузі</a></li>
+      <li><a href="#s4"><b>04</b>Архітектура: базові поняття</a></li>
+      <li><a href="#s5"><b>05</b>Структурні компоненти</a></li>
+      <li><a href="#s5h"><b>05·</b>Ієрархія керування</a></li>
+      <li><a href="#s6"><b>06</b>Концепція створення</a></li>
+      <li><a href="#s7"><b>07</b>Модулі та інтеграція</a></li>
+      <li><a href="#s8"><b>08</b>Мехатронні принципи</a></li>
+      <li><a href="#s9"><b>09</b>Кейси мехатроніки</a></li>
+      <li><a href="#sum"><b>10</b>Висновки</a></li>
+      <li><a href="#check"><b>11</b>Самоперевірка</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <details class="toc-mobile panel"><summary><b>Зміст посібника</b></summary><div id="tocm"></div></details>
+
+    <!-- ============ 1 ============ -->
+    <section class="sec" id="s1">
+      <div class="secnum">01 · НАПРЯМКИ</div>
+      <h2>Сучасні напрямки робототехніки</h2>
+      <div class="flow" aria-label="Сегменти робототехніки">
+        <span>Промислові</span><i>·</i><span>Колаборативні (коботи)</span><i>·</i><span>Сервісні: медицина, логістика, агро</span><i>·</i><span>Гуманоїдні</span><i>·</i><span>Мобільні AGV / AMR</span>
+      </div>
+
+      <h3>Промислові роботи</h3>
+      <div class="prose"><p>Промислові роботи залишаються найбільшим сегментом ринку. У 2024 році у світі було встановлено рекордну кількість промислових роботів — понад <b>621 тис. одиниць</b>. Оберіть тип робота, щоб побачити його кінематичну схему.</p></div>
+      <div class="tabs" id="rtTabs" role="tablist"></div>
+      <div class="panel tabpane" id="rtPane"></div>
+
+      <h3>Колаборативні роботи (коботи)</h3>
+      <div class="prose"><p><b>Коботи</b> (collaborative robots) — роботи, які можуть працювати поруч із людьми без захисних огороджень. Вони оснащені силомоментними датчиками, системами комп'ютерного зору та програмним забезпеченням, що забезпечує безпеку.</p></div>
+      <div class="cols">
+        <figure class="fig"><button data-zoom><img src="img/image1.jpeg" alt="Колаборативні роботи на виробництві"></button><figcaption><b>Рис. 1</b>Колаборативні роботи на виробництві: безпечна та гнучка автоматизація</figcaption></figure>
+        <figure class="fig"><button data-zoom><img src="img/image2.jpeg" alt="Коботи KUKA як колеги людини"></button><figcaption><b>Рис. 2</b>Коботи як колеги людини (KUKA)</figcaption></figure>
+      </div>
+      <div class="cols3">
+        <div class="stat"><div class="v">Universal Robots</div><div class="l">серія UR</div></div>
+        <div class="stat"><div class="v">KUKA</div><div class="l">LBR iiwa</div></div>
+        <div class="stat"><div class="v">Fanuc</div><div class="l">CR series</div></div>
+        <div class="stat"><div class="v">ABB</div><div class="l">YuMi</div></div>
+      </div>
+
+      <h3>Сервісна робототехніка</h3>
+      <div class="prose"><p>Сервісні роботи працюють поза виробничими лініями. Основні категорії:</p></div>
+      <div class="cols3">
+        <div class="panel"><span class="tag">Медицина</span><h4 style="margin-top:8px">da Vinci</h4><p style="font-size:.92rem">Хірургічний робот для малоінвазивних операцій. До кінця 2025 року встановлена база — <b>11 106</b> систем, пацієнтів — понад <b>20 млн</b>.</p></div>
+        <div class="panel"><span class="tag">Логістика</span><h4 style="margin-top:8px">102,9 тис.</h4><p style="font-size:.92rem">професійних роботів для транспортування та логістики продано у 2024 році — більше половини всіх професійних сервісних роботів.</p></div>
+        <div class="panel"><span class="tag">Агро</span><h4 style="margin-top:8px">ARA (Ecorobotix)</h4><p style="font-size:.92rem">Скорочує використання засобів захисту рослин до <b>95 %</b> за рахунок точкового внесення.</p></div>
+      </div>
+      <div class="cols">
+        <figure class="fig"><button data-zoom><img src="img/image3.jpeg" alt="Роботизована хірургія da Vinci"></button><figcaption><b>Рис. 3</b>Роботизована хірургія da Vinci: що це, переваги та ризики</figcaption></figure>
+        <figure class="fig"><button data-zoom><img src="img/image4.jpeg" alt="Робот da Vinci"></button><figcaption><b>Рис. 4</b>Хірургічний робот da Vinci</figcaption></figure>
+      </div>
+
+      <h3>Гуманоїдні роботи</h3>
+      <div class="prose"><p>Гуманоїдна робототехніка — один із найдинамічніших сегментів. У 2026 році на ринку доступні <b>12 комерційних гуманоїдних платформ</b> (порівняно з 3 у 2024 році).</p></div>
+      <div class="gallery">
+        <figure class="fig"><button data-zoom><img src="img/image5.jpeg" alt="Новий робот Atlas від Boston Dynamics"></button><figcaption><b>Рис. 5</b>Boston Dynamics представляє новий Atlas для комерційного використання</figcaption></figure>
+        <figure class="fig"><button data-zoom><img src="img/image6.jpeg" alt="Гуманоїд Tesla Optimus"></button><figcaption><b>Рис. 6</b>Tesla Optimus: дорожня карта гуманоїда</figcaption></figure>
+        <figure class="fig tall"><button data-zoom><img src="img/image7.jpeg" alt="Робот Atlas"></button><figcaption><b>Рис. 7</b>Atlas (робот)</figcaption></figure>
+      </div>
+      <div class="cols">
+        <div class="panel">
+          <h4>Приклади платформ</h4>
+          <ul style="margin:.4rem 0;padding-left:1.2rem">
+            <li><b>Boston Dynamics Atlas</b> — демонстраційна платформа для досліджень;</li>
+            <li><b>Tesla Optimus</b> — орієнтований на виробничі завдання;</li>
+            <li><b>Figure AI, Agility Robotics Digit, 1X Technologies NEO</b> — комерційні рішення.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h4>Діапазон цін гуманоїдів</h4>
+          <svg viewBox="0 0 320 110" role="img" aria-label="Шкала цін від 28 до 245 тисяч доларів" style="width:100%;height:auto">
+            <line x1="20" y1="50" x2="300" y2="50" stroke="var(--line)" stroke-width="10" stroke-linecap="round"/>
+            <line x1="20" y1="50" x2="300" y2="50" stroke="var(--air)" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+            <circle cx="20" cy="50" r="9" fill="var(--air)"/><circle cx="300" cy="50" r="9" fill="var(--air)"/>
+            <text class="tx" x="20" y="25" text-anchor="start">$28 000</text><text class="tx-s" x="20" y="80">торсо-системи</text>
+            <text class="tx" x="300" y="25" text-anchor="end">$245 000</text><text class="tx-s" x="300" y="80" text-anchor="end">біпедальні</text>
+            <text class="tx-s" x="160" y="102" text-anchor="middle">оренда: $3 500–8 000 / місяць</text>
+          </svg>
+        </div>
+      </div>
+
+      <h3>Мобільна робототехніка та AGV</h3>
+      <div class="prose"><p>Автономні транспортні роботи — <b>AGV</b> (Automated Guided Vehicles) та <b>AMR</b> (Autonomous Mobile Robots) — активно використовуються на складах та виробництвах. Компанія <b>Dematic</b> ще у 1992 році розробила перші AGV для складальних ліній.</p></div>
+      <div class="tablewrap"><table>
+        <tr><th></th><th>AGV</th><th>AMR</th></tr>
+        <tr><td>Навігація</td><td>За заданим маршрутом: магнітна стрічка, мітки, індукційний провід</td><td>Автономна: лідари, камери, карта приміщення (SLAM)</td></tr>
+        <tr><td>Перешкода на шляху</td><td>Зупиняється й чекає</td><td>Самостійно перепланує маршрут</td></tr>
+        <tr><td>Зміна маршруту</td><td>Перекладання розмітки</td><td>Програмно, на карті</td></tr>
+      </table></div>
+    </section>
+
+    <!-- ============ 2 ============ -->
+    <section class="sec" id="s2">
+      <div class="secnum">02 · РИНОК</div>
+      <h2>Ринок робототехніки: статистика та тренди</h2>
+      <div class="stats">
+        <div class="stat"><div class="v">$53,1 млрд</div><div class="l">ринок у 2025 році</div></div>
+        <div class="stat"><div class="v">$59,7 млрд</div><div class="l">ринок у 2026 році</div></div>
+        <div class="stat"><div class="v">$257,5 млрд</div><div class="l">прогноз на 2035 рік</div></div>
+        <div class="stat"><div class="v">17,6 %</div><div class="l">CAGR 2026–2035</div></div>
+      </div>
+      <h3>Калькулятор складного росту (CAGR)</h3>
+      <div class="prose"><p><b>CAGR</b> (Compound Annual Growth Rate) — середньорічний темп складного зростання. Значення через <i>n</i> років: <span class="mono">V<sub>n</sub> = V<sub>0</sub> · (1 + CAGR)<sup>n</sup></span>. Змініть темп і подивіться, як змінюється прогноз 2035 року.</p></div>
+      <div class="panel">
+        <div class="ctrls"><label class="field"><span>CAGR: <b id="cagrV">17,6 %</b></span><input type="range" id="cagr" min="5" max="30" step="0.1" value="17.6"></label></div>
+        <div class="svgbox fit"><svg id="mkt" viewBox="0 0 640 260" role="img" aria-label="Графік обсягу ринку робототехніки 2025–2035"></svg></div>
+        <p class="cap">Опорні точки 2025, 2026 і 2035 років — з лекції; проміжні значення розраховано за формулою CAGR.</p>
+      </div>
+
+      <h3>Регіональна структура</h3>
+      <div class="cols3">
+        <div class="panel"><span class="tag">АТР</span><p style="margin-bottom:0">Азіатсько-Тихоокеанський регіон — найбільший та найшвидшозростаючий ринок.</p></div>
+        <div class="panel"><span class="tag">Китай</span><p style="margin-bottom:0">Абсолютний лідер: у 2024 році парк промислових роботів досяг <b>2 027 000</b> одиниць, річне виробництво — <b>295 000</b> роботів.</p></div>
+        <div class="panel"><span class="tag">США</span><p style="margin-bottom:0">Ринок оцінювався в <b>5 млрд дол.</b> у 2025 році.</p></div>
+      </div>
+
+      <h3>Сегментація ринку</h3>
+      <div class="cols">
+        <div class="panel">
+          <h4>За типом роботів</h4>
+          <p><b>Стаціонарні роботи</b> домінують: 38,1 млрд дол. у 2025 році — це <b id="statShare">72 %</b> ринку.</p>
+          <svg viewBox="0 0 300 40" style="width:100%;height:auto" role="img" aria-label="Частка стаціонарних роботів у ринку 2025 року">
+            <rect x="0" y="8" width="300" height="24" rx="3" fill="var(--surface-2)"/>
+            <rect x="0" y="8" width="215" height="24" rx="3" fill="var(--air)"/>
+            <text x="8" y="24" fill="var(--surface)" style="font:600 12px var(--f-mono)">38,1</text>
+            <text x="222" y="24" class="tx-s">інші 15,0</text>
+          </svg>
+          <p><b>Гуманоїдні роботи</b> — найдинамічніший сегмент, CAGR <b>23,6 %</b>.</p>
+        </div>
+        <div class="panel">
+          <h4>За галузями (встановлення 2024 року)</h4>
+          <svg id="ind" viewBox="0 0 320 130" style="width:100%;height:auto" role="img" aria-label="Встановлення промислових роботів за галузями у 2024 році"></svg>
+          <p class="cap">Електроніка вперше перевершила автопром.</p>
+        </div>
+      </div>
+
+      <h3>Ключові тренди 2025–2026 років</h3>
+      <div class="prose"><p>Натисніть на тренд, щоб розгорнути пояснення.</p></div>
+      <div id="trends"></div>
+    </section>
+
+    <!-- ============ 3 ============ -->
+    <section class="sec" id="s3">
+      <div class="secnum">03 · КЕЙСИ</div>
+      <h2>Практичні приклади та кейси галузі</h2>
+      <div class="tabs" id="caseTabs" role="tablist"></div>
+      <div class="panel" id="casePane" aria-live="polite"></div>
+      <figure class="fig"><button data-zoom><img src="img/image2.jpeg" alt="Коботи KUKA як колеги"></button><figcaption><b>Рис. 2</b>Кобот поруч з оператором: навчання методом lead-through (кейс 5)</figcaption></figure>
+    </section>
+
+    <!-- ============ 4 ============ -->
+    <section class="sec" id="s4">
+      <div class="secnum">04 · АРХІТЕКТУРА</div>
+      <h2>Базові поняття архітектури мехатронних систем</h2>
+      <div class="note"><b class="t">Визначення</b><b>Архітектура мехатронної системи</b> — сукупність структурних рішень щодо взаємозв'язку механічних, електричних, електронних та інформаційних компонентів, які забезпечують реалізацію заданих функцій.</div>
+      <div class="prose"><p>Класична мехатронна система містить чотири базові підсистеми. Наведіть або натисніть на сектор.</p></div>
+      <div class="cols">
+        <div class="svgbox fit"><svg id="venn" viewBox="0 0 360 300" role="img" aria-label="Чотири підсистеми мехатронної системи"></svg></div>
+        <div class="panel" id="vennInfo" aria-live="polite"></div>
+      </div>
+
+      <h3>Узагальнена структурна схема</h3>
+      <figure class="fig"><button data-zoom><img src="img/image8.png" alt="Компоненти мехатронної системи та їхні функції"></button><figcaption><b>Рис. 8</b>Компоненти мехатронної системи та їхні функції (Electrical Academia)</figcaption></figure>
+      <div class="prose"><p>На схемі видно, що мехатронна система — це <b>замкнутий контур</b>. Нижче — та сама схема українською. Запустіть сигнал, щоб простежити його шлях, або натисніть на блок.</p></div>
+      <div class="svgbox"><svg id="loop" viewBox="0 0 720 380" role="img" aria-label="Інтерактивна структурна схема мехатронної системи"></svg></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0"><button class="btn solid" id="loopRun">▶ Пустити сигнал по контуру</button><span class="mono" id="loopStep" style="align-self:center;color:var(--muted)"></span></div>
+      <div class="panel" id="loopInfo" aria-live="polite"><h4>Контролер (PC або MCU)</h4><p>Отримує команди від користувача через інтерфейс, порівнює їх з даними датчиків і формує керувальний сигнал.</p></div>
+      <p class="prose">Ця структура універсальна: вона описує як простий сервопривод принтера, так і шестиосьовий промисловий робот.</p>
+
+      <h3>Історична відсилка: від реле до мікропроцесорів</h3>
+      <div class="tl" id="tl1"></div>
+    </section>
+
+    <!-- ============ 5 ============ -->
+    <section class="sec" id="s5">
+      <div class="secnum">05 · КОМПОНЕНТИ</div>
+      <h2>Структурні компоненти мехатронної системи</h2>
+
+      <h3>Механічна підсистема</h3>
+      <div class="cols">
+        <div class="panel">
+          <h4>Функції</h4>
+          <ul style="margin:.3rem 0;padding-left:1.2rem"><li>перетворення та передача руху;</li><li>забезпечення заданої точності переміщення;</li><li>сприйняття технологічних зусиль.</li></ul>
+        </div>
+        <div class="panel">
+          <h4>Ключові елементи</h4>
+          <p style="margin:.3rem 0"><b>Напрямні</b> — плавність переміщення, малі сили тертя, великий ресурс, зносостійкість. Розрізняють напрямні з тертям <b>ковзання</b> і <b>кочення</b>.</p>
+          <p style="margin:.3rem 0"><b>Редуктори</b> — змінюють швидкість та момент.</p>
+          <p style="margin:.3rem 0"><b>Муфти та з'єднання</b> — компенсують невідповідності осей.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h4>Модель редуктора: швидкість проти моменту</h4>
+        <p style="font-size:.92rem;margin-top:0">Редуктор з передавальним числом <i>i</i> зменшує швидкість у <i>i</i> разів і збільшує момент приблизно у <i>i·η</i> разів (η — ККД).</p>
+        <div class="ctrls">
+          <label class="field"><span>Передавальне число i: <b id="giV">5</b></span><input type="range" id="gi" min="1" max="20" step="1" value="5"></label>
+          <div class="field" style="display:grid;gap:4px;font-size:.85rem;color:var(--muted)"><span>Двигун: <b style="color:var(--ink);font-family:var(--f-mono)">3000 об/хв · 0,5 Н·м</b></span><span style="font-size:.8rem">ККД редуктора η = 0,9</span></div>
+        </div>
+        <div class="cols" style="align-items:center;margin:0">
+          <div class="svgbox fit"><svg id="gear" viewBox="0 0 320 180" role="img" aria-label="Анімація пари зубчастих коліс"></svg></div>
+          <dl class="readout" id="gearOut"></dl>
+        </div>
+      </div>
+
+      <h3>Електрична підсистема: приводи</h3>
+      <div class="prose"><p><b>Приводи (actuators)</b> перетворюють електричну енергію в механічний рух.</p></div>
+      <div class="tablewrap"><table>
+        <tr><th>Привід</th><th>Особливість</th><th>Точність</th><th>Простота керування</th></tr>
+        <tr><td>Двигун постійного струму</td><td>Простий у керуванні, але має щітки</td><td><span class="dots" data-v="2"></span></td><td><span class="dots" data-v="5"></span></td></tr>
+        <tr><td>Безщітковий (BLDC)</td><td>Високий ККД, довговічність</td><td><span class="dots" data-v="3"></span></td><td><span class="dots" data-v="3"></span></td></tr>
+        <tr><td>Сервопривод</td><td>Двигун + енкодер + редуктор в одному корпусі</td><td><span class="dots" data-v="4"></span></td><td><span class="dots" data-v="4"></span></td></tr>
+        <tr><td>Лінійний привод</td><td>Перетворює обертальний рух у поступальний</td><td><span class="dots" data-v="4"></span></td><td><span class="dots" data-v="3"></span></td></tr>
+        <tr><td>П'єзоелектричний</td><td>Надточне позиціонування (нанотехнології)</td><td><span class="dots" data-v="5"></span></td><td><span class="dots" data-v="2"></span></td></tr>
+      </table></div>
+      <p class="cap">Оцінки 1–5 — умовні, для порівняння між собою.</p>
+
+      <h3>Сенсорна підсистема</h3>
+      <div class="prose"><p>Датчики — «органи чуття» мехатронної системи. Вони збирають дані про фактичний стан системи та її взаємодію із середовищем. Без них неможливо реалізувати замкнене керування зі зворотним зв'язком.</p></div>
+      <div class="tablewrap"><table>
+        <tr><th>Тип датчика</th><th>Призначення</th><th>Приклади</th></tr>
+        <tr><td>Положення / швидкості</td><td>Зворотний зв'язок по координаті</td><td>Енкодери, резольвери, потенціометри</td></tr>
+        <tr><td>Сила / момент</td><td>Контроль зусиль</td><td>Тензодатчики, силомоментні датчики</td></tr>
+        <tr><td>Відстані</td><td>Навігація, уникнення зіткнень</td><td>Ультразвукові, лазерні, інфрачервоні</td></tr>
+        <tr><td>Зору</td><td>Розпізнавання об'єктів</td><td>Камери, лідари, стереозір</td></tr>
+        <tr><td>Температури</td><td>Діагностика</td><td>Термістори, термопари</td></tr>
+      </table></div>
+      <h4 style="margin-top:18px">Класифікація: внутрішній і зовнішній стан</h4>
+      <div class="seg" role="group" aria-label="Категорія датчиків" style="margin:8px 0"><button id="sIn" class="on">1. Внутрішній стан</button><button id="sEx">2. Зовнішній стан</button></div>
+      <div class="cols3" id="sensCards"></div>
+
+      <div class="panel" style="margin-top:14px">
+        <h4>Модель інкрементного енкодера (канали A і B)</h4>
+        <p style="font-size:.92rem;margin-top:0">Оптичний диск з прорізами перериває світловий промінь. Два канали зміщені на чверть періоду (90°), тому за тим, який сигнал змінюється першим, контролер визначає напрямок. Обертайте вал повзунком швидкості.</p>
+        <div class="ctrls">
+          <label class="field">Швидкість і напрямок: <b id="encV">+40 °/с</b></span><input type="range" id="encS" min="-120" max="120" step="1" value="40"></label>
+          <label class="field"><span>Прорізів на диску: <b id="encNV">12</b></span><input type="range" id="encN" min="4" max="24" step="1" value="12"></label>
+        </div>
+        <div class="cols" style="align-items:center;margin:0">
+          <div class="svgbox fit"><svg id="encDisk" viewBox="0 0 220 220" role="img" aria-label="Диск енкодера"></svg></div>
+          <div style="min-width:0">
+            <canvas id="encWave" height="150" aria-label="Сигнали каналів A і B"></canvas>
+            <dl class="readout">
+              <div><dt>Лічильник імпульсів</dt><dd id="encCnt">0</dd></div>
+              <div><dt>Кут валу</dt><dd id="encAng">0°</dd></div>
+              <div><dt>Напрямок</dt><dd id="encDir">—</dd></div>
+              <div><dt>Роздільність</dt><dd id="encRes">7,5°</dd></div>
+            </dl>
+          </div>
+        </div>
+        <p class="cap">Роздільність при рахуванні всіх фронтів обох каналів (×4) = 360° / (4 · N).</p>
+      </div>
+      <div class="note"><b class="t">Інтелектуальні сенсори (Smart Sensors)</b>Сучасний тренд — сенсори з власним мікропроцесором для первинної фільтрації шумів, калібрування, температурної компенсації та оцифрування сигналу без участі головного контролера.</div>
+
+      <h3>Інформаційна підсистема</h3>
+      <div class="prose"><p><b>Контролер</b> — «мозок» системи. Сучасні контролери реалізують як мікроконтролери (MCU), одноплатні комп'ютери (SBC), ПЛК (PLC) або FPGA.</p></div>
+      <figure class="fig"><button data-zoom><img src="img/image9.png" alt="Контролери в робототехніці"></button><figcaption><b>Рис. 9</b>Контролери в робототехніці: мікроконтролер, одноплатний комп'ютер, ПЛК, FPGA</figcaption></figure>
+      <div class="tabs" id="ctlTabs"></div>
+      <div class="panel" id="ctlPane"></div>
+
+      <h4 style="margin-top:20px">Пристрій комп'ютерного керування (ПКК)</h4>
+      <div class="prose"><p>ПКК — центральне ядро мехатронної системи. Тут замикаються інформаційні контури, обробляються сенсорні дані та реалізуються інтелектуальні алгоритми.</p></div>
+      <div class="cols3">
+        <div class="panel"><span class="tag">Апаратура</span><h4 style="margin-top:8px">Контролери руху</h4><p style="font-size:.9rem;margin-bottom:0">Плати або моноблоки для швидкісного й високоточного розрахунку траєкторій (ЧПК на DSP або ПЛІС/FPGA).</p></div>
+        <div class="panel"><span class="tag">Апаратура</span><h4 style="margin-top:8px">ПЛК / PLC</h4><p style="font-size:.9rem;margin-bottom:0">Логіко-дискретне керування технологічними процесами; надійні в суворих умовах (пил, завади, температура).</p></div>
+        <div class="panel"><span class="tag">Апаратура</span><h4 style="margin-top:8px">Вбудовані MCU</h4><p style="font-size:.9rem;margin-bottom:0">ARM Cortex, STM32 у корпусі модуля; керують 1–2 координатами та спілкуються з ПК через промислові шини.</p></div>
+      </div>
+      <h4 style="margin-top:16px">Чотири функції ПКК</h4>
+      <div class="svgbox fit"><svg id="pkk" viewBox="0 0 640 250" role="img" aria-label="Чотири функції пристрою комп'ютерного керування"></svg></div>
+      <div class="panel" id="pkkInfo" aria-live="polite" style="margin-top:10px"></div>
+      <div class="warn"><b class="t">Реальний час</b>Усі ці процеси виконуються під керуванням <b>операційних систем реального часу (RTOS)</b>, де час реакції на зовнішню подію строго гарантований (мікросекунди): затримка в розрахунку траєкторії маніпулятора на великій швидкості може призвести до аварії.</div>
+    </section>
+
+    <!-- ============ 5h ============ -->
+    <section class="sec" id="s5h">
+      <div class="secnum">05 · ІЄРАРХІЯ</div>
+      <h2>Ієрархічна архітектура керування</h2>
+      <div class="prose"><p>Мехатронні системи, особливо роботи, використовують <b>багаторівневу ієрархічну структуру керування</b>: стратегічний, тактичний і виконавчий рівні. Кожен рівень працює у своєму часовому масштабі.</p></div>
+      <div class="cols">
+        <div class="svgbox fit"><svg id="pyr" viewBox="0 0 360 290" role="img" aria-label="Піраміда рівнів керування"></svg></div>
+        <div class="panel" id="pyrInfo" aria-live="polite"></div>
+      </div>
+      <div class="panel">
+        <h4>Часові масштаби рівнів (логарифмічна шкала)</h4>
+        <div class="svgbox fit" style="border:0;background:none"><svg id="tscale" viewBox="0 0 640 150" role="img" aria-label="Часові масштаби рівнів керування від мікросекунд до годин"></svg></div>
+      </div>
+
+      <h3>Приклад: архітектура промислового робота</h3>
+      <figure class="fig"><button data-zoom><img src="img/image10.jpeg" alt="Огляд підходів до керування та програмування промислових роботів"></button><figcaption><b>Рис. 10</b>Архітектура керування промисловим роботом (IR): шафа керування, модулі реального й нереального часу, сервоприводи</figcaption></figure>
+      <div class="tablewrap"><table>
+        <tr><th>Елемент на схемі</th><th>Роль</th><th>Рівень</th></tr>
+        <tr><td>External Devices (PLC, датчики)</td><td>З'єднуються з шафою через польову шину (Fieldbus)</td><td><span class="tag">зв'язок</span></td></tr>
+        <tr><td>Non-real-time: Robot program, Command interpreter, Trajectory planning</td><td>Інтерпретатор команд, планування траєкторій, HMI</td><td><span class="tag">стратег./тактич.</span></td></tr>
+        <tr><td>Real-time: I/O module, Trajectory executor</td><td>Траєкторний виконавець та сервокерування</td><td><span class="tag">тактич./викон.</span></td></tr>
+        <tr><td>Servo Drives</td><td>Керують струмом у двигунах; зворотний зв'язок за струмом від робота</td><td><span class="tag">виконавчий</span></td></tr>
+        <tr><td>Teach Pendant / PC</td><td>Програмування онлайн (пульт навчання) або офлайн (ПК)</td><td><span class="tag">HMI</span></td></tr>
+      </table></div>
+
+      <h3>Історична відсилка: еволюція ієрархії</h3>
+      <div class="tl" id="tl2"></div>
+      <figure class="fig"><button data-zoom><img src="img/image11.png" alt="Ієрархічне генеративне моделювання для автономних роботів" style="max-height:760px"></button><figcaption><b>Рис. 11</b>Ієрархічне генеративне моделювання для автономних роботів (Nature Machine Intelligence): планування цілі → генерація інформації → генерація руху</figcaption></figure>
+      <div class="cols3">
+        <div class="panel"><span class="tag">Goal-directed planning</span><p style="font-size:.9rem;margin-bottom:0">Стратегічний рівень: «взяти коробку → доставити → відчинити двері».</p></div>
+        <div class="panel"><span class="tag">Information generation</span><p style="font-size:.9rem;margin-bottom:0">Тактичний рівень: як підійти до столу з коробкою.</p></div>
+        <div class="panel"><span class="tag">Movement generation</span><p style="font-size:.9rem;margin-bottom:0">Виконавчий рівень: безперервні рухи суглобів.</p></div>
+      </div>
+    </section>
+
+    <!-- ============ 6 ============ -->
+    <section class="sec" id="s6">
+      <div class="secnum">06 · КОНЦЕПЦІЯ</div>
+      <h2>Концепція створення мехатронних систем</h2>
+      <div class="note"><b class="t">Системний підхід</b>Методологія, за якої об'єкт розглядається як цілісна система, а не набір незалежних частин. У мехатроніці механічна, електронна та програмна частини проєктуються <b>взаємопов'язано</b>, а не послідовно: від послідовного проєктування переходять до <b>паралельного (Concurrent Engineering)</b>.</div>
+      <div class="stats">
+        <div class="stat"><div class="v">до 70 %</div><div class="l">збоїв складних систем пов'язані з контактами та фізичними з'єднаннями</div></div>
+        <div class="stat"><div class="v">−30 %</div><div class="l">часу розробки завдяки комп'ютерному моделюванню</div></div>
+        <div class="stat"><div class="v">−50–60 %</div><div class="l">фінансових витрат на розробку</div></div>
+      </div>
+      <div class="cols">
+        <div>
+          <h4 style="color:var(--ok)">Переваги</h4>
+          <details class="acc pro"><summary>Синергетичний ефект</summary><div class="in">Тісна інтеграція компонентів різної фізичної природи дає систему з новими корисними властивостями. Функціональне навантаження переноситься з важких металомістких вузлів на програмні алгоритми.</div></details>
+          <details class="acc pro"><summary>Менші маса й габарити, краща динаміка</summary><div class="in">Спрощення кінематичних ланцюгів і усунення проміжних передач дає легші, компактніші машини. Коротші ланки мають вищу жорсткість, що зменшує динамічні навантаження й покращує точність позиціювання.</div></details>
+          <details class="acc pro"><summary>Надійність і завадостійкість</summary><div class="in">У послідовному проєктуванні частини з'єднуються великою кількістю кабелів, а до 70 % збоїв пов'язані з контактами. Системна інтеграція усуває зайві проміжні інтерфейси.</div></details>
+          <details class="acc pro"><summary>Економічна ефективність</summary><div class="in">Стандартизація та уніфікація елементів і інтерфейсів знижують вартість обладнання та сервісу. Моделювання скорочує час розробки на 30 %, витрати — на 50–60 %.</div></details>
+          <details class="acc pro"><summary>Точність функціональних рухів</summary><div class="in">Інтелектуальне керування на виконавчому рівні забезпечує точне відпрацювання траєкторій за мінливих зовнішніх умов.</div></details>
+          <details class="acc pro"><summary>Програмна адаптивність</summary><div class="in">Зміна параметрів чи алгоритму роботи — це перепрограмування мікроконтролерів, а не заміна кулачків чи шестерень.</div></details>
+        </div>
+        <div>
+          <h4 style="color:var(--bad)">Недоліки та виклики</h4>
+          <details class="acc con"><summary>Нижча структурна гнучкість</summary><div class="in">Глибоко інтегровані монолітні пристрої складніше модернізувати чи реконфігурувати користувачу.</div></details>
+          <details class="acc con"><summary>Кадрові та організаційні бар'єри</summary><div class="in"><ul style="margin:0;padding-left:1.1rem"><li>Потрібно зруйнувати ізольовані відділи механіків, електроніків і програмістів та створити мультидисциплінарні команди.</li><li>Дефіцит «мехатронно-орієнтованих» інженерів і менеджерів, які розмовляють з усіма фахівцями однією мовою.</li><li>Малі й середні компанії перебудовуються гнучко, великі бюрократичні — дуже важко.</li></ul></div></details>
+          <details class="acc con"><summary>Математична складність моделювання</summary><div class="in"><ul style="margin:0;padding-left:1.1rem"><li>Зі збільшенням кількості координат зростає складність опису («прокляття розмірності») і вимоги до пам'яті мікропроцесорів.</li><li>Абсолютно точна модель стає такою ж складною, як реальний об'єкт, тому моделі спрощують або застосовують нечіткі (fuzzy) й нейромережеві моделі, які важче аналізувати класичною ТАК.</li></ul></div></details>
+          <details class="acc con"><summary>Вартість і затримки розподілених систем</summary><div class="in">Розпаралелювання алгоритмів у розподілених ієрархічних структурах здорожчує апаратну частину щонайменше в N разів і може додавати затримки обміну між процесорами.</div></details>
+        </div>
+      </div>
+      <p class="prose">Системний підхід — потужний інструмент створення інтелектуальної техніки, але він вимагає високої інженерної культури, зміни організаційної філософії підприємства та сучасного інструментарію імітаційного моделювання.</p>
+
+      <h3>Традиційне vs паралельне проєктування</h3>
+      <figure class="fig"><button data-zoom><img src="img/image12.jpeg" alt="Паралельне проєктування (Concurrent Engineering)"></button><figcaption><b>Рис. 12</b>Concurrent Engineering: традиційний процес — лінійний, «через стіни» між відділами; паралельне проєктування — командна співпраця</figcaption></figure>
+      <div class="panel">
+        <div class="seg" role="group" aria-label="Підхід до проєктування"><button id="ganttSeq" class="on">Каскадний (послідовний)</button><button id="ganttPar">Паралельний</button></div>
+        <div class="svgbox fit" style="margin-top:10px"><svg id="gantt" viewBox="0 0 640 230" role="img" aria-label="Діаграма етапів проєктування"></svg></div>
+        <p class="cap">Тривалості умовні. Червоні стрілки — повернення на доопрацювання, коли інтерфейси розробляли «наосліп».</p>
+        <div id="ganttTxt" class="prose" style="font-size:.95rem"></div>
+      </div>
+
+      <h3>V-модель життєвого циклу</h3>
+      <figure class="fig"><button data-zoom><img src="img/image13.png" alt="V-модель у системній інженерії"></button><figcaption><b>Рис. 13</b>V-модель у системній інженерії (Visure Solutions)</figcaption></figure>
+      <div class="prose"><p><b>V-модель</b> — стандартизована модель розробки технічних систем, особливо популярна в автомобілебудуванні та авіації. Кожному етапу проєктування відповідає <b>строго визначений етап тестування</b>. Натисніть на будь-який блок інтерактивної V-моделі, щоб побачити його пару.</p></div>
+      <div class="svgbox"><svg id="vmod" viewBox="0 0 700 330" role="img" aria-label="Інтерактивна V-модель"></svg></div>
+      <div class="panel" id="vInfo" aria-live="polite" style="margin-top:10px"></div>
+      <div class="cols3">
+        <div class="stat"><div class="l">Перевага</div><div style="font-weight:600">Тестування планується ще до початку розробки</div></div>
+        <div class="stat"><div class="l">Перевага</div><div style="font-weight:600">Ризики виявляються на ранніх стадіях</div></div>
+        <div class="stat"><div class="l">Перевага</div><div style="font-weight:600">Менша загальна вартість проєкту</div></div>
+        <div class="stat"><div class="l">Перевага</div><div style="font-weight:600">Універсальна документація: читаність і контроль</div></div>
+      </div>
+
+      <h3>Процедура проєктування інтегрованих мехатронних модулів</h3>
+      <div class="cols">
+        <div class="svgbox fit"><svg id="cyc" viewBox="0 0 340 300" role="img" aria-label="Циклічна процедура проєктування з чотирьох етапів"></svg></div>
+        <div class="panel" id="cycInfo" aria-live="polite"></div>
+      </div>
+      <p class="prose">Усі етапи мають <b>циклічний характер</b>: результати наступного етапу можуть вимагати повернення до попереднього.</p>
+    </section>
+
+    <!-- ============ 7 ============ -->
+    <section class="sec" id="s7">
+      <div class="secnum">07 · МОДУЛІ</div>
+      <h2>Мехатронні модулі та принципи інтеграції</h2>
+      <div class="note"><b class="t">Мехатронний модуль</b>Функціонально завершений елемент, що об'єднує механічні, електричні, електронні та інформаційні компоненти для реалізації руху за <b>однією керованою координатою</b>. Модулі — «функціональні кубики», з яких компонуються складні системи модульної архітектури.</div>
+
+      <h3>Покоління мехатронних модулів</h3>
+      <div class="seg" role="group" aria-label="Рівень модуля"><button data-gen="0" class="on">1-й рівень · 1960–70-ті</button><button data-gen="1">2-й рівень · 1980-ті</button><button data-gen="2">3-й рівень · 1990-ті → сьогодні</button></div>
+      <div class="cols" style="align-items:center">
+        <div class="svgbox fit"><svg id="genSvg" viewBox="0 0 420 200" role="img" aria-label="Склад мехатронного модуля обраного рівня"></svg></div>
+        <div class="panel" id="genInfo" aria-live="polite"></div>
+      </div>
+      <figure class="fig"><button data-zoom><img src="img/image14.jpeg" alt="Мехатроніка автоматичної коробки передач"></button><figcaption><b>Рис. 14</b>Як працює мехатроніка автоматичної коробки передач: Multi-plate clutch — багатодискове зчеплення, Oil pump — масляний насос, Oil cooler — охолоджувач, Mechatronics — мехатронний блок</figcaption></figure>
+
+      <h3>Методи інтеграції</h3>
+      <div class="cols3">
+        <div class="panel"><span class="tag">Метод 1 · найглибший</span><h4 style="margin-top:8px">Виключення проміжних перетворювачів та інтерфейсів</h4><p style="font-size:.9rem">Виключаються багатоступінчасті перетворення енергії та інформації. Приклад — <b>прямий привод</b> (direct drive): двигун без редуктора приводить робочий орган.</p><p style="font-size:.9rem;margin-bottom:0;color:var(--ok)">→ точність, швидкодія, компактність, надійність</p></div>
+        <div class="panel"><span class="tag">Метод 2</span><h4 style="margin-top:8px">Апаратно-конструктивне об'єднання</h4><p style="font-size:.9rem;margin-bottom:0">Елементи різної фізичної природи — в єдиному корпусі. Приклад — модуль «двигун-робочий орган», де вал двигуна одночасно є елементом механічного перетворювача руху.</p></div>
+        <div class="panel"><span class="tag">Метод 3</span><h4 style="margin-top:8px">Розширення функцій інтелектуальних пристроїв</h4><p style="font-size:.9rem;margin-bottom:0">Програма замінює «залізо». Приклад — <b>безсенсорне керування</b>: швидкість і положення ротора визначаються непрямими методами в контролері, фізичний датчик не потрібен.</p></div>
+      </div>
+
+      <h3>Проблема інтерфейсів</h3>
+      <div class="prose"><p><b>Інтерфейс</b> — сполучний блок, що забезпечує енергетичний та інформаційний обмін між структурними елементами системи. Для машини з комп'ютерним керуванням за трьома координатами на традиційних приводах потрібно з'єднати близько <b>100 сигнальних і силових проводів</b>. Порівняйте з модульною архітектурою на цифровій шині.</p></div>
+      <div class="panel">
+        <div class="ctrls"><label class="field"><span>Кількість керованих координат (осей): <b id="axV">3</b></span><input type="range" id="ax" min="1" max="8" step="1" value="3"></label></div>
+        <div class="svgbox fit"><svg id="wires" viewBox="0 0 640 210" role="img" aria-label="Порівняння кількості з'єднань"></svg></div>
+        <p class="cap">Оцінка: традиційно ≈ 33 проводи на вісь (силові фази, енкодер, кінцеві вимикачі, гальмо, керувальні сигнали) — 3 осі дають ≈ 100, як у лекції. Модульно: на кожен модуль — живлення 2 + шина 2 з ланцюговим з'єднанням.</p>
+      </div>
+    </section>
+
+    <!-- ============ 8 ============ -->
+    <section class="sec" id="s8">
+      <div class="secnum">08 · ПРИНЦИПИ</div>
+      <h2>Мехатронні принципи в робототехніці</h2>
+      <div class="cols" style="align-items:center">
+        <div class="panel" style="text-align:center">
+          <div style="font:700 clamp(2.4rem,7vw,3.6rem)/1 var(--f-display);color:var(--air)">1 + 1 &gt; 2</div>
+          <p class="cap" style="margin-top:10px">Синергія (грец. <i>synergia</i> — спільна дія): система має якісно нові властивості, не притаманні жодному з її елементів окремо.</p>
+        </div>
+        <div class="prose" style="font-size:.95rem">
+          <p>Основою методу мехатроніки є <b>синергетична інтеграція</b> структурних елементів, технологій, енергетичних та інформаційних процесів. Синергетичний ефект виникає, коли перетворення енергії, речовини та інформації утворюють нерозривну цілісність і дають узгоджену (когерентну) поведінку всієї системи.</p>
+          <p>Приклад: сервопривод з прямим приводом (direct drive) не просто замінює «двигун + редуктор», а дає динаміку, недосяжну для традиційної схеми.</p>
+        </div>
+      </div>
+      <h3>Робот як кіберфізична система</h3>
+      <div class="cols">
+        <div class="panel"><span class="tag">Класичний підхід</span><p style="font-size:.93rem;margin-bottom:0">Робот — механічний маніпулятор з електричним чи гідравлічним приводом і зовнішньою системою керування. Частини розробляються автономно й стикуються наприкінці через громіздкі інтерфейсні блоки.</p></div>
+        <div class="panel" style="border-color:var(--air)"><span class="tag">Мехатронний підхід</span><p style="font-size:.93rem;margin-bottom:0">Синергетична інтеграція точної механіки, мікроелектроніки, комп'ютерного керування та інформатики. Сучасний промисловий чи мобільний робот — класичний зразок мехатронної системи.</p></div>
+      </div>
+
+      <h3>Показник розподілу функціонального навантаження</h3>
+      <div class="prose"><p>Кількісна оцінка інтеграції — частка функцій, які виконує механічна, електронна та комп'ютерна складова. Наприкінці XX ст. понад 70 % функцій роботів (позиціювання, координація швидкостей, жорсткість) реалізовувалися механічно: важелі, коробки передач, копіри, кулачкові вали. Сьогодні до 60–80 % функцій перенесено на комп'ютерно-інформаційну частину.</p></div>
+      <div class="panel">
+        <div class="ctrls"><label class="field"><span>Рік: <b id="flY">1990</b></span><input type="range" id="fl" min="1970" max="2026" step="1" value="1990"></label></div>
+        <div class="svgbox fit" style="border:0;background:none"><svg id="flSvg" viewBox="0 0 640 110" role="img" aria-label="Розподіл функціонального навантаження"></svg></div>
+        <p class="cap">Крайні точки відповідають лекції (механіка &gt; 70 % наприкінці XX ст.; комп'ютерна частина до 60–80 % сьогодні); проміжні роки — умовна інтерполяція.</p>
+      </div>
+
+      <h3>Принципи мехатронного проєктування</h3>
+      <div class="cols3" id="prin5"></div>
+
+      <h3>Мехатронна система як замкнутий контур</h3>
+      <figure class="fig"><button data-zoom><img src="img/image15.png" alt="Блок-схема роботи робота"></button><figcaption><b>Рис. 15</b>Блок-схема роботи робота (ElectricalWorkbook): Given task — задане завдання, Robot model — модель робота, Error signals — сигнали похибки, Information processing unit — блок обробки інформації</figcaption></figure>
+      <div class="prose"><p>Будь-яка мехатронна система в робототехніці працює за схемою зі зворотним зв'язком. Модель нижче показує, що дає зворотний зв'язок: робот переміщує вантаж у задану точку, а ви змінюєте коефіцієнти регулятора й масу вантажу.</p></div>
+      <div class="panel">
+        <h4>Модель: ПІД-регулятор положення осі</h4>
+        <div class="seg" role="group" aria-label="Тип керування" style="margin:6px 0"><button id="cmClosed" class="on">Замкнений контур (ПІД)</button><button id="cmOpen">Розімкнений (без датчика)</button></div>
+        <div class="ctrls">
+          <label class="field"><span>K<sub>p</sub> пропорційний: <b id="kpV">12</b></span><input type="range" id="kp" min="0" max="40" step="0.5" value="12"></label>
+          <label class="field"><span>K<sub>i</sub> інтегральний: <b id="kiV">2</b></span><input type="range" id="ki" min="0" max="30" step="0.5" value="6"></label>
+          <label class="field"><span>K<sub>d</sub> диференційний: <b id="kdV">3</b></span><input type="range" id="kd" min="0" max="15" step="0.25" value="4"></label>
+          <label class="field"><span>Маса вантажу: <b id="mV">1,0 кг</b></span><input type="range" id="m" min="0.5" max="3" step="0.1" value="1"></label>
+        </div>
+        <svg id="axisAnim" viewBox="0 0 640 70" style="width:100%;height:auto;display:block" role="img" aria-label="Анімація каретки осі"></svg>
+        <canvas id="pidChart" height="200" aria-label="Перехідний процес положення осі"></canvas>
+        <dl class="readout">
+          <div><dt>Перерегулювання</dt><dd id="pOs">—</dd></div>
+          <div><dt>Час встановлення (±2 %)</dt><dd id="pTs">—</dd></div>
+          <div><dt>Похибка в кінці</dt><dd id="pEs">—</dd></div>
+        </dl>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn solid" id="pidPlay">▶ Відтворити рух</button><button class="btn" id="pidPreset1">Добре налаштований</button><button class="btn" id="pidPreset2">Лише K<sub>p</sub></button><button class="btn" id="pidPreset3">Коливальний</button></div>
+        <p class="cap">На вісь діє сила навантаження, пропорційна масі (як вага на вертикальній осі), тож без K<sub>i</sub> лишається статична похибка. Розімкнений режим подає зусилля, розраховане для маси 1 кг, і не бачить результату: змініть масу — і ціль буде пропущено. Модель спрощена: маса з в'язким тертям, ціль — 100 мм.</p>
+      </div>
+      <h4 style="margin-top:18px">Сім кроків контуру</h4>
+      <ol class="prose" id="loop7" style="padding-left:1.3rem"></ol>
+      <p class="prose">Це класична схема керування зі зворотним зв'язком, яка лежить в основі всіх сучасних роботів.</p>
+
+      <h3>П'ять фундаментальних принципів проєктування роботів</h3>
+      <div id="prinB"></div>
+
+      <div class="panel" style="margin-top:14px">
+        <h4>Модель: електронний редуктор і електронний кулачок</h4>
+        <p style="font-size:.92rem;margin-top:0">Ведуча вісь (master) обертається рівномірно. Положення веденої осі (slave) розраховує контролер за програмним законом — фізичних шестерень і кулачків немає.</p>
+        <div class="seg" role="group" aria-label="Режим" style="margin:6px 0"><button id="egGear" class="on">Електронний редуктор</button><button id="egCam">Електронний кулачок</button></div>
+        <div class="ctrls" id="egCtrls">
+          <label class="field" id="egRatioF"><span>Передавальне число: <b id="egRV">2,0</b></span><input type="range" id="egR" min="-3" max="3" step="0.1" value="2"></label>
+          <label class="field" id="egProfF" hidden><span>Профіль кулачка</span><select id="egProf"><option value="sin">Плавний (синусоїдальний)</option><option value="dwell">З вистоєм</option><option value="lin">Лінійний «пила»</option><option value="2st">Двоступінчастий</option></select></label>
+        </div>
+        <div class="cols" style="align-items:center;margin:0">
+          <div class="svgbox fit"><svg id="egSvg" viewBox="0 0 320 200" role="img" aria-label="Ведуча і ведена осі"></svg></div>
+          <canvas id="egChart" height="200" aria-label="Закон руху веденої осі"></canvas>
+        </div>
+        <p class="cap">Зміна профілю — це кілька рядків у програмі контролера замість виготовлення нового кулачка.</p>
+      </div>
+    </section>
+
+    <!-- ============ 9 ============ -->
+    <section class="sec" id="s9">
+      <div class="secnum">09 · КЕЙСИ</div>
+      <h2>Практичні приклади мехатроніки</h2>
+      <h3>Кейс 1: мехатронний модуль КПП автомобіля (DSG)</h3>
+      <div class="cols" style="align-items:start">
+        <figure class="fig" style="margin:0"><button data-zoom><img src="img/image14.jpeg" alt="Мехатроніка коробки передач DSG"></button><figcaption><b>Рис. 14</b>Коробка передач з подвійним зчепленням і мехатронним блоком</figcaption></figure>
+        <div class="panel">
+          <p style="margin-top:0">В одному корпусі інтегровані:</p>
+          <ul style="padding-left:1.2rem;margin:.3rem 0">
+            <li>гідравлічний блок керування зчепленнями;</li>
+            <li>електронний блок керування (ECU);</li>
+            <li>датчики тиску масла, положення валів, температури;</li>
+            <li>електромеханічні приводи перемикання передач.</li>
+          </ul>
+          <div class="warn" style="margin-bottom:0"><b class="t">Ціна глибокої інтеграції</b>Мехатронний блок Volkswagen DSG об'єднує гідравліку та електроніку в одному корпусі. При його відмові виходить з ладу вся коробка передач.</div>
+        </div>
+      </div>
+
+      <h3>Кейс 2: архітектура KUKA LBR iiwa</h3>
+      <div class="prose"><p>Колаборативний робот <b>KUKA LBR iiwa</b> (Intelligent Industrial Work Assistant) має сім ступенів свободи, і кожен — інтелектуальний мехатронний модуль із власним сервоприводом, енкодером, контролером і <b>силомоментним датчиком</b>. Натисніть на зчленування.</p></div>
+      <div class="cols" style="align-items:center">
+        <div class="svgbox fit"><svg id="iiwa" viewBox="0 0 300 340" role="img" aria-label="Схема семиосьового кобота"></svg></div>
+        <div class="panel" id="iiwaInfo" aria-live="polite"></div>
+      </div>
+
+      <h3>Кейс 3: безсенсорне керування в побутовій техніці</h3>
+      <div class="cols">
+        <div class="prose" style="font-size:.95rem">
+          <p>Пральні машини з інверторним двигуном використовують <b>безсенсорне векторне керування</b>. Контролер визначає положення ротора за електричними параметрами обмоток (непрямий метод).</p>
+          <p>Це приклад <b>третього методу інтеграції</b> — розширення функцій інтелектуального пристрою програмою.</p>
+        </div>
+        <div class="cols3" style="margin:0;grid-template-columns:1fr 1fr">
+          <div class="stat"><div class="v" style="font-size:1rem">− енкодер</div><div class="l">виключено дорогий датчик</div></div>
+          <div class="stat"><div class="v" style="font-size:1rem">− з'єднання</div><div class="l">менше проводів і контактів</div></div>
+          <div class="stat"><div class="v" style="font-size:1rem">+ надійність</div><div class="l">нічого ламатися у вологому барабані</div></div>
+          <div class="stat"><div class="v" style="font-size:1rem">− вартість</div><div class="l">дешевший виріб</div></div>
+        </div>
+      </div>
+
+      <h3>Кейс 4: модульна архітектура Fanuc R-2000iC</h3>
+      <div class="prose"><p>Центральний контролер <b>R-30iB</b> (тактичний рівень) з'єднаний з розподіленими сервоприводами (виконавчий рівень) цифровою шиною <b>FSSB</b> (Fanuc Serial Servo Bus). Пульт навчання — HMI, а польова шина (Profibus, EtherNet/IP) веде до PLC і датчиків. Додайте вісь — достатньо підключити ще один сервомодуль до шини.</p></div>
+      <div class="panel">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px"><button class="btn solid" id="busAdd">+ Додати вісь</button><button class="btn" id="busRem">− Прибрати вісь</button><span class="mono" id="busCnt" style="align-self:center"></span></div>
+        <div class="svgbox"><svg id="bus" viewBox="0 0 720 260" role="img" aria-label="Шинна архітектура промислового робота"></svg></div>
+      </div>
+    </section>
+
+    <!-- ============ summary ============ -->
+    <section class="sec" id="sum">
+      <div class="secnum">10 · ВИСНОВКИ</div>
+      <h2>Ключові висновки та перспективи</h2>
+      <div class="cols">
+        <div class="panel"><h4>Мехатроніка</h4><p style="font-size:.93rem;margin-bottom:0">Міждисциплінарна галузь, що інтегрує механіку, електроніку, інформатику та системи керування. Історія — понад півстоліття, а корені сягають глибокої давнини.</p></div>
+        <div class="panel"><h4>Робототехніка</h4><p style="font-size:.93rem;margin-bottom:0">Еволюціонувала від механічних автоматів XVIII ст. через промислових роботів 1960-х до гуманоїдів та автономних систем.</p></div>
+        <div class="panel"><h4>Ринок</h4><p style="font-size:.93rem;margin-bottom:0">Бурхливе зростання (CAGR 17,6 %). Драйвери: ШІ, дефіцит робочої сили, електронна комерція, медицина.</p></div>
+        <div class="panel"><h4>Універсалізація і RaaS</h4><p style="font-size:.93rem;margin-bottom:0">Від спеціалізованих роботів — до гнучких переналаштовуваних систем. Модель RaaS знижує бар'єри входу для малого та середнього бізнесу.</p></div>
+      </div>
+      <h3>Майбутнє галузі</h3>
+      <div class="stats">
+        <div class="stat"><div class="v">40 %</div><div class="l">нових впроваджень вже використовують фундаментальні моделі VLA (Vision-Language-Action)</div></div>
+        <div class="stat"><div class="v">12</div><div class="l">гуманоїдних платформ доступні для купівлі чи оренди</div></div>
+        <div class="stat"><div class="v">×10+</div><div class="l">синтетичні дані й симуляція здешевлюють навчання роботів у десятки разів</div></div>
+        <div class="stat"><div class="v">57 %</div><div class="l">частка китайських виробників на внутрішньому ринку Китаю — вперше більше за іноземних</div></div>
+      </div>
+    </section>
+
+    <!-- ============ check ============ -->
+    <section class="sec" id="check">
+      <div class="secnum">11 · САМОПЕРЕВІРКА</div>
+      <h2>Перевірте себе</h2>
+      <h3 style="margin-top:0">Картки термінів</h3>
+      <p class="prose" style="color:var(--muted);font-size:.92rem">Натисніть на картку, щоб перевернути її.</p>
+      <div class="cards" id="cards"></div>
+      <h3>Тест</h3>
+      <div id="qz"></div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><button class="btn solid" id="qcheck">Перевірити відповіді</button><button class="btn" id="qreset">Почати знову</button><span class="score" id="qscore"></span></div>
+      <h3>Питання для обговорення</h3>
+      <ol class="prose" style="padding-left:1.3rem">
+        <li>Чому відмова мехатронного блоку DSG виводить з ладу всю коробку передач? Як би ви зменшили цей ризик під час проєктування?</li>
+        <li>Наведіть приклад пристрою з вашого оточення, у якому функцію механіки перенесено на програму.</li>
+        <li>Які етапи V-моделі ви пройшли б під час створення робота для змагань з мобільної робототехніки?</li>
+        <li>На якому рівні ієрархії керування доречно застосовувати генеративні моделі ШІ, а на якому — ні? Чому?</li>
+      </ol>
+    </section>
+  </main>
+</div>
+<footer><div class="wrap">За матеріалами лекції «Тема 2» курсу мехатроніки та робототехніки. Ілюстрації 1–15 — з лекційного матеріалу, у підписах зазначено їхні першоджерела. Посібник STEAM-HUB ПУЕТ для самостійної роботи студентів.</div></footer>
+<div class="lightbox" id="lb" hidden role="dialog" aria-modal="true" aria-label="Збільшене зображення"><button id="lbX" aria-label="Закрити">✕</button><img id="lbImg" alt=""><p id="lbCap"></p></div>
+<script>
+(function(){
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=(n,d=1)=>Number(n).toLocaleString('uk-UA',{minimumFractionDigits:d,maximumFractionDigits:d});
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS='http://www.w3.org/2000/svg';
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tabs(btnWrap,items,render,start=0){const w=$(btnWrap);w.innerHTML=items.map((it,i)=>`<button role="tab" data-i="${i}" class="${i===start?'on':''}">${it}</button>`).join('');
+  w.querySelectorAll('button').forEach(b=>b.onclick=()=>{w.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(+b.dataset.i)});render(start)}
+function seg(a,b,fa,fb){a.onclick=()=>{a.classList.add('on');b.classList.remove('on');fa()};b.onclick=()=>{b.classList.add('on');a.classList.remove('on');fb()}}
+function arrowHead(x,y,ang,cls='sf'){const L=9,W=4.5,bx=x-L*Math.cos(ang),by=y-L*Math.sin(ang),px=-Math.sin(ang)*W,py=Math.cos(ang)*W;return `<polygon class="${cls}" points="${x},${y} ${bx+px},${by+py} ${bx-px},${by-py}"/>`}
+function arr(x1,y1,x2,y2,cls='sx',hcls='sf'){const a=Math.atan2(y2-y1,x2-x1);return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2-7*Math.cos(a)}" y2="${y2-7*Math.sin(a)}"/>${arrowHead(x2,y2,a,hcls)}`}
+function wrapText(t,x,y,max,cls='tx',lh=15){const words=t.split(' ');const lines=[];let cur='';words.forEach(w=>{if((cur+' '+w).trim().length>max){lines.push(cur.trim());cur=w}else cur+=' '+w});lines.push(cur.trim());const y0=y-(lines.length-1)*lh/2;return lines.map((l,i)=>`<text class="${cls} tx-c" x="${x}" y="${y0+i*lh}">${l}</text>`).join('')}
+function sizeCanvas(cv){const r=cv.getBoundingClientRect();const dpr=window.devicePixelRatio||1;const W=Math.max(200,r.width),H=r.height||+cv.getAttribute('height');if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return[c,W,H]}
+$$('canvas').forEach(c=>c.style.height=c.getAttribute('height')+'px');
+
+/* ---------- toc, read progress ---------- */
+$('#tocm').innerHTML='<ol style="padding-left:0;list-style:none;margin:.6rem 0 0">'+$('#toc').innerHTML+'</ol>';
+const links=$$('#toc a');
+if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id))})},{rootMargin:'-25% 0px -65% 0px'});$$('section.sec').forEach(s=>io.observe(s))}
+addEventListener('scroll',()=>{const h=document.documentElement;const p=h.scrollTop/Math.max(1,h.scrollHeight-h.clientHeight);$('#readbar').style.width=(p*100)+'%'},{passive:true});
+
+/* ---------- lightbox ---------- */
+const lb=$('#lb');
+$$('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{const img=b.querySelector('img');$('#lbImg').src=img.src;$('#lbImg').alt=img.alt;$('#lbCap').textContent=b.parentElement.querySelector('figcaption').textContent;lb.hidden=false;$('#lbX').focus()}));
+const closeLb=()=>{lb.hidden=true};$('#lbX').onclick=closeLb;lb.addEventListener('click',e=>{if(e.target===lb)closeLb()});addEventListener('keydown',e=>{if(e.key==='Escape'&&!lb.hidden)closeLb()});
+
+/* ---------- 1. robot types ---------- */
+const RT=[
+ {n:'Артикульовані (шарнірні)',ax:'6–7 осей обертання',use:'Зварювання, фарбування, складання',pro:'Найпоширеніший тип: велика робоча зона і гнучкість орієнтації інструмента.',
+  svg:`<line class="sx" x1="40" y1="140" x2="120" y2="140" style="stroke-width:3"/><rect class="bx" x="62" y="122" width="36" height="18"/><line class="sx" x1="80" y1="122" x2="80" y2="95" style="stroke-width:6"/><line class="sx" x1="80" y1="95" x2="120" y2="50" style="stroke-width:6"/><line class="sx" x1="120" y1="50" x2="168" y2="70" style="stroke-width:5"/><line class="sx" x1="168" y1="70" x2="176" y2="92" style="stroke-width:3"/><path class="sx" d="M168 98 l8 -6 l8 6"/>${[[80,122],[80,95],[120,50],[168,70]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="var(--air)" stroke="var(--ink)" stroke-width="1.5"/>`).join('')}<text class="tx-s" x="88" y="30">J1…J6</text>`},
+ {n:'SCARA',ax:'зазвичай 4 осі: 3 обертальні + 1 вертикальна',use:'Горизонтальні операції складання (електроніка)',pro:'Жорсткі у вертикальному напрямку й податливі в горизонтальному — ідеально для вставляння деталей у плату.',
+  svg:`<line class="sx" x1="30" y1="140" x2="110" y2="140" style="stroke-width:3"/><rect class="bx" x="50" y="60" width="24" height="80"/><rect class="bx" x="50" y="48" width="80" height="16" rx="8"/><rect class="bx" x="118" y="40" width="64" height="16" rx="8"/><line class="sx" x1="168" y1="56" x2="168" y2="112" style="stroke-width:5"/><path class="sx" d="M160 118 l8 -6 l8 6"/><circle cx="62" cy="56" r="5" fill="var(--air)"/><circle cx="124" cy="52" r="5" fill="var(--air)"/><path class="sx" style="stroke:var(--air)" d="M150 26 a16 6 0 1 0 36 0"/><text class="tx-s" x="138" y="18">поворот у площині XY</text><path class="sx" style="stroke:var(--air)" d="M184 70 v34"/>${arrowHead(184,108,Math.PI/2)}`},
+ {n:'Декартові (портальні)',ax:'3 лінійні осі X, Y, Z',use:'Переміщення вантажів, обробка',pro:'Проста кінематика, висока точність, легко масштабувати робочу зону.',
+  svg:`<line class="sx" x1="30" y1="140" x2="180" y2="140" style="stroke-width:3"/><rect class="bx" x="36" y="40" width="10" height="100"/><rect class="bx" x="164" y="40" width="10" height="100"/><rect class="bx" x="30" y="34" width="150" height="12"/><rect class="bx" x="90" y="30" width="30" height="22" style="fill:var(--air-soft)"/><rect class="bx" x="100" y="52" width="10" height="56"/><path class="sx" d="M97 114 l8 -6 l8 6"/>${arr(60,22,100,22,'sx')}<text class="tx-s" x="44" y="18">X</text>${arr(130,70,130,100,'sx')}<text class="tx-s" x="136" y="90">Z</text>${arr(140,60,160,48,'sx')}<text class="tx-s" x="160" y="64">Y</text>`},
+ {n:'Паралельні (дельта)',ax:'3–4 осі, приводи на нерухомій основі',use:'Швидке сортування: харчова промисловість, фармацевтика',pro:'Легкі рухомі ланки дають дуже високі швидкості та прискорення («pick-and-place»).',
+  svg:`<rect class="bx" x="50" y="20" width="110" height="18" style="fill:var(--air-soft)"/><line class="sx" x1="30" y1="20" x2="180" y2="20" style="stroke-width:3"/>${[[62,38,50,80,88,120],[105,38,105,82,105,120],[148,38,160,80,122,120]].map(a=>`<line class="sx" x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" style="stroke-width:4"/><line class="sx" x1="${a[2]-3}" y1="${a[3]}" x2="${a[4]-3}" y2="${a[5]}"/><line class="sx" x1="${a[2]+3}" y1="${a[3]}" x2="${a[4]+3}" y2="${a[5]}"/><circle cx="${a[2]}" cy="${a[3]}" r="4" fill="var(--air)"/>`).join('')}<rect class="bx" x="85" y="118" width="40" height="10"/><line class="sx" x1="105" y1="128" x2="105" y2="140"/><rect x="60" y="146" width="90" height="6" fill="var(--warn)"/>`}];
+tabs('#rtTabs',RT.map(r=>r.n),i=>{const r=RT[i];$('#rtPane').innerHTML=`<svg viewBox="0 0 200 160" role="img" aria-label="Кінематична схема: ${r.n}">${r.svg}</svg><div><h4>${r.n}</h4><dl class="readout" style="grid-template-columns:1fr"><div><dt>Осі</dt><dd style="font-size:.95rem">${r.ax}</dd></div><div><dt>Застосування</dt><dd style="font-size:.95rem">${r.use}</dd></div></dl><p style="margin-bottom:0;font-size:.93rem">${r.pro}</p></div>`});
+
+/* ---------- 2. market ---------- */
+function drawMkt(){const g=+$('#cagr').value/100;$('#cagrV').textContent=fmt(g*100)+' %';
+  const yrs=[];for(let y=2025;y<=2035;y++)yrs.push(y);
+  const val=y=>y===2025?53.1:59.7*Math.pow(1+g,y-2026);
+  const ref=y=>y===2025?53.1:59.7*Math.pow(1.176,y-2026);
+  const L=56,R=620,T=20,B=220;const ymax=Math.max(300,Math.ceil(val(2035)/50)*50);
+  const X=y=>L+(y-2025)*(R-L)/10,Y=v=>B-(v/ymax)*(B-T);
+  let s='';for(let v=0;v<=ymax;v+=ymax>400?100:50){s+=`<line x1="${L}" x2="${R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text class="tx-s" x="${L-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`}
+  yrs.forEach(y=>{const h=B-Y(val(y));const key=y===2025||y===2026||y===2035;s+=`<rect x="${X(y)-13}" y="${Y(val(y))}" width="26" height="${h}" rx="2" fill="var(--air)" opacity="${key?1:.45}"/><text class="tx-s" x="${X(y)}" y="${B+16}" text-anchor="middle">${y}</text>`;if(key)s+=`<text class="tx" x="${X(y)}" y="${Y(val(y))-8}" text-anchor="middle" style="font-size:12px">${fmt(val(y))}</text>`});
+  s+=`<polyline fill="none" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 4" points="${yrs.map(y=>X(y)+','+Y(ref(y))).join(' ')}"/>`;
+  s+=`<text class="tx-s" x="${L}" y="12">млрд дол. США</text><line x1="430" x2="452" y1="10" y2="10" stroke="var(--warn)" stroke-width="2" stroke-dasharray="5 4"/><text class="tx-s" x="458" y="14">прогноз лекції (17,6 %)</text>`;
+  $('#mkt').innerHTML=s}
+$('#cagr').oninput=drawMkt;drawMkt();
+(function(){const d=[['Електроніка',128899],['Автопром',126088],['Металообробка і машинобудування',88777]];let s='';d.forEach((r,i)=>{const w=r[1]/130000*190;s+=`<text class="tx" x="0" y="${22+i*40}" style="font-size:12px">${r[0]}</text><rect x="0" y="${28+i*40}" width="${w}" height="12" rx="2" fill="${i===0?'var(--air)':'var(--idle)'}"/><text class="tx-s" x="${w+6}" y="${38+i*40}">${r[1].toLocaleString('uk-UA')}</text>`});$('#ind').innerHTML=s})();
+const TR=[['ШІ виходить у фізичний світ','Перехід від алгоритмів-помічників до систем, де ШІ сприймає сцену, планує дії та змінює поведінку робота в реальному часі. Приклади — моделі <b>Gemini Robotics</b> (Google DeepMind) та <b>Isaac GR00T N1</b> (NVIDIA).','AI'],
+ ['Універсальність замість спеціалізації','Ринок зміщується від вузькоспеціалізованих роботизованих комірок до систем, які можна швидко переналаштувати під інший продукт чи операцію.','⇄'],
+ ['Робототехніка як послуга (RaaS)','Оренда та підписка замість капітальних інвестицій. Парк таких рішень у 2024 році зріс на <b>31 %</b>, у логістиці — на <b>42 %</b>.','+31 %'],
+ ['Зростання медичної робототехніки','Продажі медичних роботів у 2024 році зросли на <b>91 %</b> — до <b>16,7 тис.</b> одиниць. Діагностика та лабораторний аналіз — на <b>610 %</b>.','+91 %'],
+ ['Здешевлення збору даних','Вартість збору даних телеоперацією знизилася з <b>$340/год</b> (2024) до <b>$118/год</b> (2026) — приблизно на 60 %.','−60 %']];
+$('#trends').innerHTML=TR.map((t,i)=>`<details class="acc"${i===0?' open':''}><summary><span class="tag" style="min-width:54px;text-align:center">${t[2]}</span>${i+1}. ${t[0]}</summary><div class="in">${t[1]}${i===4?`<svg viewBox="0 0 300 70" style="width:100%;max-width:360px;height:auto;display:block;margin-top:8px" role="img" aria-label="Вартість години збору даних"><rect x="0" y="8" width="${340/340*280}" height="18" rx="2" fill="var(--idle)"/><text class="tx-s" x="6" y="21" style="fill:var(--surface)">2024 · $340</text><rect x="0" y="38" width="${118/340*280}" height="18" rx="2" fill="var(--air)"/><text class="tx-s" x="${118/340*280+6}" y="51">2026 · $118</text></svg>`:''}</div></details>`).join('');
+
+/* ---------- 3. cases ---------- */
+const CS=[['Tesla','Автомобільний конвеєр Tesla','На заводах Tesla в Берліні та Шанхаї сотні промислових роботів KUKA та Fanuc зварюють кузови, наносять фарбу та складають автомобілі. Тривалість циклу виробництва одного авто скорочено до <b>10 годин</b>. Компанія планує використовувати власних гуманоїдів <b>Optimus</b> для монотонних операцій.','10 год','цикл виробництва авто'],
+ ['Amazon','Склад Amazon у Шривпорті (США)','У новому складському центрі працюють <b>вісім різних роботизованих систем</b>, зокрема система <b>Sequoia</b>, яка прискорює розміщення та зберігання запасів до <b>75 %</b>.','75 %','швидше розміщення запасів'],
+ ['da Vinci','Хірургічна система da Vinci','Хірург оперує через мініатюрні розрізи (1–2 см) з 10-кратним збільшенням і стабілізацією рук. У 2025 році виконано понад <b>3,1 млн процедур</b>.','3,1 млн','процедур у 2025 році'],
+ ['Solix','Агроробот Solix','Компанія <b>Solinftec</b> розгорнула понад <b>100 автономних роботів Solix</b> у США для моніторингу полів. Площа операцій за 2025 рік зросла на <b>243 %</b>.','+243 %','площа операцій'],
+ ['Кобот у МСП','Кобот на малому підприємстві','Німецька компанія <b>MAIROTEC</b> використовує кобот <b>KUKA LBR iisy</b> для завантаження та розвантаження верстатів. Оператор навчає робота новій операції, просто перетягуючи його «руку» — програмування методом <b>lead-through</b>.','0 рядків','коду для навчання операції']];
+tabs('#caseTabs',CS.map((c,i)=>`Кейс ${i+1}: ${c[0]}`),i=>{const c=CS[i];$('#casePane').innerHTML=`<div class="cols" style="margin:0;align-items:center"><div><h4>${c[1]}</h4><p style="margin-bottom:0">${c[2]}</p></div><div class="stat" style="text-align:center"><div class="v" style="font-size:2rem">${c[3]}</div><div class="l">${c[4]}</div></div></div>`});
+
+/* ---------- 4. venn ---------- */
+const VN=[['Механічна','Несучі конструкції, передачі, напрямні, робочі органи.','--c1',130,110],['Електрична / електронна','Двигуни, датчики, силова електроніка.','--c2',230,110],['Інформаційна','Мікроконтролери, програмне забезпечення, інтерфейси.','--c3',130,190],['Система керування','Алгоритми, зворотний зв\'язок, штучний інтелект.','--c4',230,190]];
+function vennSel(i){$$('#venn .vc').forEach((c,j)=>c.setAttribute('fill-opacity',j===i?.42:.16));const v=VN[i];$('#vennInfo').innerHTML=`<span class="tag">Підсистема ${i+1}</span><h4 style="margin-top:8px;color:var(${v[2]})">${v[0]} підсистема</h4><p style="margin-bottom:0">${v[1]}</p><p class="cap">Мехатронна система виникає саме в перетині всіх чотирьох — там, де вони проєктуються разом.</p>`}
+$('#venn').innerHTML=VN.map((v,i)=>`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="${v[0]}"><circle class="vc" cx="${v[3]}" cy="${v[4]}" r="78" fill="var(${v[2]})" fill-opacity=".16" stroke="var(${v[2]})" stroke-width="2"/></g>`).join('')+
+ VN.map((v,i)=>{const dx=i%2?60:-60,dy=i<2?-50:50;return `<text class="tx tx-c" x="${v[3]+dx*0.6}" y="${v[4]+dy*0.75}" style="pointer-events:none;font-size:12px">${v[0].split(' ')[0]}</text>`}).join('')+
+ `<circle cx="180" cy="150" r="30" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.5" style="pointer-events:none"/><text class="tx tx-c" x="180" y="150" style="font-size:10.5px;pointer-events:none">Мехатроніка</text>`;
+$$('#venn .clk').forEach(g=>{const f=()=>vennSel(+g.dataset.i);g.addEventListener('click',f);g.addEventListener('mouseenter',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})});vennSel(0);
+
+/* ---------- 4. loop ---------- */
+const LB={ui:[20,165,120,54,'Інтерфейс','користувача','Інтерфейс користувача','Оператор задає команди та бачить стан системи (кнопки, сенсорна панель, ПК).'],
+ ctl:[185,160,140,64,'Контролер','(PC або MCU)','Контролер (PC або MCU)','Отримує команди від користувача, порівнює їх з даними датчиків і формує керувальний сигнал.'],
+ dac:[195,40,120,46,'ЦАП','Digital → Analog','Цифро-аналоговий перетворювач','Перетворює цифрову команду контролера на аналоговий сигнал для силових кіл. На схемі пунктиром: у багатьох системах його функцію виконує ШІМ-вихід.'],
+ drv:[385,40,140,46,'Силові кола','Drive Circuits','Силові кола (драйвери)','Підсилюють слабкий керувальний сигнал до потужності, потрібної двигуну: H-міст, інвертор, сервопідсилювач.'],
+ act:[565,110,140,46,'Виконавчі','механізми','Виконавчі механізми (Actuators)','Перетворюють електричну енергію на рух: двигуни, соленоїди, пневмоциліндри.'],
+ mech:[565,190,140,52,'Механічна','система','Механічна система','Об\'єкт керування: передачі, ланки, робочий орган. На оригінальній схемі виділена товстою рамкою.'],
+ sen:[565,276,140,46,'Датчики','Sensors','Датчики (Sensors)','Вимірюють параметри руху та стану механічної системи: положення, швидкість, силу.'],
+ sc:[365,300,150,50,'Обробка сигналу','Signal Conditioning','Обробка сигналу','Фільтрує, підсилює та масштабує сигнал датчика, щоб він був придатний для оцифрування.'],
+ adc:[195,250,120,46,'АЦП','Analog → Digital','Аналого-цифровий перетворювач','Оцифровує сигнал датчика й повертає його до контролера для корекції — так контур замикається.']};
+const LP=[['ctl','M255 160 V86'],['dac','M315 63 H385'],['drv','M525 63 H635 V110'],['act','M635 156 V190'],['mech','M635 242 V276'],['sen','M565 299 H540 V325 H515'],['sc','M365 325 H255 V296'],['adc','M255 250 V224']];
+let ls='';Object.entries(LB).forEach(([k,b])=>{const dashed=k==='dac'||k==='adc';ls+=`<g class="clk" data-k="${k}" tabindex="0" role="button" aria-label="${b[6]}"><rect class="bx" id="lb_${k}" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="3" ${dashed?'stroke-dasharray="6 4"':''} ${k==='mech'?'style="stroke-width:3.5"':''}/><text class="tx tx-c" x="${b[0]+b[2]/2}" y="${b[1]+b[3]/2-8}">${b[4]}</text><text class="tx-s tx-c" x="${b[0]+b[2]/2}" y="${b[1]+b[3]/2+10}">${b[5]}</text></g>`});
+LP.forEach((p,i)=>{const fb=i>=5;ls+=`<path id="lp${i}" d="${p[1]}" class="wire${fb?' fb':''}"/>`;});
+// arrow heads at end of each path
+const ends=[[255,86,-Math.PI/2],[385,63,0],[635,110,Math.PI/2],[635,190,Math.PI/2],[635,276,Math.PI/2],[515,325,Math.PI],[255,296,-Math.PI/2],[255,224,-Math.PI/2]];
+ends.forEach((e,i)=>ls+=arrowHead(e[0],e[1],e[2],'sf'));
+ls+=`<line class="sx" x1="148" y1="192" x2="177" y2="192"/>${arrowHead(185,192,0)}${arrowHead(140,192,Math.PI)}`;
+ls+=`<text class="tx-s" x="350" y="200" style="fill:var(--warn)">зворотний зв'язок</text><text class="tx-s" x="350" y="120" style="fill:var(--air)">прямий канал</text><circle id="pkt" r="7" fill="var(--air)" stroke="var(--surface)" stroke-width="2" cx="-20" cy="-20"/>`;
+$('#loop').innerHTML=ls;
+function loopSel(k){$$('#loop .bx').forEach(r=>r.classList.remove('hl'));$('#lb_'+k).classList.add('hl');const b=LB[k];$('#loopInfo').innerHTML=`<h4>${b[6]}</h4><p style="margin-bottom:0">${b[7]}</p>`}
+$$('#loop .clk').forEach(g=>{const f=()=>loopSel(g.dataset.k);g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})});loopSel('ctl');
+let loopBusy=false;$('#loopRun').onclick=()=>{if(loopBusy)return;loopBusy=true;let i=0;const pkt=$('#pkt');
+  const next=()=>{if(i>=LP.length){loopSel('ctl');$('#loopStep').textContent='Контур замкнено: контролер коригує керування';pkt.setAttribute('cx',-20);loopBusy=false;return}
+    const [k]=LP[i];loopSel(k);$('#loopStep').textContent=`Крок ${i+1} з ${LP.length}`;const path=$('#lp'+i),len=path.getTotalLength();pkt.setAttribute('fill',i>=5?css('--warn'):css('--air'));
+    const dur=reduce?1:900;const t0=performance.now();const step=t=>{const p=Math.min(1,(t-t0)/dur);const pt=path.getPointAtLength(p*len);pkt.setAttribute('cx',pt.x);pkt.setAttribute('cy',pt.y);if(p<1)requestAnimationFrame(step);else{i++;setTimeout(next,reduce?0:550)}};requestAnimationFrame(step)};next()};
+
+/* ---------- timelines ---------- */
+function timeline(sel,items){const el=$(sel);el.innerHTML=`<div class="tl-track" role="tablist">${items.map((it,i)=>`<button role="tab" data-i="${i}"><b>${it[0]}</b>${it[1]}</button>`).join('')}</div><div class="panel tl-body" aria-live="polite"></div>`;
+  const bs=el.querySelectorAll('button'),body=el.querySelector('.tl-body');const show=i=>{bs.forEach((b,j)=>b.classList.toggle('on',j<=i));body.innerHTML=`<span class="tag">${items[i][0]}</span><h4 style="margin-top:8px">${items[i][1]}</h4><p style="margin-bottom:0">${items[i][2]}</p>`};bs.forEach(b=>b.onclick=()=>show(+b.dataset.i));show(0)}
+timeline('#tl1',[['1930–1950-ті','Жорстка логіка на реле','Системи керування верстатами будували на електромеханічних реле та контакторах. Програма була «зашита» в схему: щоб змінити алгоритм, потрібно було перепаяти проводи.'],
+ ['1952','ЧПК','MIT розробив верстат з числовим програмним керуванням за перфострічкою. Перша гнучка архітектура: програму можна змінити без зміни «заліза».'],
+ ['1970-ті','Мікропроцесорна революція','З появою Intel 4004 (1971) і наступних мікропроцесорів архітектура стала програмованою. З\'явилися перші ПЛК (програмовані логічні контролери).'],
+ ['1990-ті → сьогодні','Розподілені архітектури','Цифрові шини (CAN, EtherCAT), вбудовані системи реального часу та інтеграція з ШІ.']]);
+timeline('#tl2',[['1960-ті','Однорівневе керування','Unimate мав жорстку програму на магнітному барабані без зворотного зв\'язку за положенням.'],
+ ['1970-ті','Поява сервосистем','Кожна вісь має власний регулятор положення, але координації між осями немає.'],
+ ['1980-ті','Централізоване керування','З\'являється траєкторний планувальник: інструмент можна вести вздовж складної кривої в просторі.'],
+ ['1990–2000-ті','Розподілене керування','Кожен привод має вбудований інтелектуальний сервоконтролер, а центральний процесор займається лише координацією.'],
+ ['2010-ті → сьогодні','ШІ на всіх рівнях','Генеративні моделі планують поведінку робота на стратегічному рівні, нейромережі оптимізують рух на виконавчому.']]);
+
+/* ---------- 5. dots ---------- */
+$$('.dots').forEach(d=>{const v=+d.dataset.v;d.innerHTML=Array.from({length:5},(_,i)=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:3px;background:${i<v?'var(--air)':'var(--surface-2)'};border:1px solid var(--line)"></span>`).join('');d.setAttribute('aria-label',v+' з 5')});
+
+/* ---------- 5. gear ---------- */
+function gearG(cx,cy,r,id){let sp='';for(let k=0;k<6;k++){const a=k*Math.PI/3;sp+=`<line x1="${cx}" y1="${cy}" x2="${cx+r*0.8*Math.cos(a)}" y2="${cy+r*0.8*Math.sin(a)}" class="sx"/>`}
+  const teeth=Math.max(8,Math.round(r/3.2));return `<g id="${id}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="${Math.max(3,r*0.18)}" stroke-dasharray="${(2*Math.PI*r/teeth/2).toFixed(2)} ${(2*Math.PI*r/teeth/2).toFixed(2)}"/><circle cx="${cx}" cy="${cy}" r="${r-4}" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.2"/>${sp}<circle cx="${cx}" cy="${cy}" r="4" class="sf"/><circle cx="${cx+r*0.6}" cy="${cy}" r="4" fill="var(--warn)"/></g>`}
+let gI=5,gA=0;function drawGear(){gI=+$('#gi').value;$('#giV').textContent=gI;const R=70,r=Math.max(9,R/gI);const cxW=200,cy=95,cxP=cxW-R-r-2;
+  $('#gear').innerHTML=gearG(cxP,cy,r,'gP')+gearG(cxW,cy,R,'gW')+`<text class="tx-s" x="${cxP}" y="178" text-anchor="middle">двигун</text><text class="tx-s" x="${cxW}" y="178" text-anchor="middle">вихід</text>`;
+  $('#gearOut').innerHTML=`<div><dt>Швидкість виходу</dt><dd>${fmt(3000/gI,0)} об/хв</dd></div><div><dt>Момент виходу</dt><dd>${fmt(0.5*gI*0.9,2)} Н·м</dd></div><div><dt>Потужність</dt><dd>≈ ${fmt(3000*2*Math.PI/60*0.5*0.9,0)} Вт</dd></div>`;
+  drawGear.p={cxP,cxW,cy}}
+$('#gi').oninput=drawGear;drawGear();
+let gl=performance.now();(function gt(t){const dt=(t-gl)/1000;gl=t;if(!reduce){gA+=dt*180;const p=drawGear.p;const a=$('#gP'),b=$('#gW');if(a&&b){a.setAttribute('transform',`rotate(${gA%360} ${p.cxP} ${p.cy})`);b.setAttribute('transform',`rotate(${(-gA/gI)%360} ${p.cxW} ${p.cy})`)}}requestAnimationFrame(gt)})(gl);
+
+/* ---------- 5. sensors ---------- */
+const SIN=[['Фотоімпульсні (енкодери)','Положення, кут','Оптичний диск з прорізами перериває промінь. Контролер рахує імпульси й визначає кут і напрямок завдяки зміщенню фаз каналів A і B.'],
+ ['Резольвери','Кут повороту','Кругові обертові трансформатори: працюють на зміні взаємоіндукції обмоток при повороті ротора. Надзвичайно надійні при сильних вібраціях і високих температурах.'],
+ ['Потенціометричні та індуктивні','Лінійне переміщення','Визначають лінійні переміщення ланок.'],
+ ['Тахогенератори','Швидкість','Мініатюрні генератори постійного струму: напруга на виході пропорційна швидкості обертання.'],
+ ['Датчики струму та напруги','Момент, захист','Вбудовані в силові перетворювачі: контролюють електромагнітний момент двигуна та захищають від перевантажень.']];
+const SEX=[['Силомоментні (тензометри)','Сила, момент контакту','Вимірюють зусилля та моменти при контакті робочого органу з об\'єктом (збирання, шліфування). Робот регулює силу притискання інструмента.'],
+ ['Тактильні','Форма, сила стиснення','Матриці, часто зі струмопровідної гуми: схоплювач визначає форму деталі та силу стиснення і не руйнує крихкі об\'єкти.'],
+ ['Далекоміри та локатори','Відстань, карта','Ультразвукові, інфрачервоні, лідари. У мобільній робототехніці — для побудови карти оточення та уникнення зіткнень.'],
+ ['Технічний (комп\'ютерний) зір','Об\'єкти, координати, дефекти','Цифрові камери + алгоритми обробки зображень (наприклад, OpenCV): розпізнають об\'єкти на конвеєрі, їхні координати, орієнтацію й дефекти.']];
+function sens(a){$('#sensCards').innerHTML=a.map(s=>`<div class="panel"><span class="tag">${s[1]}</span><h4 style="margin-top:8px">${s[0]}</h4><p style="font-size:.9rem;margin-bottom:0">${s[2]}</p></div>`).join('')}
+seg($('#sIn'),$('#sEx'),()=>sens(SIN),()=>sens(SEX));sens(SIN);
+
+/* ---------- 5. encoder ---------- */
+let eAng=0,eCnt=0,eN=12,eSpd=40,ePrevA=null,ePrevB=null,eDir='—';const eHist=[];
+function drawDisk(){let s=`<circle cx="110" cy="110" r="96" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><g id="eRot">`;const w=360/eN/2;for(let k=0;k<eN;k++){const a0=(k*360/eN)*Math.PI/180,a1=(k*360/eN+w)*Math.PI/180;const r0=72,r1=90;s+=`<path d="M${110+r0*Math.cos(a0)} ${110+r0*Math.sin(a0)} L${110+r1*Math.cos(a0)} ${110+r1*Math.sin(a0)} A${r1} ${r1} 0 0 1 ${110+r1*Math.cos(a1)} ${110+r1*Math.sin(a1)} L${110+r0*Math.cos(a1)} ${110+r0*Math.sin(a1)} A${r0} ${r0} 0 0 0 ${110+r0*Math.cos(a0)} ${110+r0*Math.sin(a0)}Z" fill="var(--surface)"/>`}
+  s+=`<line x1="110" y1="110" x2="110" y2="50" stroke="var(--warn)" stroke-width="3"/></g><circle cx="110" cy="110" r="14" class="sf"/>`;
+  const pa=-90*Math.PI/180;const pb=pa+(w/2)*Math.PI/180; // B shifted quarter period
+  [[pa,'A','--c1'],[pb,'B','--c2']].forEach(p=>{const x=110+81*Math.cos(p[0]),y=110+81*Math.sin(p[0]);s+=`<circle cx="${x}" cy="${y}" r="6" fill="var(${p[2]})" stroke="var(--ink)"/><text class="tx" x="${x+(p[1]==='A'?-18:10)}" y="${y-8}" style="fill:var(${p[2]})">${p[1]}</text>`});
+  $('#encDisk').innerHTML=s;$('#encRes').textContent=fmt(360/(4*eN),2).replace(/,?0+$/,'')+'°'}
+$('#encN').oninput=e=>{eN=+e.target.value;$('#encNV').textContent=eN;eCnt=0;ePrevA=ePrevB=null;drawDisk()};
+$('#encS').oninput=e=>{eSpd=+e.target.value;$('#encV').textContent=(eSpd>0?'+':'')+eSpd+' °/с'};drawDisk();
+function encSig(ang){const ph=((ang%360)+360)%360/(360/eN);const fr=ph-Math.floor(ph);return[fr<0.5?1:0,((fr+0.75)%1)<0.5?1:0]} // B lags/leads by quarter
+let el=performance.now();(function et(t){const dt=Math.min(.05,(t-el)/1000);el=t;eAng+=eSpd*dt;const [A,B]=encSig(eAng);
+  if(ePrevA!==null){const old=(ePrevA<<1)|ePrevB,now=(A<<1)|B;if(old!==now){const seq=[0,1,3,2];const io=seq.indexOf(old),inw=seq.indexOf(now);const d=(inw-io+4)%4;if(d===3){eCnt++;eDir='за год. ↻'}else if(d===1){eCnt--;eDir='проти ↺'}}}
+  ePrevA=A;ePrevB=B;eHist.push([A,B]);if(eHist.length>260)eHist.shift();
+  const r=$('#eRot');if(r)r.setAttribute('transform',`rotate(${eAng%360} 110 110)`);
+  $('#encCnt').textContent=eCnt;$('#encAng').textContent=fmt(eCnt*360/(4*eN),1)+'°';$('#encDir').textContent=eSpd===0?'стоїть':eDir;
+  drawWave();requestAnimationFrame(et)})(el);
+function drawWave(){const cv=$('#encWave');const [c,W,H]=sizeCanvas(cv);c.clearRect(0,0,W,H);const L=28,R=W-8;c.font='600 11px "JetBrains Mono",monospace';
+  [['A',css('--c1'),20,60],['B',css('--c2'),85,125]].forEach((ch,k)=>{c.fillStyle=ch[1];c.fillText(ch[0],8,(ch[2]+ch[3])/2+4);c.strokeStyle=css('--line');c.beginPath();c.moveTo(L,ch[3]);c.lineTo(R,ch[3]);c.stroke();
+    c.strokeStyle=ch[1];c.lineWidth=2;c.beginPath();const n=eHist.length,st=(R-L)/260;eHist.forEach((h,i)=>{const x=L+(260-n+i)*st,y=h[k]?ch[2]:ch[3];if(i===0)c.moveTo(x,y);else{c.lineTo(x,y)}});c.stroke();c.lineWidth=1})}
+
+/* ---------- 5. controllers ---------- */
+const CT=[['Мікроконтролер (MCU)','Невеликий спеціалізований обчислювач для базових задач. Приклади: Arduino (AVR), STM32, ESP32.',[2,4,3,5]],
+ ['Одноплатний комп\'ютер (SBC)','Вища обчислювальна потужність, підтримує операційні системи; зручний для комп\'ютерного зору та ШІ. Приклади: Raspberry Pi, NVIDIA Jetson.',[4,2,2,4]],
+ ['ПЛК (PLC)','Керування промисловою автоматизацією; надійна конструкція для пилу, завад і перепадів температури. Приклади: Siemens S7, Allen-Bradley.',[3,4,5,3]],
+ ['FPGA / спеціалізовані','Високошвидкісна паралельна обробка для складних застосувань: керування рухом, обробка сигналів, ЧПК. Приклади: Xilinx, Intel (Altera).',[4,5,4,1]]];
+const CA=['Обчислювальна потужність','Детермінованість (реальний час)','Промислова надійність','Простота і низька вартість'];
+tabs('#ctlTabs',CT.map((c,i)=>`${i+1}. ${c[0].split(' (')[0]}`),i=>{const c=CT[i];$('#ctlPane').innerHTML=`<h4>${c[0]}</h4><p>${c[1]}</p>${CA.map((a,j)=>`<div style="display:grid;grid-template-columns:minmax(120px,220px) 1fr;gap:10px;align-items:center;margin:6px 0;font-size:.88rem"><span>${a}</span><span style="display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden"><i style="display:block;height:100%;width:${c[2][j]*20}%;background:var(--air);border-radius:5px"></i></span></div>`).join('')}<p class="cap">Оцінки умовні — для порівняння класів контролерів.</p>`});
+
+/* ---------- 5. PKK ---------- */
+const PK=[['Планування руху','генерація траєкторій','Розрахунок бажаного положення, швидкості та прискорення робочого органу в кожен момент часу на основі завдання від оператора або ERP-системи.',150,60],
+ ['Виконання руху','у реальному часі','Розрахунок закону керування (ПІД-регулятор, адаптивне чи нечітке керування), щоб мінімізувати похибку між бажаним і фактичним рухом.',490,60],
+ ['Координація','з супутніми процесами','Керування зовнішніми пристроями через дискретні й аналогові входи/виходи (I/O): подача охолоджувальної рідини, повітря в пневмозатискач тощо.',490,190],
+ ['Взаємодія з оператором','HMI','Візуалізація процесу на сенсорних панелях, прийом нових програм, сигналізація про аварійні стани.',150,190]];
+let ps=`<circle cx="320" cy="125" r="54" fill="var(--air-soft)" stroke="var(--air)" stroke-width="2"/><text class="tx tx-c" x="320" y="116" style="font-size:15px">ПКК</text><text class="tx-s tx-c" x="320" y="136">RTOS</text>`;
+PK.forEach((p,i)=>{ps+=`<line x1="320" y1="125" x2="${p[3]}" y2="${p[4]}" stroke="var(--line)" stroke-width="2"/>`});
+PK.forEach((p,i)=>{ps+=`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="${p[0]}"><rect class="bx" id="pk${i}" x="${p[3]-95}" y="${p[4]-28}" width="190" height="56" rx="6"/><text class="tx tx-c" x="${p[3]}" y="${p[4]-8}"><tspan style="fill:var(--air);font-family:var(--f-mono)">${i+1}</tspan> ${p[0]}</text><text class="tx-s tx-c" x="${p[3]}" y="${p[4]+12}">${p[1]}</text></g>`});
+$('#pkk').innerHTML=ps;
+function pkSel(i){$$('#pkk .bx').forEach(b=>b.classList.remove('hl'));$('#pk'+i).classList.add('hl');$('#pkkInfo').innerHTML=`<h4>${i+1}. ${PK[i][0]} (${PK[i][1]})</h4><p style="margin-bottom:0">${PK[i][2]}</p>`}
+$$('#pkk .clk').forEach(g=>{const f=()=>pkSel(+g.dataset.i);g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});pkSel(0);
+
+/* ---------- 5h. pyramid ---------- */
+const PY=[['Стратегічний','вищий','хвилини — години',['Прийняття рішень щодо загальної мети','Планування послідовності операцій','Взаємодія з оператором або ERP/MES-системами'],'--c4'],
+ ['Тактичний','середній','мілісекунди — секунди',['Генерація траєкторій руху','Координація декількох осей / модулів','Уникнення перешкод'],'--c3'],
+ ['Виконавчий','нижчий','мікросекунди — мілісекунди',['Регулятори положення, швидкості, моменту','ШІМ-керування приводами','Обробка сигналів датчиків у реальному часі'],'--c1']];
+let py='';const pyPts=[[180,20,130,100,230,100],[130,100,80,180,280,180],[80,180,30,260,330,260]];
+PY.forEach((p,i)=>{const q=pyPts[i];const pts=i===0?`${q[0]},${q[1]} ${q[4]},${q[5]} ${q[2]},${q[3]}`:`${q[0]},${q[1]} ${360-q[0]},${q[1]} ${q[4]},${q[5]} ${q[2]},${q[3]}`;
+  py+=`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="${p[0]} рівень"><polygon class="pyp" id="py${i}" points="${pts}" fill="var(${p[4]})" fill-opacity=".2" stroke="var(${p[4]})" stroke-width="2"/><text class="tx tx-c" x="180" y="${(q[1]+q[3])/2+(i===0?18:-6)}">${p[0]}</text><text class="tx-s tx-c" x="180" y="${(q[1]+q[3])/2+(i===0?34:12)}">${i===0?'':p[2]}</text></g>`});
+py+=`${arr(345,250,345,30,'sx')}<text class="tx-s" x="340" y="150" transform="rotate(-90 340 150)" text-anchor="middle">повільніше · абстрактніше</text>`;
+$('#pyr').innerHTML=py;
+function pySel(i){PY.forEach((_,j)=>$('#py'+j).setAttribute('fill-opacity',j===i?.45:.15));const p=PY[i];$('#pyrInfo').innerHTML=`<span class="tag">${p[1]} рівень</span><h4 style="margin-top:8px;color:var(${p[4]})">${p[0]} рівень</h4><ul style="padding-left:1.2rem;margin:.4rem 0">${p[3].map(x=>`<li>${x}</li>`).join('')}</ul><p style="margin-bottom:0"><b>Часовий масштаб:</b> ${p[2]}</p>`;
+  $$('#tscale .tsb').forEach((b,j)=>b.setAttribute('fill-opacity',j===i?.9:.35))}
+$$('#pyr .clk').forEach(g=>{const f=()=>pySel(+g.dataset.i);g.onclick=f;g.onmouseenter=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
+(function(){const L=40,R=620,lo=-6,hi=4.2,X=v=>L+(v-lo)/(hi-lo)*(R-L);let s='';[[-6,'1 мкс'],[-3,'1 мс'],[0,'1 с'],[Math.log10(60),'1 хв'],[Math.log10(3600),'1 год']].forEach(t=>{s+=`<line x1="${X(t[0])}" x2="${X(t[0])}" y1="10" y2="122" stroke="var(--line)"/><text class="tx-s" x="${X(t[0])}" y="140" text-anchor="middle">${t[1]}</text>`});
+  const bars=[[Math.log10(60),Math.log10(3*3600),'Стратегічний','--c4'],[-3,0,'Тактичний','--c3'],[-6,-3,'Виконавчий','--c1']];
+  bars.forEach((b,i)=>{s+=`<rect class="tsb" x="${X(b[0])}" y="${16+i*34}" width="${X(b[1])-X(b[0])}" height="24" rx="3" fill="var(${b[3]})" fill-opacity=".35"/><text class="tx" x="${X(b[0])+6}" y="${33+i*34}" style="font-size:12px">${b[2]}</text>`});$('#tscale').innerHTML=s})();
+pySel(0);
+
+/* ---------- 6. gantt ---------- */
+const GT=['Механіка','Приводи','Електроніка','Програма керування','Інтеграція і тести'];
+const seqB=[[0,4],[4,6],[6,9],[9,12],[12,19]],parB=[[0,5],[0.5,4],[1,5.5],[1,6.5],[2,13.3]];
+function gantt(par){const L=150,R=620,X=u=>L+u*(R-L)/20;let s='';for(let u=0;u<=20;u+=2)s+=`<line x1="${X(u)}" x2="${X(u)}" y1="10" y2="190" stroke="var(--line)"/><text class="tx-s" x="${X(u)}" y="206" text-anchor="middle">${u}</text>`;
+  const B=par?parB:seqB;GT.forEach((g,i)=>{const y=18+i*34;const b=B[i];s+=`<text class="tx" x="${L-8}" y="${y+15}" text-anchor="end" style="font-size:12px">${g}</text><rect x="${X(b[0])}" y="${y}" width="${X(b[1])-X(b[0])}" height="22" rx="3" fill="var(--c${(i%4)+1})" fill-opacity="${i===4?.55:.85}"><animate attributeName="width" from="0" to="${X(b[1])-X(b[0])}" dur="${reduce?'0.01s':'.6s'}" fill="freeze"/></rect>`});
+  if(!par){s+=`<path d="M${X(16)} ${18+4*34} C ${X(16)} 60, ${X(5)} 40, ${X(2)} 40" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="5 4"/>${arrowHead(X(2),40,Math.PI,'sf')}<text class="tx-s" x="${X(9)}" y="58" style="fill:var(--bad)">доопрацювання інтерфейсів</text>`}
+  else{s+=`<text class="tx-s" x="${X(13.3)+6}" y="${18+4*34+15}" style="fill:var(--ok)">−30 %</text>`}
+  const tot=par?13.3:19;s+=`<line x1="${X(tot)}" x2="${X(tot)}" y1="8" y2="192" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 3"/><text class="tx" x="${X(tot)-4}" y="8" text-anchor="end" style="font-size:11px">${fmt(tot)} од.</text>`;
+  $('#gantt').innerHTML=s;
+  $('#ganttTxt').innerHTML=par?`<p><b>Паралельне проєктування.</b> Усі підсистеми проєктуються <b>одночасно</b> та <b>взаємопов'язано</b>; на кожному етапі враховуються обмеження всіх доменів. Результат — оптимальна система за ціною, масою, точністю та надійністю.</p>`:`<p><b>Каскадний підхід:</b> спочатку механіка, потім двигуни, далі електроніка, наприкінці — програма, а на останньому етапі все «зшивають» інтерфейсами. До 70 % проблем функціонування комплексних машин пов'язані з надійністю зв'язків і з'єднань, бо інтерфейси розробляли «наосліп».</p>`}
+seg($('#ganttSeq'),$('#ganttPar'),()=>gantt(false),()=>gantt(true));gantt(false);
+
+/* ---------- 6. V model ---------- */
+const VM=[['Визначення вимог','Requirements','Що має робити система і за яких умов: функції, точність, швидкість, вартість, безпека.'],
+ ['Системне проєктування','System Design','Розбиття системи на підсистеми (механіка, електроніка, ПЗ), розподіл функцій між ними.'],
+ ['Архітектурне проєктування','Architecture Design','Структура взаємодії модулів: інтерфейси, шини, протоколи, ієрархія керування.'],
+ ['Модульне проєктування','Module Design','Детальне проєктування кожного модуля: креслення, схема плати, алгоритм.'],
+ ['Кодування','Coding','Реалізація: програма контролера, виготовлення деталей і плат. Нижня точка V.'],
+ ['Модульне тестування','Unit Testing','Перевірка кожного модуля окремо.'],
+ ['Інтеграційне тестування','Integration Testing','Перевірка взаємодії модулів після з\'єднання.'],
+ ['Системне тестування','System Testing','Перевірка системи загалом на відповідність системному проєкту.'],
+ ['Приймальні випробування','Acceptance Testing','Перевірка замовником: чи виконує система його вимоги.']];
+const VP={0:8,8:0,1:7,7:1,2:6,6:2,3:5,5:3,4:4};
+const vpos=i=>{if(i<4)return[20+i*45,20+i*66];if(i===4)return[265,284];const j=8-i;return[510-j*45,20+j*66]};
+let vs='';
+for(let i=0;i<3;i++){const a=vpos(i),b=vpos(i+1);vs+=arr(b[0]+20,a[1]+44,b[0]+20,b[1],'wire','sf');}
+for(let i=5;i<8;i++){const a=vpos(i),b=vpos(i+1);vs+=arr(a[0]+150,a[1],a[0]+150,b[1]+44,'wire','sf')}
+vs+=arr(vpos(3)[0]+20,vpos(3)[1]+44,vpos(3)[0]+20,vpos(4)[1]+22,'wire','sf').replace('','')+`<line class="wire" x1="${vpos(3)[0]+20}" y1="${vpos(4)[1]+22}" x2="${vpos(4)[0]}" y2="${vpos(4)[1]+22}"/>`+`<line class="wire" x1="${vpos(4)[0]+170}" y1="${vpos(4)[1]+22}" x2="${vpos(5)[0]+150}" y2="${vpos(4)[1]+22}"/>`+arr(vpos(5)[0]+150,vpos(4)[1]+22,vpos(5)[0]+150,vpos(5)[1]+44,'wire','sf');
+for(let i=0;i<4;i++){const a=vpos(i),b=vpos(8-i);vs+=`<line class="vlink" id="vl${i}" x1="${b[0]}" y1="${a[1]+22}" x2="${a[0]+170}" y2="${a[1]+22}" stroke="var(--warn)" stroke-width="6" opacity=".25"/>${i<3?`<text class="tx-s" x="${(a[0]+170+b[0])/2}" y="${a[1]+14}" text-anchor="middle">${i===0?'валідує':'верифікує'}</text>`:''}`}
+VM.forEach((v,i)=>{const p=vpos(i);vs+=`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="${v[0]}"><rect class="bx" id="vb${i}" x="${p[0]}" y="${p[1]}" width="170" height="44" rx="8"/><text class="tx tx-c" x="${p[0]+85}" y="${p[1]+16}" style="font-size:12px">${v[0]}</text><text class="tx-s tx-c" x="${p[0]+85}" y="${p[1]+32}">${v[1]}</text></g>`});
+vs+=`<text class="tx-s" x="20" y="318">← проєктування (декомпозиція)</text><text class="tx-s" x="680" y="318" text-anchor="end">тестування (інтеграція) →</text>`;
+$('#vmod').innerHTML=vs;
+function vSel(i){$$('#vmod .bx').forEach(b=>b.classList.remove('hl'));$$('#vmod .vlink').forEach(l=>l.setAttribute('opacity',.25));const j=VP[i];$('#vb'+i).classList.add('hl');$('#vb'+j).classList.add('hl');const k=Math.min(i,j);if(k<4)$('#vl'+k).setAttribute('opacity',.9);
+  $('#vInfo').innerHTML=i===4?`<h4>${VM[4][0]}</h4><p style="margin-bottom:0">${VM[4][2]}</p>`:`<div class="cols" style="margin:0"><div><span class="tag">${i<4?'проєктування':'тестування'}</span><h4 style="margin-top:6px">${VM[i][0]}</h4><p style="margin-bottom:0">${VM[i][2]}</p></div><div><span class="tag">${j<4?'проєктування':'тестування'} · пара</span><h4 style="margin-top:6px">${VM[j][0]}</h4><p style="margin-bottom:0">${VM[j][2]}</p></div></div><p class="cap">${Math.max(i,j)===8?'Приймальні випробування валідують вимоги замовника.':`${VM[Math.max(i,j)][0]} верифікує етап «${VM[Math.min(i,j)][0].toLowerCase()}».`}</p>`}
+$$('#vmod .clk').forEach(g=>{const f=()=>vSel(+g.dataset.i);g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});vSel(1);
+
+/* ---------- 6. cycle ---------- */
+const CY=[['Аналіз вимог','Визначення функцій мехатронних модулів на основі технологічних операцій.'],['Функціонально-структурний аналіз','Вибір та формування структури всіх модулів системи.'],['Структурно-конструктивний аналіз','Конструювання модулів, оцінка рівня інтеграції.'],['Планування та оптимізація рухів','Розробка програм керування.']];
+(function(){const cx=170,cy=150,R=100;let s=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 5"/>`;
+  const P=CY.map((_,i)=>{const a=-Math.PI/2+i*Math.PI/2;return[cx+R*Math.cos(a),cy+R*Math.sin(a)]});
+  for(let i=0;i<4;i++){const a0=-Math.PI/2+i*Math.PI/2+0.42,a1=-Math.PI/2+(i+1)*Math.PI/2-0.42;const r=R;s+=`<path d="M${cx+r*Math.cos(a0)} ${cy+r*Math.sin(a0)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)}" fill="none" stroke="var(--air)" stroke-width="2.5"/>${arrowHead(cx+r*Math.cos(a1),cy+r*Math.sin(a1),a1+Math.PI/2)}`;
+    const r2=R-34,b0=a1-0.1,b1=a0+0.1;s+=`<path d="M${cx+r2*Math.cos(b0)} ${cy+r2*Math.sin(b0)} A${r2} ${r2} 0 0 0 ${cx+r2*Math.cos(b1)} ${cy+r2*Math.sin(b1)}" fill="none" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="4 4"/>${arrowHead(cx+r2*Math.cos(b1),cy+r2*Math.sin(b1),b1-Math.PI/2)}`}
+  P.forEach((p,i)=>{s+=`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="${CY[i][0]}"><circle class="bx" id="cy${i}" cx="${p[0]}" cy="${p[1]}" r="26"/><text class="tx tx-c" x="${p[0]}" y="${p[1]}" style="font:700 16px var(--f-display);fill:var(--air)">${i+1}</text></g>`});
+  s+=`<text class="tx-s tx-c" x="${cx}" y="${cy-6}">цикл</text><text class="tx-s tx-c" x="${cx}" y="${cy+10}" style="fill:var(--warn)">↺ повернення</text>`;$('#cyc').innerHTML=s})();
+function cySel(i){$$('#cyc .bx').forEach(b=>b.classList.remove('hl'));$('#cy'+i).classList.add('hl');$('#cycInfo').innerHTML=`<span class="tag">Етап ${i+1} з 4</span><h4 style="margin-top:8px">${CY[i][0]}</h4><p>${CY[i][1]}</p><p class="cap" style="margin-bottom:0">${i>0?`Помилка, знайдена тут, може повернути до етапу ${i}: «${CY[i-1][0]}».`:'Перший етап: з нього починається кожна нова ітерація.'}</p>`}
+$$('#cyc .clk').forEach(g=>{const f=()=>cySel(+g.dataset.i);g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});cySel(0);
+
+/* ---------- 7. generations ---------- */
+const GN=[{t:'Модулі першого рівня',y:'1960–1970-ті',d:'Об\'єднання двох елементів. Типовий приклад — <b>мотор-редуктор</b>: електродвигун і редуктор випускаються як єдиний функціональний елемент.',pl:['компактність','висока точність реалізації руху','висока статична та динамічна жорсткість'],on:[1,1,0,0,0,0]},
+ {t:'Модулі другого рівня',y:'1980-ті',d:'Інтеграція мініатюрних датчиків та електронних блоків обробки. Приклад — керований електропривод з вбудованим енкодером та сервопідсилювачем.',pl:['вбудований зворотний зв\'язок','менше зовнішніх з\'єднань'],on:[1,1,1,1,0,0]},
+ {t:'Модулі третього рівня',y:'1990-ті → сьогодні',d:'Повна інтеграція всіх компонентів з інтелектуальним керуванням. Приклад — <b>лінійний модуль</b> «двигун-гвинт-робочий орган» з вбудованим контролером.',pl:['модуль сам виконує рух за командою з шини','«функціональний кубик» для модульної архітектури'],on:[1,1,1,1,1,1]}];
+const GB=[['Двигун',16],['Редуктор',82],['Енкодер',148],['Підсилювач',214],['Контролер',280],['Гвинт + орган',346]];
+function gen(i){$$('[data-gen]').forEach(b=>b.classList.toggle('on',+b.dataset.gen===i));const g=GN[i];let s='';const last=g.on.lastIndexOf(1);
+  s+=`<rect x="8" y="40" width="${GB[last][1]+58}" height="110" rx="10" fill="var(--air-soft)" stroke="var(--air)" stroke-width="2" stroke-dasharray="6 4"/><text class="tx-s" x="18" y="34" style="fill:var(--air)">єдиний корпус</text>`;
+  GB.forEach((b,j)=>{const on=g.on[j];s+=`<rect x="${b[1]}" y="70" width="58" height="50" rx="4" fill="${on?'var(--surface)':'none'}" stroke="${on?'var(--ink)':'var(--idle)'}" stroke-width="1.5" ${on?'':'stroke-dasharray="3 3"'}/><text class="tx-s" x="${b[1]+29}" y="99" text-anchor="middle" style="${on?'fill:var(--ink)':''};font-size:9.5px">${b[0]}</text>`});
+  s+=`<text class="tx-s" x="18" y="175">інтеграція: ${g.on.filter(x=>x).length} з 6 компонентів</text>`;$('#genSvg').innerHTML=s;
+  $('#genInfo').innerHTML=`<span class="tag">${g.y}</span><h4 style="margin-top:8px">${g.t}</h4><p>${g.d}</p><ul style="padding-left:1.2rem;margin:0">${g.pl.map(p=>`<li>${p}</li>`).join('')}</ul>`}
+$$('[data-gen]').forEach(b=>b.onclick=()=>gen(+b.dataset.gen));gen(0);
+
+/* ---------- 7. wires ---------- */
+function wires(){const n=+$('#ax').value;$('#axV').textContent=n;const tr=Math.round(100/3*n),mo=4*n+2;const L=170,R=600,mx=Math.round(100/3*8);const W=v=>v/mx*(R-L);
+  let s=`<text class="tx" x="${L-10}" y="44" text-anchor="end">Традиційні приводи</text><rect x="${L}" y="28" width="${W(tr)}" height="26" rx="3" fill="var(--bad)" fill-opacity=".75"/><text class="tx" x="${L+W(tr)+8}" y="46">≈ ${tr}</text>`;
+  s+=`<text class="tx" x="${L-10}" y="104" text-anchor="end">Мехатронні модулі</text><rect x="${L}" y="88" width="${W(mo)}" height="26" rx="3" fill="var(--ok)" fill-opacity=".85"/><text class="tx" x="${L+W(mo)+8}" y="106">≈ ${mo}</text>`;
+  const k=tr/mo;s+=`<text class="tx" x="${L}" y="160" style="font:700 20px var(--f-display);fill:var(--air)">у ${fmt(k,1)} раза менше з'єднань</text><text class="tx-s" x="${L}" y="182">проводів для ${n} ${n===1?'осі':'осей'}</text>`;
+  $('#wires').innerHTML=s}
+$('#ax').oninput=wires;wires();
+
+/* ---------- 8. functional load ---------- */
+function fl(){const y=+$('#fl').value;$('#flY').textContent=y;const K=[[1970,80,15,5],[1995,70,20,10],[2026,20,15,65]];let a=K[0],b=K[1];if(y>1995){a=K[1];b=K[2]}const t=(y-a[0])/(b[0]-a[0]);const v=[1,2,3].map(j=>a[j]+(b[j]-a[j])*t);
+  const L=10,R=630;let x=L;const cols=['--c3','--c2','--c1'],nm=['Механіка','Електроніка','Комп\'ютерна частина'];let s='';
+  v.forEach((p,j)=>{const w=p/100*(R-L);s+=`<rect x="${x}" y="14" width="${w}" height="40" fill="var(${cols[j]})" fill-opacity=".85"/>${w>60?`<text x="${x+8}" y="39" style="font:600 13px var(--f-mono);fill:var(--surface)">${Math.round(p)} %</text>`:''}`;x+=w});
+  nm.forEach((n,j)=>{s+=`<rect x="${10+j*200}" y="76" width="12" height="12" fill="var(${cols[j]})"/><text class="tx-s" x="${28+j*200}" y="86">${n}</text>`});$('#flSvg').innerHTML=s}
+$('#fl').oninput=fl;fl();
+
+/* ---------- 8. principles ---------- */
+const P5=[['Функціональна інтеграція','Об\'єднання функцій у мінімальній кількості фізичних елементів.','Інтелектуальний привод, що одночасно є двигуном, редуктором, датчиком і контролером.'],
+ ['Інформаційна інтеграція','Єдиний інформаційний простір для всіх підсистем.','Цифрова шина EtherCAT передає і команди керування, і діагностичні дані.'],
+ ['Ієрархічність','Розподіл функцій за рівнями відповідно до часових масштабів.','Вищі рівні працюють з повільними процесами, нижчі — зі швидкими.'],
+ ['Адаптивність','Система змінює поведінку відповідно до змін середовища.','Реалізується через сенсорні системи та алгоритми ШІ.'],
+ ['Інтелектуалізація','Компоненти й загальносистемні функції набувають «інтелекту».','Подальший розвиток — технічне освоєння творчих (креативних) здібностей.']];
+$('#prin5').innerHTML=P5.map((p,i)=>`<div class="panel"><span class="tag">Принцип ${i+1}</span><h4 style="margin-top:8px">${p[0]}</h4><p style="font-size:.9rem">${p[1]}</p><p style="font-size:.86rem;color:var(--muted);margin-bottom:0">${p[2]}</p></div>`).join('');
+const PB=[['Синергетична інтеграція','Робот проєктується «з нуля» як єдиний монолітний організм: елементи різної фізичної природи конструктивно й функціонально взаємопроникають. Наприклад, у мотор-зчленуванні маніпулятора підшипники двигуна одночасно є опорами редуктора, а диск енкодера інтегровано на вал ротора без з\'єднувальних муфт. Це виключає зайві проміжні зв\'язки, підвищуючи жорсткість і надійність.'],
+ ['Паралельне проєктування (Concurrent Engineering)','Інженери-механіки, схемотехніки та програмісти працюють одночасно вже на концептуальній стадії. Параметри всієї системи оптимізують імітаційним моделюванням (наприклад, MATLAB/Simulink або Simscape Multibody).'],
+ ['Електронна редукція та заміщення механічних зв\'язків','Складні, важкі й схильні до люфтів передачі (коробки швидкостей, карданні вали, копіри, рейки) замінюють індивідуальними керованими приводами ланок з комп\'ютерним узгодженням руху. <b>Електронний редуктор</b> програмно задає будь-яке передавальне число між осями. <b>Електронний кулачок</b> реалізує нелінійні закони переміщення перепрограмуванням профілю, без зношування фізичних кулачків. Спробуйте модель нижче.'],
+ ['Безсенсорне (непряме) керування','Відмова від фізичних датчиків швидкості чи положення на користь математичних моделей у мікроконтролері. Швидкість і момент розраховуються в реальному часі за миттєвими струмами й напругами фаз двигуна за допомогою <b>спостерігачів стану</b> (State Observers) та <b>фільтрів Калмана</b>. Особливо важливо в брудному, вологому чи хімічно агресивному середовищі.'],
+ ['Модульність та реконфігурованість','Базова одиниця — <b>інтелектуальний мехатронний модуль руху (ІММР)</b> для однієї координати: безколекторний двигун, прецизійний редуктор, датчики положення, силовий драйвер і мережевий мікроконтролер в одному корпусі. З таких модулів, як з кубиків LEGO, компонують робота з 3, 4 чи 6 ступенями рухливості.']];
+$('#prinB').innerHTML=PB.map((p,i)=>`<details class="acc"${i===2?' open':''}><summary><span class="tag">${i+1}</span>${p[0]}</summary><div class="in">${p[1]}</div></details>`).join('');
+const L7=['Задане завдання (Given task) порівнюється з моделлю робота.','Контролер генерує сигнал керування.','Приводи (Actuators) перетворюють його в механічний рух.','Маніпулятор виконує завдання.','Датчики (Sensors) вимірюють результат.','Інформаційний блок обчислює похибку (Error signals).','Контролер коригує рух.'];
+$('#loop7').innerHTML=L7.map(s=>`<li>${s}</li>`).join('');
+
+/* ---------- 8. PID ---------- */
+let closed=true,pidRes=null;
+function simPID(){const Kp=+$('#kp').value,Ki=+$('#ki').value,Kd=+$('#kd').value,m=+$('#m').value;$('#kpV').textContent=fmt(Kp);$('#kiV').textContent=fmt(Ki);$('#kdV').textContent=fmt(Kd,2);$('#mV').textContent=fmt(m)+' кг';
+  const b=2,r=100,dt=0.002,T=8;let x=0,v=0,I=0;const out=[];const m0=1,Tm=2;
+  for(let i=0,t=0;t<=T;i++,t=i*dt){let u;
+    if(closed){const e=r-x;if(Math.abs(e)<20)I+=e*dt;u=Kp*e+Ki*I-Kd*v}
+    else{if(t<Tm){const s=t/Tm;const xd2=r*(60*s-180*s*s+120*s*s*s)/(Tm*Tm),xd1=r*(30*s*s-60*s*s*s+30*s*s*s*s)/Tm;u=m0*xd2+b*xd1+50*m0}else u=50*m0}
+    u=Math.max(-600,Math.min(600,u));const a=(u-b*v-50*m)/m;v+=a*dt;x+=v*dt;if(i%10===0)out.push([t,x])}
+  let mx=0,ts=0;out.forEach(p=>{if(p[1]>mx)mx=p[1];if(Math.abs(p[1]-r)>2)ts=p[0]});
+  pidRes=out;$('#pOs').textContent=mx>r?fmt((mx-r)/r*100,1)+' %':'0 %';$('#pTs').textContent=ts>=T-0.03?'> 8 с':fmt(ts,2)+' с';$('#pEs').textContent=fmt(r-out[out.length-1][1],1)+' мм';
+  $$('#kp,#ki,#kd').forEach(el=>el.disabled=!closed);drawPID(-1)}
+function drawPID(tc){const cv=$('#pidChart');const [c,W,H]=sizeCanvas(cv);c.clearRect(0,0,W,H);const L=44,R=W-10,T=12,B=H-24;const ymax=Math.max(160,Math.ceil(Math.max(...pidRes.map(p=>p[1]))/20)*20);const X=t=>L+t/8*(R-L),Y=v=>B-(Math.max(-20,v))/ymax*(B-T);
+  c.font='500 11px "JetBrains Mono",monospace';c.strokeStyle=css('--line');c.fillStyle=css('--muted');c.lineWidth=1;
+  for(let v=0;v<=ymax;v+=40){c.beginPath();c.moveTo(L,Y(v));c.lineTo(R,Y(v));c.stroke();c.fillText(v,L-30,Y(v)+4)}
+  for(let t=0;t<=8;t+=1){c.beginPath();c.moveTo(X(t),T);c.lineTo(X(t),B);c.stroke();c.fillText(t+' с',X(t)-8,H-6)}
+  c.fillStyle=css('--ok');c.globalAlpha=.12;c.fillRect(L,Y(102),R-L,Y(98)-Y(102));c.globalAlpha=1;
+  c.strokeStyle=css('--warn');c.setLineDash([6,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(L,Y(100));c.lineTo(R,Y(100));c.stroke();c.setLineDash([]);c.fillStyle=css('--warn');c.fillText('ціль 100 мм',R-90,Y(100)-6);
+  c.strokeStyle=css('--air');c.lineWidth=2.4;c.beginPath();pidRes.forEach((p,i)=>{if(tc>=0&&p[0]>tc)return;i?c.lineTo(X(p[0]),Y(p[1])):c.moveTo(X(p[0]),Y(p[1]))});c.stroke();
+  const last=tc>=0?pidRes.find(p=>p[0]>=tc)||pidRes[pidRes.length-1]:pidRes[pidRes.length-1];c.fillStyle=css('--air');c.beginPath();c.arc(X(last[0]),Y(last[1]),4,0,7);c.fill();drawAxis(last[1])}
+function drawAxis(x){const L=30,R=610,X=v=>L+Math.max(-10,Math.min(160,v))/160*(R-L);$('#axisAnim').innerHTML=`<rect x="${L}" y="40" width="${R-L}" height="8" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>${[0,40,80,120,160].map(v=>`<text class="tx-s" x="${X(v)}" y="66" text-anchor="middle">${v}</text>`).join('')}<line x1="${X(100)}" x2="${X(100)}" y1="6" y2="52" stroke="var(--warn)" stroke-width="2" stroke-dasharray="4 3"/><rect x="${X(x)-22}" y="16" width="44" height="26" rx="4" fill="var(--air)"/><rect x="${X(x)-12}" y="6" width="24" height="12" rx="2" fill="var(--idle)" stroke="var(--ink)"/><text class="tx-s" x="${X(x)}" y="34" text-anchor="middle" style="fill:var(--surface)">${Math.round(x)}</text>`}
+['#kp','#ki','#kd','#m'].forEach(s=>$(s).addEventListener('input',simPID));
+seg($('#cmClosed'),$('#cmOpen'),()=>{closed=true;simPID()},()=>{closed=false;simPID()});
+const preset=(a,b,c)=>{$('#kp').value=a;$('#ki').value=b;$('#kd').value=c;simPID()};$('#pidPreset1').onclick=()=>preset(25,20,8);$('#pidPreset2').onclick=()=>preset(10,0,0);$('#pidPreset3').onclick=()=>preset(30,10,0.5);
+let pidAnim=0;$('#pidPlay').onclick=()=>{cancelAnimationFrame(pidAnim);const t0=performance.now();const f=t=>{const tc=(t-t0)/1000;drawPID(Math.min(8,tc));if(tc<8)pidAnim=requestAnimationFrame(f)};pidAnim=requestAnimationFrame(f)};
+simPID();addEventListener('resize',()=>{drawPID(-1);drawEG()});
+
+/* ---------- 8. e-gear / e-cam ---------- */
+let egMode='gear',egA=0;const cyc=s=>s-Math.sin(2*Math.PI*s)/(2*Math.PI);
+const PROF={sin:a=>0.5-0.5*Math.cos(a*Math.PI/180),lin:a=>a/360,dwell:a=>a<120?cyc(a/120):a<240?1:1-cyc((a-240)/120),'2st':a=>a<90?0.5*cyc(a/90):a<180?0.5:a<270?0.5+0.5*cyc((a-180)/90):1-cyc((a-270)/90)};
+function egOut(a){return egMode==='gear'?(+$('#egR').value)*a:PROF[$('#egProf').value](((a%360)+360)%360)}
+function drawEG(){const cv=$('#egChart');const [c,W,H]=sizeCanvas(cv);c.clearRect(0,0,W,H);const L=44,R=W-10,T=14,B=H-26;const X=a=>L+a/360*(R-L);
+  c.font='500 11px "JetBrains Mono",monospace';c.strokeStyle=css('--line');c.fillStyle=css('--muted');c.lineWidth=1;
+  let lo,hi,lab;if(egMode==='gear'){lo=-1080;hi=1080;lab=v=>v+'°'}else{lo=0;hi=1;lab=v=>Math.round(v*60)+' мм'}const Y=v=>B-(v-lo)/(hi-lo)*(B-T);
+  const ticks=egMode==='gear'?[-1080,-540,0,540,1080]:[0,.25,.5,.75,1];ticks.forEach(v=>{c.beginPath();c.moveTo(L,Y(v));c.lineTo(R,Y(v));c.stroke();c.fillText(lab(v),2,Y(v)+4)});
+  [0,90,180,270,360].forEach(a=>{c.fillText(a+'°',X(a)-10,H-8)});
+  c.strokeStyle=css('--air');c.lineWidth=2.4;c.beginPath();for(let a=0;a<=360;a+=2){const y=Y(egOut(a));a?c.lineTo(X(a),y):c.moveTo(X(a),y)}c.stroke();
+  const am=((egA%360)+360)%360;c.fillStyle=css('--warn');c.beginPath();c.arc(X(am),Y(egOut(am)),5,0,7);c.fill();
+  c.fillStyle=css('--muted');c.fillText('кут ведучої осі →',R-120,T+2)}
+function egSvg(){const am=egA;let s=`<circle cx="80" cy="100" r="54" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><line x1="80" y1="100" x2="${80+50*Math.cos(am*Math.PI/180)}" y2="${100+50*Math.sin(am*Math.PI/180)}" stroke="var(--warn)" stroke-width="3"/><circle cx="80" cy="100" r="5" class="sf"/><text class="tx-s" x="80" y="176" text-anchor="middle">master</text>`;
+  s+=`<rect x="140" y="88" width="40" height="24" rx="3" fill="var(--air-soft)" stroke="var(--air)"/><text class="tx-s" x="160" y="104" text-anchor="middle" style="fill:var(--air)">ПЗ</text><line x1="134" y1="100" x2="140" y2="100" class="sx"/><line x1="180" y1="100" x2="190" y2="100" class="sx"/>`;
+  if(egMode==='gear'){const as=egOut(am);s+=`<circle cx="250" cy="100" r="54" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><line x1="250" y1="100" x2="${250+50*Math.cos(as*Math.PI/180)}" y2="${100+50*Math.sin(as*Math.PI/180)}" stroke="var(--air)" stroke-width="3"/><circle cx="250" cy="100" r="5" class="sf"/><text class="tx-s" x="250" y="176" text-anchor="middle">slave × ${fmt(+$('#egR').value)}</text>`}
+  else{const p=egOut(am);const y=160-p*120;s+=`<rect x="236" y="20" width="28" height="150" rx="3" fill="var(--surface-2)" stroke="var(--line)"/><rect x="226" y="${y-12}" width="48" height="24" rx="4" fill="var(--air)"/><text class="tx-s" x="250" y="${y+4}" text-anchor="middle" style="fill:var(--surface)">${Math.round(p*60)}</text><text class="tx-s" x="250" y="190" text-anchor="middle">slave, мм</text>`}
+  $('#egSvg').innerHTML=s}
+seg($('#egGear'),$('#egCam'),()=>{egMode='gear';$('#egRatioF').hidden=false;$('#egProfF').hidden=true;drawEG()},()=>{egMode='cam';$('#egRatioF').hidden=true;$('#egProfF').hidden=false;drawEG()});
+$('#egR').oninput=e=>{$('#egRV').textContent=fmt(+e.target.value);drawEG()};$('#egProf').onchange=drawEG;
+let egl=performance.now(),egT=0;(function eg(t){const dt=Math.min(.05,(t-egl)/1000);egl=t;egA+=dt*(reduce?0:60);egT+=dt;egSvg();if(egT>0.06){egT=0;drawEG()}requestAnimationFrame(eg)})(egl);
+drawEG();
+
+/* ---------- 9. iiwa ---------- */
+const JT=['обертання навколо вертикальної осі (основа)','нахил плеча','обертання ланки','нахил «ліктя»','обертання передпліччя','нахил «зап\'ястя»','обертання фланця з інструментом'];
+(function(){const P=[[150,300],[150,250],[150,205],[150,160],[180,118],[212,82],[236,52],[250,30]];let s=`<rect x="100" y="306" width="100" height="16" rx="3" class="bx"/>`;
+  for(let i=0;i<7;i++)s+=`<line x1="${P[i][0]}" y1="${P[i][1]}" x2="${P[i+1][0]}" y2="${P[i+1][1]}" stroke="var(--idle)" stroke-width="20" stroke-linecap="round"/>`;
+  s+=`<path d="M244 22 l12 -10 M256 22 l-2 -14" class="sx"/>`;
+  for(let i=0;i<7;i++){s+=`<g class="clk" data-i="${i}" tabindex="0" role="button" aria-label="Зчленування ${i+1}"><circle class="bx" id="jj${i}" cx="${P[i][0]}" cy="${P[i][1]}" r="14" style="fill:var(--surface)"/><text class="tx tx-c" x="${P[i][0]}" y="${P[i][1]}" style="font:700 11px var(--f-mono)">J${i+1}</text></g>`}
+  s+=`<path d="M40 300 V40" stroke="var(--air)" stroke-width="2" stroke-dasharray="5 4" fill="none"/><text class="tx-s" x="36" y="36" style="fill:var(--air)">цифрова шина</text>`;
+  for(let i=0;i<7;i++)s+=`<line x1="40" y1="${P[i][1]}" x2="${P[i][0]-16}" y2="${P[i][1]}" stroke="var(--air)" stroke-width="1" opacity=".5"/>`;$('#iiwa').innerHTML=s})();
+function jSel(i){$$('#iiwa .bx').forEach(b=>b.classList.remove('hl'));$('#jj'+i).classList.add('hl');$('#iiwaInfo').innerHTML=`<span class="tag">Зчленування J${i+1} з 7</span><h4 style="margin-top:8px">${JT[i][0].toUpperCase()+JT[i].slice(1)}</h4><p>Кожне зчленування — інтелектуальний мехатронний модуль:</p><div class="flow"><span>сервопривод</span><i>+</i><span>енкодер</span><i>+</i><span>контролер</span><i>+</i><span style="border-color:var(--warn)">силомоментний датчик</span></div><p class="cap" style="margin-bottom:0">Модулі з'єднані внутрішньою цифровою шиною. Верхній рівень планує траєкторії та координує осі, нижній — регулятори положення/моменту в реальному часі. Датчики моменту в кожному зчленуванні роблять взаємодію з людиною безпечною.</p>`}
+$$('#iiwa .clk').forEach(g=>{const f=()=>jSel(+g.dataset.i);g.onclick=f;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});jSel(1);
+
+/* ---------- 9. bus ---------- */
+let nAx=6;function bus(){$('#busCnt').textContent=`${nAx} ${nAx===1?'вісь':nAx<5?'осі':'осей'} · додано без перепроєктування контролера`;
+  let s=`<rect class="bx" x="20" y="70" width="140" height="60" rx="4" style="fill:var(--air-soft);stroke:var(--air)"/><text class="tx tx-c" x="90" y="92">R-30iB</text><text class="tx-s tx-c" x="90" y="112">тактичний рівень</text>`;
+  s+=`<rect class="bx" x="40" y="190" width="100" height="50" rx="8"/><text class="tx tx-c" x="90" y="208" style="font-size:12px">Teach Pendant</text><text class="tx-s tx-c" x="90" y="226">HMI</text><line x1="90" y1="130" x2="90" y2="190" class="sx"/>`;
+  s+=`<rect class="bx" x="20" y="6" width="140" height="34" rx="4"/><text class="tx tx-c" x="90" y="23" style="font-size:12px">PLC · датчики</text><line x1="90" y1="40" x2="90" y2="70" stroke="var(--c4)" stroke-width="2.5"/><text class="tx-s" x="96" y="60" style="fill:var(--c4)">Profibus / EtherNet/IP</text>`;
+  const x0=200,dx=56;s+=`<line x1="160" y1="100" x2="${x0+(nAx-1)*dx+46}" y2="100" stroke="var(--air)" stroke-width="3" class="flowdash"/><text class="tx-s" x="168" y="90" style="fill:var(--air)">FSSB</text>`;
+  for(let i=0;i<nAx;i++){const x=x0+i*dx;s+=`<rect class="bx" x="${x}" y="116" width="46" height="44" rx="3"/><text class="tx-s tx-c" x="${x+23}" y="132">серво</text><text class="tx tx-c" x="${x+23}" y="148" style="font-size:12px">J${i+1}</text><line x1="${x+23}" y1="100" x2="${x+23}" y2="116" stroke="var(--air)" stroke-width="2"/><line x1="${x+23}" y1="160" x2="${x+23}" y2="186" class="sx"/><circle cx="${x+23}" cy="202" r="16" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.5"/><text class="tx-s tx-c" x="${x+23}" y="202">M</text>`}
+  s+=`<text class="tx-s" x="200" y="245">виконавчий рівень: розподілені сервоприводи</text>`;$('#bus').innerHTML=s}
+$('#busAdd').onclick=()=>{if(nAx<9){nAx++;bus()}};$('#busRem').onclick=()=>{if(nAx>1){nAx--;bus()}};bus();
+
+/* ---------- flashcards ---------- */
+const FC=[['Кобот','Колаборативний робот, що працює поруч із людьми без огороджень завдяки силомоментним датчикам, зору й безпечному ПЗ.'],
+ ['CAGR','Середньорічний темп складного зростання: Vₙ = V₀·(1+CAGR)ⁿ.'],
+ ['RaaS','Robotics as a Service — оренда й підписка на роботів замість капітальних інвестицій.'],
+ ['Архітектура мехатронної системи','Сукупність структурних рішень щодо взаємозв\'язку механічних, електричних, електронних та інформаційних компонентів.'],
+ ['Енкодер','Фотоімпульсний датчик кута: диск з прорізами, канали A і B зі зміщенням фаз для визначення напрямку.'],
+ ['ПКК','Пристрій комп\'ютерного керування — ядро системи: планування руху, виконання в реальному часі, координація, HMI.'],
+ ['RTOS','Операційна система реального часу з гарантованим часом реакції на подію.'],
+ ['Concurrent Engineering','Паралельне проєктування: одночасний взаємопов\'язаний синтез механіки, електроніки, сенсорики й ПЗ.'],
+ ['V-модель','Модель життєвого циклу, де кожному етапу проєктування відповідає визначений етап тестування.'],
+ ['Мехатронний модуль','Функціонально завершений елемент, що реалізує рух за однією керованою координатою.'],
+ ['Синергія','Спільна дія елементів, що дає системі нові властивості: 1 + 1 > 2.'],
+ ['Безсенсорне керування','Визначення швидкості й положення ротора за струмами та напругами (спостерігачі стану, фільтр Калмана) без фізичного датчика.']];
+$('#cards').innerHTML=FC.map((f,i)=>`<button class="card" aria-label="Картка: ${f[0]}"><span class="inner"><span class="f"><b>${f[0]}</b><small>натисніть, щоб побачити визначення</small></span><span class="b">${f[1]}</span></span></button>`).join('');
+$$('.card').forEach(c=>c.onclick=()=>c.classList.toggle('flip'));
+
+/* ---------- quiz ---------- */
+const Q=[
+ ['Який тип промислових роботів найпоширеніший?',['SCARA','Артикульовані (шарнірні)','Декартові','Дельта-роботи'],1,'Артикульовані роботи з 6–7 осями — найпоширеніший тип: зварювання, фарбування, складання.'],
+ ['Для чого найкраще підходять дельта-роботи?',['Зварювання кузовів','Швидке сортування в харчовій промисловості та фармацевтиці','Переміщення важких вантажів','Хірургічні операції'],1,'Паралельні (дельта) роботи мають легкі ланки й дуже швидкі для pick-and-place.'],
+ ['Що дозволяє коботам працювати поруч з людьми без огороджень?',['Велика маса','Силомоментні датчики, комп\'ютерний зір і безпечне ПЗ','Гідравлічні приводи','Низька швидкість живлення'],1,'Саме сенсори й програмне забезпечення безпеки відрізняють кобот від звичайного робота.'],
+ ['Яка галузь у 2024 році вперше перевершила автопром за кількістю встановлень роботів?',['Металообробка','Логістика','Електроніка','Медицина'],2,'Електроніка — 128 899 встановлень, автопром — 126 088.'],
+ ['Що з переліченого НЕ є базовою підсистемою мехатронної системи?',['Механічна','Інформаційна','Маркетингова','Система керування'],2,'Чотири підсистеми: механічна, електрична/електронна, інформаційна, система керування.'],
+ ['Яку роль у структурній схемі виконує блок Signal Conditioning?',['Генерує траєкторію','Підготовлює сигнал датчика (фільтрує, підсилює) перед оцифруванням','Живить двигун','Взаємодіє з оператором'],1,'Обробка сигналу стоїть між датчиками та АЦП у колі зворотного зв\'язку.'],
+ ['Як енкодер визначає напрямок обертання?',['За амплітудою сигналу','За зміщенням фаз каналів A і B','За температурою диска','За кількістю прорізів'],1,'Канали зміщені на чверть періоду: який фронт приходить першим, такий і напрямок.'],
+ ['Який часовий масштаб має виконавчий рівень керування?',['Хвилини–години','Секунди–хвилини','Мілісекунди–секунди','Мікросекунди–мілісекунди'],3,'Виконавчий рівень: регулятори, ШІМ, обробка сигналів — мікросекунди–мілісекунди.'],
+ ['Що вперше з\'явилося 1952 року в MIT?',['ПЛК','Мікропроцесор Intel 4004','Верстат з ЧПК за перфострічкою','Шина EtherCAT'],2,'ЧПК — перша гнучка архітектура, де програму можна змінити без зміни «заліза».'],
+ ['Яка частка збоїв складних систем, за лекцією, пов\'язана з контактами й з\'єднаннями?',['До 10 %','До 30 %','До 70 %','100 %'],2,'Звідси головна мотивація мехатронної інтеграції — зменшити кількість інтерфейсів.'],
+ ['У V-моделі інтеграційне тестування верифікує…',['Визначення вимог','Архітектурне проєктування','Кодування','Системне проєктування'],1,'Пари: модульне тест. ↔ модульне проєкт., інтеграційне ↔ архітектурне, системне ↔ системне, приймальні ↔ вимоги.'],
+ ['Мотор-редуктор — приклад мехатронного модуля якого рівня?',['Першого','Другого','Третього','Четвертого'],0,'Модулі першого рівня (1960–70-ті) об\'єднують два елементи — двигун і редуктор.'],
+ ['Безсенсорне керування — це приклад…',['Виключення проміжних перетворювачів','Апаратно-конструктивного об\'єднання','Розширення функцій інтелектуальних пристроїв','Каскадного проєктування'],2,'Програмна модель у контролері замінює фізичний датчик — третій метод інтеграції.'],
+ ['Що робить електронний кулачок?',['Охолоджує двигун','Програмно задає нелінійний закон руху веденої осі','Вимірює силу контакту','Перетворює змінний струм на постійний'],1,'Профіль руху зберігається в контролері й змінюється перепрограмуванням, без фізичного кулачка.']];
+$('#qz').innerHTML=Q.map((q,i)=>`<div class="q" id="q${i}"><p class="qt">${i+1}. ${q[0]}</p>${q[1].map((o,j)=>`<label><input type="radio" name="q${i}" value="${j}" id="q${i}o${j}"><span>${o}</span></label>`).join('')}<div class="fb" hidden></div></div>`).join('');
+$('#qcheck').onclick=()=>{let sc=0;Q.forEach((q,i)=>{const el=$('#q'+i),sel=el.querySelector('input:checked');el.querySelectorAll('label').forEach(l=>l.classList.remove('r','x'));el.querySelectorAll('label')[q[2]].classList.add('r');if(sel&&+sel.value===q[2])sc++;else if(sel)sel.parentElement.classList.add('x');const fb=el.querySelector('.fb');fb.hidden=false;fb.textContent=q[3]});$('#qscore').textContent=`Результат: ${sc} з ${Q.length}`};
+$('#qreset').onclick=()=>{$$('#qz input').forEach(i=>i.checked=false);$$('#qz label').forEach(l=>l.classList.remove('r','x'));$$('#qz .fb').forEach(f=>f.hidden=true);$('#qscore').textContent=''};
+})();
+</script>
+
+</body></html>

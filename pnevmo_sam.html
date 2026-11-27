@@ -1,0 +1,588 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Пневматика: самостійні проєкти</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;600&display=swap">
+<style>/* Layout: «робочий зошит» самостійних проєктів — липкий зміст ліворуч, правила, карта навичок і картки 10 проєктів */
+:root{
+  --bg:#EDF1EF; --surface:#F9FBFA; --surface2:#E3E9E6; --ink:#13201F; --muted:#56666A; --rule:#C6D0CD;
+  --accent:#0B6E62; --accent-soft:#D3EAE5; --warn:#A35F00; --warn-soft:#F6E7CC;
+  --air:#1D55C9; --line-off:#9FB3BE; --danger:#B3261E;
+  --f-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1416; --surface:#151E21; --surface2:#1C282C; --ink:#E1E9E8; --muted:#93A4A7; --rule:#2B393D;
+  --accent:#43C3AF; --accent-soft:#16352F; --warn:#E3A33D; --warn-soft:#3A2C14;
+  --air:#6FA2FF; --line-off:#3E5663; --danger:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1416; --surface:#151E21; --surface2:#1C282C; --ink:#E1E9E8; --muted:#93A4A7; --rule:#2B393D;
+  --accent:#43C3AF; --accent-soft:#16352F; --warn:#E3A33D; --warn-soft:#3A2C14;
+  --air:#6FA2FF; --line-off:#3E5663; --danger:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{text-wrap:balance;line-height:1.2;margin:0}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(1.9rem,4.6vw,3.1rem);letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:clamp(1.35rem,2.6vw,1.8rem)}
+h3{font-size:1.2rem;font-weight:700}
+h4{font-size:1rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+.tag{font-family:var(--f-mono);font-size:.8em;font-weight:600;background:var(--surface2);border:1px solid var(--rule);padding:0 .35em;border-radius:4px;white-space:nowrap}
+.eyebrow{font-family:var(--f-mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--rule);
+  margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topbar-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:16px;min-height:52px;flex-wrap:wrap;padding-block:6px}
+.brand{font-family:var(--f-display);font-weight:600;font-size:.95rem;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+.brand svg{flex:none}
+.topnav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+.topnav a{text-decoration:none;color:var(--ink);font-size:.9rem;padding:4px 10px;border-radius:6px}
+.topnav a:hover{background:var(--surface2)}
+.theme-btn{border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-size:.85rem;cursor:pointer}
+
+.wrap{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding-block:32px 80px}
+@media (max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.toc{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 90px);overflow:auto;font-size:.88rem;padding-right:6px}
+.toc h4{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.toc a{display:block;text-decoration:none;color:var(--ink);padding:3px 8px;border-radius:5px;line-height:1.35}
+.toc a:hover{background:var(--surface2)}
+.toc a.done::after{content:" ✓";color:var(--accent);font-weight:700}
+main{min-width:0;display:flex;flex-direction:column;gap:64px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero-text{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hero .lead{font-size:1.1rem;max-width:62ch;color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:.9rem;color:var(--muted)}
+.facts b{color:var(--ink);font-family:var(--f-mono)}
+.hero-plate{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:12px;min-width:0}
+.hero-plate .cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+
+/* sections */
+.sec{display:flex;flex-direction:column;gap:20px;scroll-margin-top:80px}
+.sec-head{display:flex;flex-direction:column;gap:6px;border-top:2px solid var(--ink);padding-top:14px}
+.topic{display:flex;flex-direction:column;gap:14px;scroll-margin-top:80px;padding-top:8px}
+.topic+.topic{border-top:1px solid var(--rule);padding-top:24px}
+.topic h3 .num{font-family:var(--f-mono);color:var(--accent);margin-right:.4em}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:72ch}
+.prose ul,.prose ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:4px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.cols>*{min-width:0}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.95rem;max-width:72ch}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note b:first-child{display:block;margin-bottom:2px}
+.formula{font-family:var(--f-mono);background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;font-size:.92rem;overflow-x:auto;white-space:pre;line-height:1.7}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;background:var(--surface2);font-size:.85rem}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+details{border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+details>summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;gap:10px;align-items:baseline}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"+";font-family:var(--f-mono);color:var(--accent);width:1ch}
+details[open]>summary::before{content:"−"}
+details>.d-body{padding:0 14px 14px 38px;display:flex;flex-direction:column;gap:8px}
+
+/* stand */
+.stand{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);display:flex;flex-direction:column;min-width:0}
+.stand-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--rule)}
+.stand-head .t{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stand-head .sp{flex:1}
+.sbtn{font:inherit;font-size:.85rem;border:1px solid var(--rule);background:var(--surface2);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.sbtn:hover{border-color:var(--accent)}
+.svgbox{overflow-x:auto;padding:8px;touch-action:manipulation}
+.svgbox svg{display:block;width:100%;height:auto;min-width:460px;max-height:640px;user-select:none;-webkit-user-select:none}
+.stand-ctl{display:flex;flex-wrap:wrap;gap:8px 18px;padding:10px 12px;border-top:1px solid var(--rule);align-items:center}
+.ctl-group{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.opbtn{font:inherit;font-size:.86rem;font-weight:600;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);border-radius:7px;padding:6px 12px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.opbtn .id{font-family:var(--f-mono);font-size:.8rem;margin-right:6px;color:var(--accent)}
+.opbtn[aria-pressed="true"]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+.opbtn[aria-pressed="true"] .id{color:var(--surface)}
+.slider{display:flex;flex-direction:column;gap:2px;font-size:.8rem;min-width:150px;flex:1 1 150px;max-width:240px}
+.slider label{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
+.slider output{font-family:var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.slider input{width:100%;accent-color:var(--accent)}
+.chk{display:flex;gap:6px;align-items:center;font-size:.86rem}
+.readout{font-family:var(--f-mono);font-size:.8rem;color:var(--muted);padding:6px 12px 10px;display:flex;flex-wrap:wrap;gap:4px 16px;font-variant-numeric:tabular-nums}
+.readout b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:22px;height:0;border-top:2.4px solid var(--air);vertical-align:middle;margin-right:6px}
+.legend i.off{border-top:1.5px solid var(--line-off)}
+.legend i.box{width:14px;height:12px;border:1.5px solid var(--accent);background:var(--accent-soft)}
+
+/* svg symbols */
+.w{fill:none;stroke:var(--line-off);stroke-width:1.5;stroke-linejoin:round}
+.w.on{stroke:var(--air);stroke-width:2.4}
+.dot{fill:var(--line-off)}.dot.on{fill:var(--air)}
+.s{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+.sf{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.ink{fill:var(--ink)}
+.vb{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.vb.act{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.vf{stroke:var(--ink);stroke-width:1.2;fill:none}.vh{fill:var(--ink)}
+.vf.hot{stroke:var(--air);stroke-width:1.8}.vh.hot{fill:var(--air)}
+.dash{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:3 2}
+.lbl{font-family:var(--f-mono);font-size:10px;font-weight:600;fill:var(--ink)}
+.pn{font-family:var(--f-mono);font-size:7.5px;fill:var(--muted)}
+.val{font-family:var(--f-mono);font-size:8.5px;fill:var(--air);font-weight:600}
+.sub{font-family:var(--f-body);font-size:8.5px;fill:var(--muted)}
+.sens{stroke:var(--muted);stroke-width:1.5}.sens.on{stroke:var(--warn);stroke-width:2.6}
+.senst{font-family:var(--f-mono);font-size:8.5px;fill:var(--muted)}.senst.on{fill:var(--warn);font-weight:600}
+.cylb{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.rod{fill:var(--surface2);stroke:var(--ink);stroke-width:1.1}
+.gface{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.needle{stroke:var(--danger);stroke-width:1.6}
+.tmr-ring{fill:none;stroke:var(--warn);stroke-width:2.5}
+g.man{cursor:pointer}
+g.man:hover .vb{stroke:var(--accent)}
+
+/* projects */
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pick{font:inherit;text-align:left;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.pick .no{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);display:flex;justify-content:space-between}
+.pick .nm{font-size:.86rem;font-weight:600;line-height:1.25}
+.pick:hover{border-color:var(--accent)}
+.pick[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pick.done .no::after{content:"✓ виконано";color:var(--accent);font-weight:600}
+.proj{display:flex;flex-direction:column;gap:22px;scroll-margin-top:80px}
+.proj-head{display:flex;flex-direction:column;gap:8px}
+.proj-head h3{font-family:var(--f-display);font-weight:500;font-size:clamp(1.3rem,2.4vw,1.7rem)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border:1px solid var(--rule);border-radius:999px;padding:1px 9px;color:var(--muted);background:var(--surface)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.box h4{font-size:.95rem}
+.box ul,.box ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:5px}
+.steps{counter-reset:st;list-style:none;padding:0!important}
+.steps>li{counter-increment:st;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps>li::before{content:counter(st);font-family:var(--f-mono);font-size:.8rem;font-weight:600;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;margin-top:1px}
+.seq{display:flex;flex-direction:column;gap:0}
+.seq>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;padding:8px 0;border-bottom:1px dashed var(--rule)}
+.seq>div:last-child{border-bottom:0}
+.seq b{font-family:var(--f-mono);font-size:.82rem;color:var(--accent)}
+@media (max-width:520px){.seq>div{grid-template-columns:minmax(0,1fr);gap:2px}}
+.checklist{list-style:none;padding:0!important}
+.checklist li{display:flex;gap:8px;align-items:flex-start}
+.checklist input{margin-top:5px;accent-color:var(--accent)}
+.done-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.variant-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.variant-tabs button{font:inherit;font-size:.85rem;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:6px;padding:4px 10px;cursor:pointer}
+.variant-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* calculator & quiz */
+.calc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:700px){.calc{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:3px;font-size:.85rem}
+.field input{font:inherit;font-family:var(--f-mono);padding:6px 8px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.res{display:flex;flex-direction:column;gap:6px}
+.res div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--rule);padding:4px 0;font-size:.9rem}
+.res b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.q{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r)}
+.q .opts{display:flex;flex-direction:column;gap:6px}
+.q button.opt{font:inherit;text-align:left;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:7px;padding:7px 10px;cursor:pointer}
+.q button.opt:hover{border-color:var(--accent)}
+.q button.opt.ok{border-color:var(--accent);background:var(--accent-soft)}
+.q button.opt.bad{border-color:var(--danger);color:var(--danger)}
+.q .fb{font-size:.9rem;color:var(--muted)}
+.score{font-family:var(--f-mono);font-size:.95rem}
+footer{border-top:1px solid var(--rule);padding-top:16px;color:var(--muted);font-size:.85rem;max-width:80ch}
+.hero-plate .svgbox svg{min-width:0}
+@media (max-width:620px){.brand .bt{display:none}.topbar-in{flex-wrap:nowrap}.topnav{flex-wrap:nowrap;overflow-x:auto;min-width:0;margin-left:0}.topnav a{white-space:nowrap;padding:4px 8px}.theme-btn{margin-left:auto;flex:none}}
+.kbd{font-family:var(--f-mono);font-size:.8em;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:var(--surface)}
+
+.hero-plate .svgbox svg{min-width:0}
+@media (max-width:620px){.brand .bt{display:none}.topbar-in{flex-wrap:nowrap}.topnav{flex-wrap:nowrap;overflow-x:auto;min-width:0;margin-left:0}.topnav a{white-space:nowrap;padding:4px 8px}.theme-btn{margin-left:auto;flex:none}}
+.muted{color:var(--muted)}
+.levels{display:flex;flex-wrap:wrap;gap:8px}
+.lv{font-size:.8rem;font-weight:600;border-radius:999px;padding:2px 10px;border:1px solid}
+.lv1{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.lv2{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.lv3{color:var(--danger);border-color:var(--danger);background:color-mix(in oklab,var(--danger) 12%,var(--surface))}
+.lvd{background:none!important;border:0!important;padding:0!important;letter-spacing:2px}
+.illu svg{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+.dia{overflow-x:auto}.dia svg{display:block;width:100%;height:auto;max-width:640px}
+.proto{display:flex;flex-direction:column;gap:8px}
+.mapc{text-align:center}.dotm{color:var(--accent);font-size:1rem}
+#skillMap th.n{text-align:center;min-width:34px}
+.k-frame{fill:none;stroke:var(--ink);stroke-width:1.4}
+.k-cyl{fill:var(--surface2);stroke:var(--ink);stroke-width:1.4}
+.k-rod{fill:var(--surface);stroke:var(--ink);stroke-width:1.1}
+.k-head{fill:var(--ink)}
+.k-part{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.3}
+.k-belt{fill:none;stroke:var(--ink);stroke-width:1.4}
+.k-roll{fill:var(--surface);stroke:var(--ink);stroke-width:1.1}
+.k-sens{fill:var(--warn)}
+.k-sl{font-family:var(--f-mono);font-size:10px;fill:var(--warn);font-weight:600}
+.k-lbl{font-family:var(--f-mono);font-size:11px;fill:var(--ink);font-weight:600}
+.k-sm{font-family:var(--f-body);font-size:10.5px;fill:var(--muted)}
+.k-panel{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.k-btn{fill:var(--danger)}
+.k-arr{fill:none;stroke:var(--air);stroke-width:2}
+.k-gnd{fill:none;stroke:var(--ink);stroke-width:1.6}
+.k-hatch{stroke:var(--muted);stroke-width:1}
+.d-grid{stroke:var(--rule);stroke-width:1}
+.d-lev{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 3}
+.d-ax{font-family:var(--f-mono);font-size:9.5px;fill:var(--muted)}
+.d-lbl{font-family:var(--f-mono);font-size:10.5px;fill:var(--ink);font-weight:600}
+.d-mk{font-family:var(--f-body);font-size:9.5px;fill:var(--warn)}
+.d-ln{fill:none;stroke-width:2.6;stroke-linejoin:round}
+.d-c0{stroke:var(--accent)}.d-c1{stroke:var(--air)}.d-c2{stroke:var(--warn)}.d-c3{stroke:var(--danger)}
+.pv{font-family:var(--f-mono);font-size:.85em}
+.sol[hidden]{display:none!important}
+</style>
+
+<header class="topbar"><div class="topbar-in">
+  <a class="brand" href="#top"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="1" y="6" width="14" height="10" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="5" y="7.5" width="2.4" height="7" fill="currentColor"/><rect x="7.4" y="10" width="13" height="2" fill="currentColor"/></svg><span class="bt">Пневматика TP101 · самостійна робота</span></a>
+  <nav class="topnav" aria-label="Розділи">
+    <a href="#rules">Правила</a><a href="#map">Карта навичок</a><a href="#projects">Проєкти</a>
+  </nav>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Перемкнути тему">◐ Тема</button>
+</div></header>
+
+<div class="wrap" id="top">
+<aside class="toc" aria-label="Зміст">
+  <h4>Загальне</h4>
+  <a href="#rules">Правила виконання</a>
+  <a href="#rubric">Критерії оцінювання</a>
+  <a href="#map">Карта навичок</a>
+  <h4>Проєкти</h4>
+  <div id="tocProjects"></div>
+  <h4>Для викладача</h4>
+  <label class="chk" for="teacherMode" style="padding:3px 8px"><input type="checkbox" id="teacherMode"> Показувати еталонні рішення</label>
+</aside>
+
+<main>
+<section class="hero" aria-labelledby="h1" style="grid-template-columns:minmax(0,1fr)">
+  <div class="hero-text">
+    <span class="eyebrow">Мехатроніка · розділ «Пневматика» · самостійна робота</span>
+    <h1 id="h1">Пневматика: самостійні проєкти</h1>
+    <p class="lead">Десять практичних завдань для самостійного проєктування пневматичних систем керування у FluidSIM. Кожне спирається на теорію і 19 проєктів посібника TP101 і не виходить за межі вивчених компонентів і схем.</p>
+    <div class="facts"><span><b>10</b> проєктів</span><span><b>3</b> рівні складності</span><span>тиск <b>≤ 6 bar</b></span><span>результат: файл <b>FluidSIM</b> і звіт</span></div>
+    <div class="levels" aria-label="Рівні складності">
+      <span class="lv lv1">Рівень 1 · базовий: проєкти 1–3</span>
+      <span class="lv lv2">Рівень 2 · середній: проєкти 4–7</span>
+      <span class="lv lv3">Рівень 3 · підвищений: проєкти 8–10</span>
+    </div>
+    <div class="note"><b>Як працювати</b>Прочитайте задачу, ескіз і вимоги. Діаграма шлях–крок показує, як має рухатися механізм, але не підказує схему. Спершу спробуйте розробити схему самостійно, а підказки відкривайте лише тоді, коли застрягли. Перевірте схему у FluidSIM за сценаріями, заповніть протокол вимірювань і підготуйте звіт.</div>
+  </div>
+</section>
+
+<section class="sec" id="rules" aria-labelledby="rh">
+  <div class="sec-head"><span class="eyebrow">Розділ I</span><h2 id="rh">Правила виконання</h2></div>
+  <div class="cols">
+    <div class="box"><h4>Обмеження для всіх проєктів</h4><ul>
+      <li>Лише компоненти з комплекту TP101 і посібника: циліндри однобічної та двобічної дії, розподільники 3/2 і 5/2 (кнопка, перемикач, ролик, пневмокерування, бістабільні), клапани І та АБО, дроселі зі зворотним клапаном, клапан швидкого вихлопу, регулятор тиску, клапан послідовності, клапан затримки, пневматичні датчики положення, манометри.</li>
+      <li>3/2-розподільник з двобічним пневмокеруванням отримують з 5/2, закривши порт 4 заглушкою.</li>
+      <li>Робочий тиск не більше 6 bar; якщо в завданні не вказано інше, 4 bar.</li>
+      <li>Позначення за ISO 1219 і правилами посібника: 1A1, 1V1, 1S1, 1B1, 0Z1.</li>
+      <li>Схему креслять у вихідному положенні: повітря подано, жоден сигнал не активний.</li>
+    </ul></div>
+    <div class="box"><h4>Що здати</h4><ol>
+      <li>Файл FluidSIM <span class="mono">SP_nn_Прізвище.ct</span>, у якому схема працює.</li>
+      <li>Схему з позначеннями всіх компонентів і портів (знімок екрана або PDF).</li>
+      <li>Перелік обладнання: кількість, назва, позначення.</li>
+      <li>Опис послідовності роботи: вихідне положення і кроки.</li>
+      <li>Діаграму станів FluidSIM (state diagram) з усіма циліндрами.</li>
+      <li>Заповнений протокол вимірювань і відповіді на контрольні питання.</li>
+    </ol></div>
+    <div class="box"><h4>Порядок роботи</h4><ol class="steps">
+      <li>Проаналізуйте задачу: які рухи, які умови старту і зупинки.</li>
+      <li>Визначте вхідні сигнали і логіку: І, АБО, НЕ, пам'ять, час, тиск.</li>
+      <li>Накресліть силову частину, потім керувальну.</li>
+      <li>Зберіть схему у FluidSIM, задайте мітки датчиків і параметри.</li>
+      <li>Пройдіть усі сценарії перевірки і виправте помилки.</li>
+      <li>Виконайте вимірювання і оформіть звіт.</li>
+    </ol></div>
+  </div>
+  <div id="rubric" style="display:flex;flex-direction:column;gap:10px;scroll-margin-top:80px">
+    <h3>Критерії оцінювання</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Критерій</th><th>Що перевіряють</th><th>Бали</th></tr></thead>
+      <tbody>
+        <tr><td>Функціональність</td><td>схема у FluidSIM виконує всі вимоги і проходить усі сценарії перевірки</td><td class="n">40</td></tr>
+        <tr><td>Коректність схеми</td><td>правильні компоненти, порти, позначення, вихідне положення, немає зайвих елементів</td><td class="n">20</td></tr>
+        <tr><td>Налаштування і вимірювання</td><td>задано параметри (тиск, дроселі, час), протокол заповнено, значення реалістичні</td><td class="n">15</td></tr>
+        <tr><td>Документація</td><td>перелік обладнання, опис послідовності, діаграма станів</td><td class="n">15</td></tr>
+        <tr><td>Захист</td><td>відповіді на контрольні питання, пояснення вибору рішень</td><td class="n">10</td></tr>
+        <tr><td><b>Разом</b></td><td>ускладнення дає до 10 додаткових балів</td><td class="n"><b>100</b></td></tr>
+      </tbody></table></div>
+  </div>
+</section>
+
+<section class="sec" id="map" aria-labelledby="mh">
+  <div class="sec-head"><span class="eyebrow">Розділ II</span><h2 id="mh">Карта навичок</h2></div>
+  <div class="prose"><p>Таблиця показує, які теми розділу «Пневматика» тренує кожен проєкт. Номер у клітинці відсилає до проєкту посібника TP101, де цю тему розібрано.</p></div>
+  <div class="tbl-wrap" id="skillMap"></div>
+</section>
+
+<section class="sec" id="projects" aria-labelledby="ph">
+  <div class="sec-head"><span class="eyebrow">Розділ III</span><h2 id="ph">Проєкти</h2></div>
+  <div class="picker" id="picker" role="list"></div>
+  <div class="proj" id="proj" aria-live="polite"></div>
+</section>
+
+<footer>Завдання розроблено для самостійної роботи з розділу «Пневматика» на основі посібника за робочим зошитом Festo Didactic TP101. Еталонні рішення — один із можливих правильних варіантів: інші схеми, що виконують усі вимоги і не виходять за межі вивченого, теж приймаються.</footer>
+</main>
+</div>
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const $=id=>document.getElementById(id);
+
+/* ---------- sketch helpers (positional sketches) ---------- */
+const K={
+  hcyl(x,y,len,ext,lab,dir){ dir=dir||1; const bx=dir>0?x:x-len, re=dir>0?x+len+ext:x-len-ext;
+    return `<rect x="${bx}" y="${y}" width="${len}" height="16" class="k-cyl"/><rect x="${dir>0?x+len:re}" y="${y+5}" width="${ext}" height="6" class="k-rod"/><rect x="${dir>0?re:re-6}" y="${y-6}" width="6" height="28" class="k-head"/>`+(lab?`<text x="${bx+len/2}" y="${y-5}" class="k-lbl" text-anchor="middle">${lab}</text>`:''); },
+  vcyl(x,y,len,ext,lab,down){ const by=down?y:y-len, re=down?y+len+ext:y-len-ext;
+    return `<rect x="${x}" y="${by}" width="16" height="${len}" class="k-cyl"/><rect x="${x+5}" y="${down?y+len:re}" width="6" height="${ext}" class="k-rod"/><rect x="${x-10}" y="${down?re:re-6}" width="36" height="6" class="k-head"/>`+(lab?`<text x="${x+22}" y="${by+12}" class="k-lbl">${lab}</text>`:''); },
+  part(x,y,w,h,t){ return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="k-part"/>`+(t?`<text x="${x+w/2}" y="${y+h/2+4}" class="k-sm" text-anchor="middle">${t}</text>`:''); },
+  conv(x,y,w){ let s=`<rect x="${x}" y="${y}" width="${w}" height="10" rx="5" class="k-belt"/>`; for(let i=x+8;i<x+w-4;i+=22) s+=`<circle cx="${i}" cy="${y+5}" r="3" class="k-roll"/>`; return s; },
+  sens(x,y,lab,up){ return `<path d="M${x} ${y}l-5 ${up?-9:9}h10z" class="k-sens"/><text x="${x}" y="${up?y-12:y+20}" class="k-sl" text-anchor="middle">${lab}</text>`; },
+  btn(x,y,lab){ return `<rect x="${x-12}" y="${y-8}" width="24" height="22" rx="3" class="k-panel"/><circle cx="${x}" cy="${y+3}" r="6" class="k-btn"/><text x="${x}" y="${y+28}" class="k-sl" text-anchor="middle">${lab}</text>`; },
+  arr(x1,y1,x2,y2){ const a=Math.atan2(y2-y1,x2-x1),L=7; return `<path d="M${x1} ${y1}L${x2} ${y2}M${x2} ${y2}L${(x2-L*Math.cos(a-0.45)).toFixed(1)} ${(y2-L*Math.sin(a-0.45)).toFixed(1)}M${x2} ${y2}L${(x2-L*Math.cos(a+0.45)).toFixed(1)} ${(y2-L*Math.sin(a+0.45)).toFixed(1)}" class="k-arr"/>`; },
+  t(x,y,s,a){ return `<text x="${x}" y="${y}" class="k-sm"${a?` text-anchor="${a}"`:''}>${s}</text>`; },
+  ground(x,y,w){ let s=`<path d="M${x} ${y}H${x+w}" class="k-gnd"/>`; for(let i=x;i<x+w;i+=10) s+=`<path d="M${i} ${y}l-6 7" class="k-hatch"/>`; return s; },
+  rect(x,y,w,h,cls){ return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${cls||'k-frame'}"/>`; },
+  line(d,cls){ return `<path d="${d}" class="${cls||'k-frame'}"/>`; },
+};
+const sk=(inner,aria)=>`<svg viewBox="0 0 400 220" role="img" aria-label="${esc(aria)}">${inner}</svg>`;
+
+/* ---------- displacement-step diagram ---------- */
+function stepDia(o){
+  const n=o.n, L=86, sw=Math.max(40,Math.min(62,(560-L)/n)), RH=46, W=L+n*sw+20, H=o.rows.length*RH+30;
+  const X=i=>L+i*sw, Y=(r,v)=>14+r*RH+ (1-v)*26;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria||'Діаграма шлях–крок')}" style="min-width:${Math.min(W,480)}px;max-width:${Math.round(W*1.2)}px">`;
+  for(let i=0;i<=n;i++) s+=`<path d="M${X(i)} 8V${H-18}" class="d-grid"/><text x="${X(i)}" y="${H-5}" class="d-ax" text-anchor="middle">${i===n&&o.loop?(i+1)+'='+1:(i+1)}</text>`;
+  o.rows.forEach((r,ri)=>{
+    s+=`<text x="6" y="${Y(ri,0.5)+4}" class="d-lbl">${esc(r.id)}</text>`;
+    const lv=r.lv||['1','0']; s+=`<text x="${L-8}" y="${Y(ri,1)+3}" class="d-ax" text-anchor="end">${lv[0]}</text><text x="${L-8}" y="${Y(ri,0)+3}" class="d-ax" text-anchor="end">${lv[1]}</text>`;
+    s+=`<path d="M${L} ${Y(ri,1)}H${X(n)}M${L} ${Y(ri,0)}H${X(n)}" class="d-lev"/>`;
+    let d=''; r.v.forEach((v,i)=>{ if(i===0){ d+=`M${X(0)} ${Y(ri,v)}`; return; } if(r.kind==='bin'){ d+=`H${X(i-0.0)}V${Y(ri,v)}`; d=d.replace(/H([\d.]+)V/g,'H$1V'); } else d+=`L${X(i)} ${Y(ri,v)}`; });
+    if(r.kind==='bin'){ d=''; r.v.forEach((v,i)=>{ d+= i===0?`M${X(0)} ${Y(ri,v)}`:`H${X(i)}V${Y(ri,v)}`; }); }
+    s+=`<path d="${d}" class="d-ln d-c${ri%4}"/>`;
+  });
+  (o.marks||[]).forEach(m=>{ const x=X(m.s)+ (m.dx||0), y1=Y(m.r,m.v!=null?m.v:0.5)-4; s+=`<text x="${x+4}" y="${y1}" class="d-mk">${esc(m.t)}</text>`; });
+  return s+'</svg>';
+}
+
+/* ---------- PROJECTS ---------- */
+const GUIDE='https://claude.ai/artifact/CyQ618LRH8UpH9WmA5P4KQ';
+const P=[
+{n:1,lv:1,title:'Дверцята сушильної шафи',time:'2 акад. год',topics:['непряме керування','дроселювання на виході','манометр'],ref:[5,6,7],th:['t5','t6'],
+ situation:'Сушильна шафа фарбувальної дільниці має важкі розсувні дверцята. Оператор відчиняє і зачиняє їх перемикачем на пульті, що стоїть за 8 м від шафи. Дверцята не повинні вдарятися в упори, тому рух має бути плавним, а швидкості відчинення і зачинення налаштовуються окремо.',
+ sketch:()=>sk(K.rect(40,60,200,130,'k-frame')+K.t(140,130,'сушильна шафа','middle')+K.part(44,70,70,112,'')+K.t(79,130,'дверцята','middle')+K.hcyl(118,34,90,30,'1A1',-1)+K.line('M44 70V34H58')+K.arr(150,24,100,24)+K.btn(330,120,'1S1')+K.t(330,175,'пульт, 8 м','middle')+K.ground(20,190,360),'Ескіз сушильної шафи'),
+ req:['Перемикач 1S1 «Відкрито» відчиняє дверцята, і вони лишаються відчиненими, поки перемикач увімкнено.','Після повернення перемикача дверцята зачиняються.','Керування непряме: перемикач на пульті лише подає сигнал керування.','Час відчинення 3 ± 0,5 с, час зачинення 2 ± 0,5 с, налаштовуються незалежно.','Рух рівномірний, без ривків.','Робочий тиск 3,5 bar; тиск у поршневій порожнині контролюють манометром.'],
+ params:[['Робочий тиск','3,5 bar'],['Циліндр','двобічної дії, D = 20 мм, хід 100 мм'],['Час відчинення','3 ± 0,5 с'],['Час зачинення','2 ± 0,5 с']],
+ dia:{n:3,rows:[{id:'1S1',kind:'bin',lv:['1','0'],v:[1,1,0,0]},{id:'1A1',lv:['1','0'],v:[0,1,1,0]}],marks:[{s:0,r:1,t:'3 с',dx:14,v:0.6},{s:2,r:1,t:'2 с',dx:14,v:0.6}]},
+ fs:['Задайте тиск джерела 3,5 bar і параметри циліндра.','Додайте манометр у лінію поршневої порожнини.','Налаштуйте дроселі, вимірюючи час на діаграмі станів.','Повторіть вимірювання при 5 bar, не змінюючи дроселів.'],
+ tests:['Без перемикання дверцята зачинені, штокова порожнина під тиском.','Перемикач увімкнено: дверцята відчиняються за 3 ± 0,5 с і лишаються відчиненими.','Перемикач вимкнено: дверцята зачиняються за 2 ± 0,5 с.','Зміна відкриття одного дроселя впливає лише на один напрямок руху.'],
+ proto:[['Час відчинення при 3,5 bar','с'],['Час зачинення при 3,5 bar','с'],['Час відчинення при 5 bar','с'],['Час зачинення при 5 bar','с'],['Тиск у поршневій порожнині під час руху','bar']],
+ hints:['Які дві частини має схема з непрямим керуванням? Хто подає сигнал, а хто живить циліндр?','Керувальний розподільник — 5/2 з пневмокеруванням і пружиною, сигнальний — 3/2 НЗ з перемикачем (проєкт 5).','Два дроселі зі зворотним клапаном, по одному в кожній лінії циліндра, зорієнтовані так, щоб гальмувати повітря, яке виходить з циліндра (проєкт 6).'],
+ bonus:'Додайте кнопку аварійного відчинення біля самої шафи, яка діє незалежно від пульта (функція АБО, проєкт 9).',
+ qa:['Чому для циліндра двобічної дії обрано дроселювання на виході?','Як змінився час руху при 5 bar і чому?','Що станеться з дверцятами, якщо зникне подача повітря?'],
+ sol:['Силова частина: 1A1 (двобічної дії), 1V1 — 5/2 з пневмокеруванням 14 і пружиною; порт 4 → поршнева порожнина, порт 2 → штокова.','У кожній лінії між 1V1 і 1A1 дросель зі зворотним клапаном (1V2, 1V3): вільний потік до циліндра, дроселюється вихлоп.','Сигнал: 1S1 (3/2 НЗ з перемикачем) → 14 розподільника 1V1. Манометр 1Z1 на лінії поршневої порожнини.']},
+
+{n:2,lv:1,title:'Відсікач заготовок на лотку',time:'2 акад. год',topics:['циліндр однобічної дії','функція НЕ','клапан швидкого вихлопу'],ref:[1,2,5,8],th:['t3','t4','t6','t7'],
+ situation:'Заготовки скочуються похилим лотком до верстата. Шток відсікача у звичайному стані піднятий і затримує їх. Поки оператор утримує кнопку, відсікач опускається і пропускає заготовки. Опускатися він має якнайшвидше, а підніматися плавно, щоб не вдарити заготовку знизу.',
+ sketch:()=>sk(K.line('M20 60L300 140','k-gnd')+K.part(90,62,26,26,'')+K.part(150,80,26,26,'')+K.part(210,96,26,26,'')+K.vcyl(262,200,50,20,'1A1',false)+K.arr(300,150,300,185)+K.arr(320,185,320,150)+K.btn(360,60,'1S1')+K.t(200,30,'похилий лоток','middle'),'Ескіз відсікача на лотку'),
+ req:['Без натискання кнопки шток відсікача висунутий (заготовки затримано).','Поки кнопку 1S1 утримують, шток втягнутий; після відпускання шток висувається.','Кнопка подає лише сигнал керування (непряме керування).','Втягування якнайшвидше, висування плавне з регульованою швидкістю.','Використати циліндр однобічної дії.'],
+ params:[['Робочий тиск','4 bar'],['Циліндр','однобічної дії, хід 50 мм'],['Висування','≈ 1,5 с']],
+ dia:{n:3,rows:[{id:'1S1',kind:'bin',v:[0,1,1,0]},{id:'1A1',v:[1,0,0,1]}],marks:[{s:0,r:1,t:'швидко',dx:8,v:0.9},{s:2,r:1,t:'плавно',dx:8,v:0.4}]},
+ fs:['Задайте тиск 4 bar.','Клапан швидкого вихлопу у FluidSIM ставлять безпосередньо біля порту циліндра.','Виміряйте час втягування з клапаном швидкого вихлопу і без нього (тимчасово з\'єднайте лінію напряму).'],
+ tests:['Після пуску симуляції шток висувається і лишається висунутим.','Утримування 1S1: шток швидко втягується.','Відпускання 1S1: шток плавно висувається.','Зміна дроселя змінює лише швидкість висування.'],
+ proto:[['Час втягування з клапаном швидкого вихлопу','с'],['Час втягування без нього','с'],['Час висування','с']],
+ hints:['Шток висунутий без сигналу. Який розподільник дає тиск на виході, поки його не перемкнули?','Керувальний елемент — 3/2 НВ з пневмокеруванням (як 1V4 у проєкті 16), сигнальний — кнопка 3/2 НЗ.','Для циліндра однобічної дії дроселюють подачу (вільний вихлоп через зворотний клапан), а клапан швидкого вихлопу прискорює втягування пружиною.'],
+ bonus:'Поясніть і перевірте у FluidSIM, що відбувається з відсікачем при зникненні повітря. Запропонуйте, як зробити так, щоб відсікач тоді залишався піднятим, не виходячи за межі вивченого.',
+ qa:['Яку логічну функцію виконує нормально відкритий розподільник у цій схемі?','Чому клапан швидкого вихлопу ставлять безпосередньо на циліндр?','Чому для циліндра однобічної дії дроселюють подачу, а не вихлоп?'],
+ sol:['1A1 — циліндр однобічної дії. 1V1 — 3/2 НВ з пневмокеруванням, порт 1 від джерела.','Від виходу 2 розподільника 1V1: дросель зі зворотним клапаном 1V2 (дроселює потік до циліндра), далі клапан швидкого вихлопу 1V3 біля порту циліндра.','1S1 (3/2 НЗ з кнопкою) → керування 12 розподільника 1V1: при натисканні 1V1 перекриває живлення і скидає циліндр.']},
+
+{n:3,lv:1,title:'Штовхач посилок з двох постів',time:'2–3 акад. год',topics:['АБО','І','бістабільний 5/2','автоповернення'],ref:[9,10,12],th:['t7','t8','t9'],
+ situation:'На стрічковому конвеєрі сортувальника посилки, що мають іти на ручне пакування, зіштовхують у бічний лоток. Штовхач запускають короткими натисканнями з будь-якого з двох постів по обидва боки конвеєра. Після одного натискання штовхач робить повний хід і повертається сам.',
+ sketch:()=>sk(K.conv(30,120,340)+K.part(170,92,44,28,'')+K.hcyl(40,96,70,56,'1A1',1)+K.sens(50,92,'1B1',true)+K.sens(170,92,'1B2',true)+K.arr(230,106,300,106)+K.rect(300,60,80,40,'k-frame')+K.t(340,84,'лоток','middle')+K.btn(60,190,'1S1')+K.btn(340,190,'1S2')+K.t(200,150,'конвеєр','middle'),'Ескіз штовхача посилок'),
+ req:['Коротке натискання 1S1 АБО 1S2 запускає один повний хід штовхача.','У кінцевому положенні (датчик 1B2) штовхач повертається автоматично, навіть якщо кнопку ще утримують.','Новий запуск можливий лише тоді, коли штовхач втягнутий (датчик 1B1).','Швидкість висування регулюється, повернення швидке.'],
+ params:[['Робочий тиск','4 bar'],['Циліндр','двобічної дії, хід 100 мм'],['Висування','≈ 1 с']],
+ dia:{n:2,loop:true,rows:[{id:'1A1',v:[0,1,0]}],marks:[{s:0,r:0,t:'(1S1 ∨ 1S2) ∧ 1B1',dx:4,v:0.2},{s:1,r:0,t:'1B2',dx:4,v:0.95}]},
+ fs:['Задайте мітки 1B1 (0 мм) і 1B2 (100 мм) на циліндрі.','Перевірте запуск з кожного поста окремо.','Перевірте, що натискання під час руху не впливає на цикл.'],
+ tests:['Натискання 1S1: повний цикл висування–повернення.','Натискання 1S2: такий самий цикл.','Утримування кнопки довше за цикл: штовхач повертається на 1B2. Що відбувається далі?','Натискання під час повернення: штовхач спершу доходить до 1B1.'],
+ proto:[['Час висування','с'],['Час повернення','с'],['Поведінка при утримуванні кнопки','—']],
+ hints:['Короткий сигнал має запустити повний хід. Який розподільник «запам\'ятовує» команду?','Дві кнопки об\'єднує човниковий клапан, а умову «штовхач втягнутий» додає клапан подвійного тиску.','14 = (1S1 ∨ 1S2) ∧ 1B1; 12 = 1B2 (порівняйте з проєктами 9, 10 і 12).'],
+ bonus:'Додайте третій пост керування.',
+ qa:['Чому без клапана АБО дві кнопки не можна з\'єднати трійником?','Що станеться, якщо датчик 1B1 змонтувати не в кінцевому положенні?','Що відбувається, якщо оператор утримує кнопку довше, ніж триває цикл, і як це виправити?'],
+ sol:['1V1 — 5/2 бістабільний, 14 — висування, 12 — повернення. Дроселі 1V4, 1V5 на виході.','1V2 (АБО): входи 1S1 і 1S2. 1V3 (І): вихід 1V2 і датчик 1B1 (роликовий або пневматичний) → 14.','1B2 у кінці ходу → 12. Обидва датчики живляться від джерела.']},
+
+{n:4,lv:2,title:'Пробивний прес для шкіри',time:'3 акад. год',topics:['двоконтактне керування І','бістабільний 5/2','клапан швидкого вихлопу','автоповернення'],ref:[8,10,12],th:['t6','t7','t8','t9'],
+ situation:'На пресі пробивають отвори в шкіряних ременях. З міркувань безпеки пуансон опускається лише тоді, коли оператор натискає дві кнопки обома руками. Опускання повільне і рівномірне, а після проколу пуансон швидко повертається вгору сам.',
+ sketch:()=>sk(K.line('M120 30H280V40M120 30V190M280 40V190','k-frame')+K.vcyl(192,40,60,40,'1A1',true)+K.sens(230,50,'1B1',false)+K.sens(230,130,'1B2',false)+K.rect(130,170,140,14,'k-part')+K.t(200,206,'ремінь','middle')+K.btn(60,150,'1S1')+K.btn(340,150,'1S2')+K.arr(176,110,176,150),'Ескіз пробивного преса'),
+ req:['Опускання починається лише при натиснутих 1S1 І 1S2 і пуансоні у верхньому положенні (1B1).','Відпускання однієї кнопки під час опускання не зупиняє хід: пуансон доходить до низу.','У нижньому положенні (1B2) пуансон автоматично піднімається.','Опускання повільне і рівномірне (≈ 1,5 с), підйом якнайшвидший.','Циліндр двобічної дії встановлено вертикально штоком униз.'],
+ params:[['Робочий тиск','5 bar'],['Циліндр','двобічної дії, хід 100 мм, вертикально'],['Опускання','≈ 1,5 с']],
+ dia:{n:2,loop:true,rows:[{id:'1A1',v:[0,1,0]}],marks:[{s:0,r:0,t:'1S1 ∧ 1S2 ∧ 1B1',dx:4,v:0.2},{s:1,r:0,t:'1B2',dx:4,v:0.95}]},
+ fs:['Тиск джерела 5 bar.','Клапан швидкого вихлопу — на порт поршневої порожнини.','Перевірте кожну кнопку окремо і обидві разом.'],
+ tests:['Лише 1S1 або лише 1S2: пуансон стоїть.','Обидві кнопки: пуансон повільно опускається.','На 1B2 пуансон швидко повертається.','Обидві кнопки утримують весь час: проаналізуйте, що відбувається після повернення.'],
+ proto:[['Час опускання','с'],['Час підйому з клапаном швидкого вихлопу','с'],['Що відбувається при утриманні обох кнопок','—']],
+ hints:['Скільки умов треба поєднати для старту? Скільки клапанів І для цього потрібно?','Швидке повернення дає клапан швидкого вихлопу в лінії, що скидається під час повернення.','14 = (1S1 ∧ 1S2) ∧ 1B1 (два клапани подвійного тиску); 12 = 1B2. Дросель на виході зі штокової порожнини.'],
+ bonus:'Додайте умову старту за тиском: прес не працює, якщо тиск менший за 4,5 bar (клапан послідовності, проєкт 14).',
+ qa:['Чому для двоконтактного керування використовують клапан І, а не АБО?','Чим небезпечне утримування обох кнопок і як цю небезпеку можна усунути на практиці?','Чому клапан швидкого вихлопу ставлять на поршневу порожнину?'],
+ sol:['1V1 — 5/2 бістабільний; порт 4 → поршнева порожнина через клапан швидкого вихлопу 1V4; порт 2 → штокова через дросель 1V5 (дроселює вихлоп під час опускання).','1V2 (І): 1S1 і 1S2. 1V3 (І): вихід 1V2 і 1B1 → 14.','1B2 → 12.']},
+
+{n:5,lv:2,title:'Подавач деталей з магазину',time:'3 акад. год',topics:['НЕ','кілька умов І','одиничний і автоматичний цикл'],ref:[10,12,13],th:['t7','t8','t9'],
+ situation:'Вертикальний магазин подає металеві втулки на приймальний стіл маніпулятора. Штовхач виштовхує нижню втулку з магазину. Робота можлива в одиничному циклі (кнопка) або автоматично (перемикач), але лише якщо в магазині є деталь, а приймальний стіл вільний.',
+ sketch:()=>sk(K.rect(150,20,40,110,'k-frame')+K.part(154,30,32,20,'')+K.part(154,52,32,20,'')+K.part(154,74,32,20,'')+K.part(154,96,32,20,'')+K.t(170,14,'магазин','middle')+K.hcyl(40,104,70,40,'1A1',1)+K.sens(200,90,'1B3',false)+K.rect(250,118,110,12,'k-part')+K.t(305,146,'приймальний стіл','middle')+K.part(300,94,28,24,'')+K.sens(314,80,'1B4',true)+K.arr(200,110,240,110)+K.line('M20 130H360','k-gnd')+K.btn(60,180,'1S1')+K.btn(110,180,'1S2'),'Ескіз подавача з магазину'),
+ req:['Одиничний цикл: кнопка 1S1. Автоматичний режим: перемикач 1S2, цикли повторюються, поки виконуються умови.','Умови старту: штовхач втягнутий (1B1), у магазині є деталь (1B3), на приймальному столі немає деталі (1B4 не спрацював).','У кінцевому положенні (1B2) штовхач повертається автоматично.','Швидкості висування і повернення регулюються.'],
+ params:[['Робочий тиск','4 bar'],['Циліндр','двобічної дії, хід 100 мм'],['Датчики 1B3, 1B4','у FluidSIM — розподільники з перемикачем (імітація деталі)']],
+ dia:{n:4,rows:[{id:'1S2',kind:'bin',v:[1,1,1,1,1]},{id:'1A1',v:[0,1,0,1,0]}],marks:[{s:0,r:1,t:'1B1 ∧ 1B3 ∧ ¬1B4',dx:2,v:0.15},{s:2,r:1,t:'стіл звільнено',dx:2,v:0.15}]},
+ fs:['Імітуйте деталь у магазині перемикачем НЗ (1B3), деталь на столі — перемикачем НВ (1B4).','Перевірте всі комбінації умов у таблиці.','В автоматичному режимі «забирайте» деталь зі столу, перемикаючи 1B4.'],
+ tests:['Магазин порожній: старт неможливий.','Стіл зайнятий: старт неможливий.','Обидві умови виконано: кнопка 1S1 дає один цикл.','Перемикач 1S2: цикли повторюються, доки стіл звільняють.'],
+ proto:[['Тривалість одного циклу','с'],['Кількість циклів за 30 с в автоматичному режимі','шт.'],['Комбінації умов, при яких старт заборонено','—']],
+ hints:['Скільки умов має бути виконано одночасно? Як отримати сигнал «стіл НЕ зайнятий»?','Кнопку і перемикач поєднує клапан АБО; решту умов — ланцюжок клапанів І.','14 = (1S1 ∨ 1S2) ∧ 1B1 ∧ 1B3 ∧ ¬1B4. Для ¬1B4 — нормально відкритий 3/2 (проєкт 13).'],
+ bonus:'Додайте лічильник-«контроль»: якщо деталь на столі не забрали протягом 10 с, автоматичний режим зупиняється (клапан затримки).',
+ qa:['Яким елементом реалізовано функцію НЕ і чому?','Що станеться в автоматичному режимі, якщо магазин спорожніє?','Чому автоматичний цикл повторюється без натискання кнопки?'],
+ sol:['1V1 — 5/2 бістабільний; дроселі на виході. 12 = 1B2.','1V2 (АБО): 1S1, 1S2. 1V3 (І): 1V2 і 1B1. 1V4 (І): 1V3 і 1B3. 1V5 (І): 1V4 і 1B4 → 14.','1B3 — 3/2 НЗ (деталь у магазині дає сигнал), 1B4 — 3/2 НВ (деталь на столі знімає сигнал).']},
+
+{n:6,lv:2,title:'Клепальний пристрій',time:'3 акад. год',topics:['клапан послідовності','повернення за тиском','дроселювання на вході'],ref:[14,15,16],th:['t10','t6','t7'],
+ situation:'Пневматична головка розклепує заклепки на кронштейнах. Глибина ходу щоразу трохи різна, тому повертати головку за кінцевим датчиком не можна: заклепка вважається розклепаною, коли тиск у поршневій порожнині досягає налаштованого значення. Якщо заклепки немає, головка доходить до упору і теж повертається.',
+ sketch:()=>sk(K.line('M110 20H290M200 20V40','k-frame')+K.vcyl(192,40,60,40,'1A1',true)+K.sens(232,50,'1B1',false)+K.sens(232,130,'1B2',false)+K.rect(150,165,100,18,'k-part')+K.part(194,152,12,14,'')+K.t(200,206,'кронштейн із заклепкою','middle')+K.btn(330,120,'1S1')+K.arr(176,112,176,150),'Ескіз клепального пристрою'),
+ req:['Старт кнопкою 1S1 лише з верхнього положення (1B1).','Головка повертається, коли тиск у поршневій порожнині досягне 3,5 bar.','Якщо заклепки немає, головка повертається від кінцевого датчика 1B2.','Робочий тиск 5 bar задається регулятором з манометром.','Швидкість опускання регулюється так, щоб під час вільного руху тиск у поршневій порожнині лишався нижчим за поріг.'],
+ params:[['Тиск мережі','6 bar'],['Регулятор','5 bar'],['Поріг повернення','3,5 bar (налаштовується 3–4,5 bar)'],['Опір заклепки у FluidSIM','сила навантаження циліндра, яка зупиняє шток до кінця ходу']],
+ dia:{n:2,loop:true,rows:[{id:'1A1',v:[0,0.8,0]},{id:'p 1Z1',kind:'bin',lv:['3,5','0'],v:[0,1,0]}],marks:[{s:0,r:0,t:'1S1 ∧ 1B1',dx:4,v:0.15},{s:1,r:1,t:'тиск досягнуто',dx:4,v:1.05}]},
+ fs:['Імітуйте заклепку: задайте циліндру силу навантаження, більшу за зусилля при 5 bar (наприклад 200 Н на кінцевій ділянці) або вкоротіть доступний хід упором.','Перевірте цикл без заклепки (навантаження 0).','Змініть поріг клапана послідовності на 3,0 і 4,5 bar.'],
+ tests:['Без заклепки: повернення від 1B2.','Із заклепкою: повернення до кінця ходу, коли манометр показує ≈ 3,5 bar.','Поріг вищий за налаштування регулятора: що відбувається?','Під час вільного опускання клапан послідовності не спрацьовує.'],
+ proto:[['Тиск у поршневій порожнині під час вільного руху','bar'],['Тиск, при якому починається повернення','bar'],['Поведінка, якщо поріг 5,5 bar при регуляторі 5 bar','—']],
+ hints:['Який клапан перемикається, коли тиск у точці досягає заданого значення? Звідки він має брати сигнал керування?','Повернення має відбуватися від двох сигналів. Яка логічна функція їх поєднує?','Чому дроселювання на виході тут шкодить: під час руху тиск у поршневій порожнині майже дорівнює тиску живлення. Дроселюйте подачу.'],
+ bonus:'Додайте блокування старту, якщо тиск після регулятора нижчий за 4 bar (другий клапан послідовності, проєкт 14).',
+ qa:['Чому повернення за датчиком положення тут не підходить?','Чому для цієї схеми обрано дроселювання на вході, а не на виході?','Що станеться, якщо поріг клапана послідовності вищий за тиск регулятора?'],
+ sol:['0V1 — регулятор тиску з манометром (5 bar), живить 1V1 і сигнальні елементи.','1V1 — 5/2 бістабільний. 14 = 1S1 ∧ 1B1 (клапан І). Порт 4 → дросель 1V4 (дроселює подачу) → поршнева порожнина; манометр 1Z1 біля циліндра.','1V3 — клапан послідовності, керування 12 від лінії поршневої порожнини (між дроселем і циліндром), вихід → клапан АБО 1V2 разом з 1B2 → 12 розподільника 1V1.']},
+
+{n:7,lv:2,title:'Прес для склеювання шпону',time:'3 акад. год',topics:['регулятор тиску в робочій лінії','клапан затримки','аварійне повернення АБО'],ref:[15,17,14],th:['t10','t11','t7'],
+ situation:'Шпон приклеюють до меблевих щитів пневматичним прес-столом. Зусилля притискання залежить від породи шпону і має налаштовуватися. Після того як плита притиснула щит, клей схоплюється задану кількість секунд, і плита піднімається сама. Оператор у будь-який момент може підняти плиту кнопкою аварійного повернення.',
+ sketch:()=>sk(K.line('M90 20H310M200 20V36','k-frame')+K.vcyl(192,36,56,30,'1A1',true)+K.rect(130,128,140,10,'k-head')+K.rect(130,150,140,10,'k-part')+K.rect(110,160,180,20,'k-frame')+K.t(200,198,'меблевий щит зі шпоном','middle')+K.sens(240,46,'1B1',false)+K.sens(240,110,'1B2',false)+K.btn(340,100,'1S1')+K.btn(340,160,'1S2'),'Ескіз преса для шпону'),
+ req:['Старт кнопкою 1S1 лише з верхнього положення плити (1B1).','Тиск притискання налаштовується від 2 до 4 bar незалежно від тиску мережі й видно на манометрі.','Відлік часу витримки (8 с, налаштовується 5–15 с) починається, коли плита притиснула щит (1B2).','Після витримки плита автоматично піднімається.','Кнопка 1S2 піднімає плиту в будь-який момент.','Підйом не повинен гальмуватися регулятором тиску.'],
+ params:[['Тиск мережі','6 bar'],['Тиск притискання','2–4 bar'],['Витримка','8 с']],
+ dia:{n:3,loop:true,rows:[{id:'1A1',v:[0,1,1,0]},{id:'1V5 (t)',kind:'bin',lv:['1','0'],v:[0,0,1,0]}],marks:[{s:0,r:0,t:'1S1 ∧ 1B1',dx:4,v:0.15},{s:1,r:0,t:'1B2 → t = 8 с',dx:4,v:1.05},{s:2,r:1,t:'∨ 1S2',dx:4,v:1.05}]},
+ fs:['Задайте тиск мережі 6 bar, регулятор у лінії поршневої порожнини 3 bar.','Встановіть час клапана затримки 8 с.','Перевірте аварійне повернення на кожному кроці.'],
+ tests:['Під час притискання манометр 1Z1 показує налаштований тиск, а не 6 bar.','Відлік витримки починається лише на 1B2.','Після 8 с плита піднімається.','1S2 під час опускання і під час витримки піднімає плиту.','Плита піднімається з нормальною швидкістю, хоча в лінії стоїть регулятор.'],
+ proto:[['Тиск притискання при налаштуванні 2 / 3 / 4 bar','bar'],['Фактичний час витримки','с'],['Час підйому','с']],
+ hints:['Повітря з поршневої порожнини не може вийти назад через регулятор. Як це було розв\'язано в проєкті 15?','Витримку дає клапан затримки, на вхід якого подано сигнал датчика нижнього положення (проєкт 17).','12 = (вихід клапана затримки) ∨ 1S2. Регулятор зі зворотним обходом у лінії порту 4.'],
+ bonus:'Зробіть так, щоб старт був можливий лише двома руками (І з двох кнопок, проєкт 4 цієї серії).',
+ qa:['Чим регулятор тиску в робочій лінії відрізняється від регулятора на вході всієї системи?','Чому відлік часу починається від датчика 1B2, а не від натискання 1S1?','Що станеться, якщо кнопку 1S1 утримувати під час натискання 1S2?'],
+ sol:['1V1 — 5/2 бістабільний. 14 = 1S1 ∧ 1B1 (клапан І 1V2).','Порт 4 → регулятор тиску з манометром 1V6 → поршнева порожнина; паралельно 1V6 — зворотний обхід (дросель зі зворотним клапаном 1V7, повністю закритий). Порт 2 → дросель 1V8 на виході.','1B2 → вхід клапана затримки 1V5 (8 с). Вихід 1V5 і 1S2 → клапан АБО 1V3 → 12.']},
+
+{n:8,lv:3,title:'Шлагбаум службового паркінгу',time:'4 акад. год',topics:['АБО з трьома входами','І з НЕ','клапан затримки','повторне відкриття'],ref:[9,12,13,17],th:['t7','t8','t11'],
+ situation:'Шлагбаум службового паркінгу піднімає вертикальний циліндр. Його відкривають кнопками на в\'їзді та виїзді. Поки під шлагбаумом стоїть автомобіль, шлагбаум не закривається. Після того як проїзд звільнено, він закривається сам через 6 с. Якщо під час закривання під\'їжджає автомобіль, шлагбаум знову відкривається.',
+ sketch:()=>sk(K.rect(60,80,26,100,'k-frame')+K.rect(86,88,250,6,'k-head')+K.vcyl(110,180,60,26,'1A1',false)+K.part(180,140,90,30,'авто')+K.circlefix()+K.sens(225,186,'1B3/1B4',true)+K.sens(150,118,'1B2',true)+K.btn(40,30,'1S1')+K.btn(360,30,'1S2')+K.arr(300,80,300,50)+K.ground(20,190,360),'Ескіз шлагбаума'),
+ req:['Кнопка 1S1 (в\'їзд) АБО 1S2 (виїзд) відкриває шлагбаум.','Поки під шлагбаумом автомобіль (датчик 1B3), шлагбаум відкритий.','Шлагбаум закривається через 6 с після того, як він повністю відкритий (1B2) І автомобіля немає (1B4).','Якщо автомобіль заїхав під шлагбаум під час закривання, шлагбаум відкривається знову.','Відкривання швидке, закривання повільне.'],
+ params:[['Робочий тиск','4 bar'],['Затримка закривання','6 с'],['Датчик автомобіля','два розподільники на одному датчику: 1B3 (НЗ, сигнал «є авто»), 1B4 (НВ, сигнал «авто немає»)']],
+ dia:{n:4,rows:[{id:'1A1',v:[0,1,1,0,0]},{id:'авто',kind:'bin',v:[0,1,0,0,0]},{id:'t',kind:'bin',v:[0,0,1,0,0]}],marks:[{s:0,r:0,t:'1S1 ∨ 1S2',dx:4,v:0.15},{s:2,r:2,t:'1B2 ∧ 1B4, 6 с',dx:4,v:1.05}]},
+ fs:['У FluidSIM імітуйте автомобіль двома розподільниками з перемикачем: НЗ (1B3) і НВ (1B4); перемикайте обидва одночасно.','Задайте затримку 6 с.','Пройдіть усі сценарії, зокрема заїзд під час закривання.'],
+ tests:['1S1 або 1S2 відкриває шлагбаум.','Без автомобіля шлагбаум закривається через 6 с після повного відкриття.','Автомобіль під шлагбаумом: відлік часу не починається.','Автомобіль з\'являється під час закривання: шлагбаум відкривається знову.'],
+ proto:[['Час відкривання','с'],['Фактична затримка перед закриванням','с'],['Час закривання','с']],
+ hints:['Скільки сигналів можуть відкрити шлагбаум? Як об\'єднати три сигнали клапанами АБО з двома входами?','Яка умова запускає відлік часу? Поєднайте датчик відкритого положення і сигнал «авто немає».','14 = 1S1 ∨ 1S2 ∨ 1B3; вхід клапана затримки = 1B2 ∧ 1B4; 12 = вихід клапана затримки.'],
+ bonus:'Додайте перемикач «Відкрито постійно» для вивезення сміття.',
+ qa:['Чому для датчика автомобіля потрібні два розподільники з різним вихідним положенням?','Що станеться, якщо автомобіль заїде під шлагбаум у момент спрацювання таймера?','Чому таймер автоматично скидається, коли шлагбаум починає закриватися?'],
+ sol:['1V1 — 5/2 бістабільний. Порт 4 → дросель зі зворотним клапаном 1V6 (вільний потік до циліндра, дроселюється вихлоп поршневої порожнини під час закривання) → поршнева порожнина; порт 2 → штокова порожнина напряму, тому відкривання швидке.','1V2 (АБО): 1S1 і 1S2; 1V3 (АБО): вихід 1V2 і 1B3 → 14.','1V4 (І): 1B2 і 1B4 → вхід клапана затримки 1V5 (6 с) → 12.']},
+
+{n:9,lv:3,title:'Ущільнювач піску в ливарних формах',time:'4 акад. год',topics:['коливальний рух','схема самоутримання','НЕ від таймера','кнопка «Стоп»'],ref:[11,16,17,18],th:['t8','t9','t11','t12'],
+ situation:'У ливарному цеху пісок у формах ущільнюють пневматичною трамбівкою. Після пуску трамбівка коливається між середнім і нижнім положеннями протягом 12 с, потім піднімається вгору і зупиняється. Запуск можливий лише тоді, коли форма стоїть на місці. Кнопка «Стоп» перериває процес у будь-який момент.',
+ sketch:()=>sk(K.line('M110 16H290M200 16V30','k-frame')+K.vcyl(192,30,70,40,'1A1',true)+K.sens(232,40,'1B1',false)+K.sens(232,96,'1B3',false)+K.sens(232,132,'1B2',false)+K.rect(140,150,120,36,'k-frame')+K.rect(146,156,108,26,'k-part')+K.t(200,206,'форма з піском','middle')+K.sens(130,176,'1B5',false)+K.btn(330,60,'1S1')+K.btn(330,130,'1S2'),'Ескіз ущільнювача піску'),
+ req:['Пуск кнопкою 1S1, якщо форма на місці (1B5). Перший хід униз починається з верхнього положення (1B1).','Протягом 12 с трамбівка коливається між середнім (1B3) і нижнім (1B2) положеннями.','Після 12 с вона доходить до низу, повертається вгору і зупиняється.','Кнопка «Стоп» 1S2 перериває процес: трамбівка повертається вгору.','Пам\'ять запуску виконати схемою самоутримання, а не бістабільним розподільником.'],
+ params:[['Робочий тиск','5 bar'],['Час ущільнення','12 с'],['Датчик 1B3','посередині ходу']],
+ dia:{n:8,rows:[{id:'1A1',lv:['1','0'],v:[0,1,0.5,1,0.5,1,0.5,1,0]},{id:'пам\'ять',kind:'bin',v:[1,1,1,1,1,1,1,0,0]}],marks:[{s:0,r:0,t:'1S1 ∧ 1B5, далі 1B1',dx:2,v:0.1},{s:7,r:1,t:'12 с',dx:2,v:1.05}]},
+ fs:['Задайте мітки 1B1 (0 мм), 1B3 (50 мм), 1B2 (100 мм).','Імітуйте форму перемикачем 1B5.','Для швидшої перевірки тимчасово поставте затримку 4 с.'],
+ tests:['Без форми пуск неможливий.','Після пуску: коливання між 1B3 і 1B2.','Через 12 с трамбівка повертається вгору і зупиняється.','«Стоп» під час коливань: трамбівка повертається вгору.','Повторний пуск після «Стоп» працює.'],
+ proto:[['Кількість ударів за 12 с','шт.'],['Тривалість одного коливання','с'],['Час від «Стоп» до верхнього положення','с']],
+ hints:['Як організовано коливання в проєкті 18? Від чого живляться датчики, що запускають висування?','Пам\'ять — 3/2 НЗ з пневмокеруванням, вихід якого через АБО і нормально відкриті елементи повертається на власне керування (проєкт 11). Як «розірвати» петлю сигналом таймера?','Таймер живиться від виходу пам\'яті, а його вихід перемикає 3/2 НВ з пневмокеруванням, послідовно ввімкнений у петлю самоутримання поруч із кнопкою «Стоп» (проєкт 16).'],
+ bonus:'Додайте лічильник ударів: не схемою, а за діаграмою станів поясніть, як зміна дроселів впливає на кількість ударів.',
+ qa:['Чому датчики 1B1 і 1B3 живляться від пам\'яті, а 1B2 — від джерела?','Що домінує у вашій схемі самоутримання: пуск чи стоп?','Як зміниться кількість ударів, якщо посунути датчик 1B3 ближче до низу?'],
+ sol:['Пам\'ять L: 1V2 — 3/2 НЗ з пневмокеруванням 12. Петля: [1S1 ∧ 1B5 (клапан І 1V5)] ∨ L (АБО 1V3) → 1S2 (3/2 НВ кнопка) → 1V7 (3/2 НВ з пневмокеруванням) → 12 розподільника 1V2.','L живить 1B1, 1B3 і вхід клапана затримки 1V6 (12 с); вихід 1V6 → керування 1V7 (розриває петлю).','1V1 — 5/2 бістабільний: 14 = 1B1 ∨ 1B3 (АБО 1V4, обидва живляться від L); 12 = 1B2 (від джерела).']},
+
+{n:10,lv:3,title:'Підіймальний перекладач деталей',time:'4 акад. год',topics:['два циліндри','послідовність A+ B+ A− B−','умови старту'],ref:[19,12,10],th:['t12','t8','t9'],
+ situation:'Деталі надходять нижнім конвеєром на підіймальну платформу. Циліндр 1A1 піднімає платформу до рівня верхнього конвеєра, циліндр 2A1 зіштовхує деталь, платформа опускається, і лише потім штовхач повертається. Цикл запускають кнопкою, якщо на платформі є деталь і обидва циліндри у вихідних положеннях.',
+ sketch:()=>sk(K.conv(20,160,120)+K.conv(260,70,130)+K.rect(150,150,90,8,'k-head')+K.vcyl(187,210,40,0,'1A1',false)+K.part(170,126,30,24,'')+K.hcyl(30,58,70,40,'2A1',1)+K.arr(195,140,195,96)+K.arr(160,66,240,66)+K.sens(250,150,'1B1/1B2',false)+K.sens(60,54,'2B1/2B2',true)+K.sens(166,122,'1B3',true)+K.btn(360,170,'1S1'),'Ескіз підіймального перекладача'),
+ req:['Послідовність: 1A1+ (підняти), 2A1+ (зіштовхнути), 1A1− (опустити), 2A1− (повернути).','Старт кнопкою 1S1 лише якщо на платформі є деталь (1B3) і обидва циліндри втягнуті (1B1, 2B1).','Кожен крок починається лише після того, як попередній рух завершено (датчики кінцевих положень).','Швидкості обох циліндрів регулюються.','Сигнал старту має бути коротким імпульсом, тож перекриття сигналів не повинно виникати.'],
+ params:[['Робочий тиск','5 bar'],['Циліндри','двобічної дії, хід 100 мм'],['Датчики','1B1, 1B2 на 1A1; 2B1, 2B2 на 2A1']],
+ dia:{n:4,loop:true,rows:[{id:'1A1',v:[0,1,1,0,0]},{id:'2A1',v:[0,0,1,1,0]}],marks:[{s:0,r:0,t:'1S1 ∧ 1B3 ∧ 1B1 ∧ 2B1',dx:2,v:0.1},{s:1,r:1,t:'1B2',dx:3,v:0.1},{s:2,r:0,t:'2B2',dx:3,v:1.05},{s:3,r:1,t:'1B1',dx:3,v:1.05}]},
+ fs:['Додайте обидва циліндри на діаграму станів і порівняйте з діаграмою шлях–крок у завданні.','Перевірте, що жоден розподільник не отримує сигналів 14 і 12 одночасно.','Виміряйте тривалість кожного кроку.'],
+ tests:['Без деталі на платформі старт неможливий.','Повний цикл A+ B+ A− B− проходить без зупинок.','Натискання 1S1 під час циклу ні на що не впливає.','Діаграма станів FluidSIM збігається з діаграмою шлях–крок.'],
+ proto:[['Тривалість кроків 1–2 / 2–3 / 3–4 / 4–5','с'],['Повний час циклу','с'],['Чи виникало перекриття сигналів і де','—']],
+ hints:['Розпишіть, який датчик завершує кожен крок і запускає наступний.','Кожен циліндр — свій 5/2 бістабільний. Сигнал повернення 1A1 дає 2B2, сигнал висування 2A1 дає 1B2.','1V1: 14 = 1S1 ∧ 1B3 ∧ 1B1 ∧ 2B1, 12 = 2B2. 2V1: 14 = 1B2, 12 = 1B1. Перевірте кожен крок на перекриття.'],
+ bonus:'Додайте автоматичний режим перемикачем (як у проєкті 5 цієї серії) і перевірте, чи не виникає перекриття сигналів.',
+ qa:['Чому для цієї послідовності не виникає перекриття сигналів?','Що станеться, якщо оператор утримує 1S1 довше за цикл?','Яка послідовність руху двох циліндрів призвела б до перекриття (наприклад, A+ B+ B− A−) і чому?'],
+ sol:['1V1 — 5/2 бістабільний для 1A1: 14 = 1S1 ∧ 1B3 ∧ 1B1 ∧ 2B1 (три клапани І), 12 = 2B2.','2V1 — 5/2 бістабільний для 2A1: 14 = 1B2, 12 = 1B1.','По два дроселі на виході для кожного циліндра. Датчик 1B1 водночас входить в умову старту і повертає 2A1.']},
+];
+K.circlefix=()=>'<circle cx="200" cy="176" r="8" class="k-roll"/><circle cx="250" cy="176" r="8" class="k-roll"/>';
+
+const MAP=[['Непряме керування',[5],[1,2]],['Циліндр однобічної дії',[1,2],[2]],['Дроселювання / швидкий вихлоп',[6,7,8],[1,2,4,6]],['І, АБО, НЕ',[9,10,13],[3,4,5,8]],['Бістабільна пам\'ять',[8,10],[3,4,5,6,7,8,10]],['Схема самоутримання',[11],[9]],['Датчики положення, автоповернення',[10,12,13],[3,4,5,6,7,8,9,10]],['Регулятор / клапан послідовності',[14,15,16],[6,7]],['Клапан затримки',[17,18],[7,8,9]],['Коливальний рух',[18],[9]],['Два циліндри',[19],[10]]];
+
+/* ---------- render ---------- */
+(function(){ const btn=$('themeBtn'), sv=store.get('tp101-theme',null); if(sv) document.documentElement.setAttribute('data-theme',sv);
+  btn.addEventListener('click',()=>{ const c=document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'); const nx=c==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nx); store.set('tp101-theme',nx); }); })();
+
+$('skillMap').innerHTML=`<table><thead><tr><th>Тема (посібник TP101)</th>${P.map(p=>`<th class="n" title="${esc(p.title)}">${p.n}</th>`).join('')}</tr></thead><tbody>${MAP.map(([t,g,ps])=>`<tr><td>${t} <span class="muted">· пр. ${g.join(', ')}</span></td>${P.map(p=>`<td class="n mapc">${ps.includes(p.n)?'<span class="dotm" aria-label="так">●</span>':''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+
+let teacher=store.get('sp-teacher',false); $('teacherMode').checked=teacher;
+$('teacherMode').addEventListener('change',e=>{ teacher=e.target.checked; store.set('sp-teacher',teacher); document.querySelectorAll('.sol').forEach(x=>x.hidden=!teacher); });
+const LV={1:'Рівень 1 · базовий',2:'Рівень 2 · середній',3:'Рівень 3 · підвищений'};
+
+function renderPicker(cur){
+  const pk=$('picker'), toc=$('tocProjects'); pk.innerHTML=''; toc.innerHTML='';
+  P.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.className='pick'; b.setAttribute('role','listitem'); b.setAttribute('aria-current',p.n===cur);
+    b.innerHTML=`<span class="no"><span>Проєкт ${p.n}</span><span class="lvd lv${p.lv}" aria-label="${LV[p.lv]}">${'●'.repeat(p.lv)}</span></span><span class="nm">${esc(p.title)}</span>`; b.onclick=()=>open(p.n,true); pk.appendChild(b);
+    const a=document.createElement('a'); a.href='#s'+p.n; a.textContent=p.n+'. '+p.title; a.onclick=e=>{e.preventDefault();open(p.n,true);}; toc.appendChild(a); });
+}
+function open(n,scroll){
+  const p=P.find(x=>x.n===n)||P[0]; renderPicker(p.n);
+  const li=a=>a.map(x=>`<li>${x}</li>`).join('');
+  const key='sp-'+p.n;
+  const saved=store.get(key,{});
+  $('proj').innerHTML=`
+  <div class="proj-head" id="s${p.n}">
+    <span class="eyebrow">Самостійний проєкт ${p.n} з 10 · ${LV[p.lv]} · ${p.time}</span>
+    <h3>${esc(p.title)}</h3>
+    <div class="chips"><span class="lv lv${p.lv}">${LV[p.lv]}</span>${p.topics.map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+    <p class="muted" style="font-size:.9rem">Спирається на проєкти посібника ${p.ref.map(r=>`<a href="${GUIDE}#p${r}" target="_blank" rel="noopener">${r}</a>`).join(', ')} і теорію: ${p.th.map(t=>`<a href="${GUIDE}#${t}" target="_blank" rel="noopener">${t.slice(1)}</a>`).join(', ')}.</p>
+  </div>
+  <div class="grid2">
+    <div class="box"><h4>Виробнича ситуація</h4><p>${p.situation}</p></div>
+    <figure class="box illu" style="margin:0"><h4>Ескіз розташування</h4>${p.sketch()}</figure>
+  </div>
+  <div class="grid2">
+    <div class="box"><h4>Вимоги до роботи</h4><ol>${li(p.req)}</ol></div>
+    <div class="box"><h4>Параметри</h4><div class="tbl-wrap"><table><tbody>${p.params.map(r=>`<tr><td>${r[0]}</td><td class="pv">${r[1]}</td></tr>`).join('')}</tbody></table></div>
+      <h4>Завдання у FluidSIM</h4><ul>${li(p.fs)}</ul></div>
+  </div>
+  <div class="box"><h4>Потрібна послідовність руху (діаграма шлях–крок)</h4><div class="dia">${stepDia(Object.assign({aria:'Діаграма шлях–крок проєкту '+p.n},p.dia))}</div><p class="muted" style="font-size:.85rem">Діаграма показує, що має відбуватися, а не як побудувати схему. Підписи вказують сигнали, які запускають рух.</p></div>
+  <div class="grid2">
+    <div class="box"><h4>Сценарії перевірки у FluidSIM</h4><ul class="checklist">${p.tests.map((t,i)=>`<li><input type="checkbox" id="c${p.n}_${i}" ${saved['c'+i]?'checked':''}><label for="c${p.n}_${i}">${t}</label></li>`).join('')}</ul></div>
+    <div class="box"><h4>Протокол вимірювань</h4><div class="proto">${p.proto.map((r,i)=>`<label class="field" for="m${p.n}_${i}">${r[0]}${r[1]!=='—'?`, ${r[1]}`:''}<input id="m${p.n}_${i}" type="text" value="${esc(saved['m'+i]||'')}" placeholder="запишіть значення"></label>`).join('')}</div><p class="muted" style="font-size:.8rem">Значення зберігаються лише у вашому браузері.</p></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px"><h4>Підказки</h4>${p.hints.map((h,i)=>`<details><summary>Підказка ${i+1}${i===2?' (майже рішення)':''}</summary><div class="d-body"><p>${h}</p></div></details>`).join('')}</div>
+  <div class="grid2">
+    <div class="box"><h4>Ускладнення (+10 балів)</h4><p>${p.bonus}</p></div>
+    <div class="box"><h4>Контрольні питання до захисту</h4><ol>${li(p.qa)}</ol></div>
+  </div>
+  <div class="box sol" ${teacher?'':'hidden'}><h4>Еталонне рішення (для викладача)</h4><ul>${li(p.sol)}</ul></div>
+  <div class="done-row">${p.n>1?`<button class="sbtn" type="button" id="prevP">← Проєкт ${p.n-1}</button>`:''}${p.n<10?`<button class="sbtn" type="button" id="nextP">Проєкт ${p.n+1} →</button>`:''}</div>`;
+  const save=()=>{ const o={}; p.tests.forEach((t,i)=>o['c'+i]=$('c'+p.n+'_'+i).checked); p.proto.forEach((r,i)=>o['m'+i]=$('m'+p.n+'_'+i).value); store.set(key,o); };
+  $('proj').querySelectorAll('input').forEach(i=>i.addEventListener('input',save));
+  const pv=$('prevP'),nx=$('nextP'); if(pv) pv.onclick=()=>open(p.n-1,true); if(nx) nx.onclick=()=>open(p.n+1,true);
+  if(scroll){ try{history.replaceState(null,'','#s'+p.n);}catch(e){} $('s'+p.n).scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
+}
+const hm=location.hash.match(/^#s(\d+)$/); open(hm?Math.min(10,Math.max(1,+hm[1])):1,!!hm);
+</script>
+</body></html>
